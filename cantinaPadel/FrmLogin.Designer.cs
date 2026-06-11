@@ -77,7 +77,7 @@
             // txtContrasenia
             // 
             txtContrasenia.Location = new Point(317, 207);
-            txtContrasenia.MaxLength = 25;
+            txtContrasenia.MaxLength = 8;
             txtContrasenia.Name = "txtContrasenia";
             txtContrasenia.Size = new Size(125, 27);
             txtContrasenia.TabIndex = 7;
@@ -115,7 +115,6 @@
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Acceso al Sistema - Complejo Pádel";
-            Load += FrmLogin_Load;
             ResumeLayout(false);
             PerformLayout();
         }

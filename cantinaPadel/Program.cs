@@ -1,17 +1,32 @@
+using System;
+using System.Windows.Forms;
+
 namespace cantinaPadel
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new FrmLogin());
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // 1. Instanciamos el formulario de Login
+            FrmLogin login = new FrmLogin();
+
+            // 2. Mostramos el Login como una ventana de diálogo flotante
+            // Esto detiene el código acá hasta que el Login se cierre
+            if (login.ShowDialog() == DialogResult.OK)
+            {
+                // 3. Si el Login devuelve "OK" (credenciales correctas), arranca la aplicación real con el formulario principal
+                // (Asegurate de que tu proyecto tenga un formulario llamado FrmMain, o cambiale el nombre acá por el tuyo)
+                Application.Run(new FrmMain());
+            }
+            else
+            {
+                // Si el usuario tocó "Cancelar" o cerró la cruz, el programa termina limpiamente sin abrir nada
+                Application.Exit();
+            }
         }
     }
 }
