@@ -9,7 +9,7 @@ namespace cantinaPadel
         public static int IdUsuario { get; set; }
         public static string Rol { get; set; }
 
-        // Método opcional por si querés limpiar los datos al cerrar sesión
+        // Método opcional para limpiar los datos al cerrar sesión
         public static void CerrarSesion()
         {
             IdUsuario = 0;

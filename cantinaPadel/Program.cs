@@ -11,14 +11,14 @@ namespace cantinaPadel
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // 1. Instanciamos el formulario de Login
+            // nstanciamos el formulario de Login
             FrmLogin login = new FrmLogin();
 
-            // 2. Mostramos el Login como una ventana de diálogo flotante
+            // Mostramos el Login como una ventana de diálogo flotante
             // Esto detiene el código acá hasta que el Login se cierre
             if (login.ShowDialog() == DialogResult.OK)
             {
-                // 3. Si el Login devuelve "OK" (credenciales correctas), arranca la aplicación real con el formulario principal
+                // Si el Login devuelve "OK" (credenciales correctas), arranca la aplicación real con el formulario principal
                 // (Asegurate de que tu proyecto tenga un formulario llamado FrmMain, o cambiale el nombre acá por el tuyo)
                 Application.Run(new FrmMain());
             }
