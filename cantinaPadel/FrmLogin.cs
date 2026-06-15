@@ -8,13 +8,12 @@ namespace cantinaPadel
             InitializeComponent();
         }
 
+        //Botón INGRESAR
         private void btnIngresar_Click(object sender, EventArgs e)
         {
             //Trim() para eliminar cualquier espacio
             txtUsuario.Text = txtUsuario.Text.Trim();
             txtContrasenia.Text = txtContrasenia.Text.Trim();
-
-            // Limpia los errores anteriores para que no se acumulen
             errorProvider.Clear();
 
             // Validar si el campo de Usuario está vacío
@@ -33,9 +32,51 @@ namespace cantinaPadel
                 return;
             }
 
-            // Mensaje de prueba:
-            MessageBox.Show("Validación exitosa. Próximamente conectará a la BD.",
-                            "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            //Verificar que tenga entre 7 y 8 dígitos
+            if (txtContrasenia.Text.Length < 7)
+            {
+                errorProvider.SetError(txtContrasenia, "El DNI debe tener entre 7 y 8 dígitos.");
+                txtContrasenia.Focus();
+                return;
+            }
+
+            //INTEGRACIÓN: VALIDACIÓN CON LA CAPA DE DATOS
+            string usuarioIngresado = txtUsuario.Text;
+            string dniIngresado = txtContrasenia.Text;
+
+            // Llamamos al método que simula la base de datos
+            bool credencialesValidas = ConsultarUsuarioEnBaseDeDatos(usuarioIngresado, dniIngresado);
+
+            if (credencialesValidas)
+            {
+                // Guardamos los datos en la clase estática global Sesion
+                // Cuando esté EF Core, estos datos vendrán de la fila encontrada en la BD
+                Sesion.IdUsuario = 1;
+                Sesion.Rol = "Administrador";
+
+                // Le avisamos a Program.cs que el Login fue exitoso y cerramos
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
+            else
+            {
+                // Si las credenciales no coinciden en la simulación
+                MessageBox.Show("El usuario o el DNI son incorrectos.", "Error de Autenticación",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // MÉTODO SIMULADO (Preparado para que después se use con Entity Framework Core)
+        private bool ConsultarUsuarioEnBaseDeDatos(string usuario, string dni)
+        {
+            // Por ahora, usamos datos de prueba fijos para que se pueda testear el flujo
+            // Probar con: admin y contraseña: 12345678
+            if (usuario == "admin" && dni == "12345678")
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private void txtUsuario_TextChanged(object sender, EventArgs e)
@@ -66,8 +107,10 @@ namespace cantinaPadel
 
         private void txtContrasenia_KeyPress(object sender, KeyPressEventArgs e)
         {
-            if (e.KeyChar == (char)Keys.Space)
+            //Verifica si la tecla presionada no es un número ni la tecla de borrado
+            if (!char.IsDigit(e.KeyChar) && e.KeyChar != (char)Keys.Back)
             {
+                // Bloqueamos cualquier otra tecla (letras, símbolos, espacios)
                 e.Handled = true;
             }
         }
