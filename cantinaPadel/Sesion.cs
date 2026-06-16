@@ -2,7 +2,7 @@
 
 namespace cantinaPadel
 {
-    // Al ser static, no hace falta instanciarla con 'new'. Se usa directo en todo el proyecto.
+    // Al ser static, no hace falta instanciarla con new. Se usa directo en todo el proyecto.
     public static class Sesion
     {
         // Propiedades globales obligatorias de la subtarea
