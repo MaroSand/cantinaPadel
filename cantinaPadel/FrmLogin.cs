@@ -1,22 +1,27 @@
+using System;
+using System.Windows.Forms;
+using cantinaPadel.BLL;
+
 namespace cantinaPadel
 {
     public partial class FrmLogin : Form
     {
         private ErrorProvider errorProvider = new ErrorProvider();
+
         public FrmLogin()
         {
             InitializeComponent();
         }
 
-        //Botón INGRESAR
+        // Botón INGRESAR
         private void btnIngresar_Click(object sender, EventArgs e)
         {
-            //Trim() para eliminar cualquier espacio
+            // Trim() para eliminar cualquier espacio accidental
             txtUsuario.Text = txtUsuario.Text.Trim();
             txtContrasenia.Text = txtContrasenia.Text.Trim();
             errorProvider.Clear();
 
-            // Validar si el campo de Usuario está vacío
+            // Valida si el campo de Usuario está vacío
             if (string.IsNullOrWhiteSpace(txtUsuario.Text))
             {
                 errorProvider.SetError(txtUsuario, "No ha ingresado Usuario.");
@@ -24,7 +29,7 @@ namespace cantinaPadel
                 return;
             }
 
-            // Validar si el campo de Contraseña está vacío
+            // Valida si el campo de Contraseña está vacío
             if (string.IsNullOrWhiteSpace(txtContrasenia.Text))
             {
                 errorProvider.SetError(txtContrasenia, "Ingrese una contraseña.");
@@ -32,56 +37,55 @@ namespace cantinaPadel
                 return;
             }
 
-            //Verificar que tenga entre 7 y 8 dígitos
-            if (txtContrasenia.Text.Length < 7)
+            // Verifica extensión del DNI (entre 7 y 8 dígitos)
+            if (txtContrasenia.Text.Length < 7 || txtContrasenia.Text.Length > 8)
             {
                 errorProvider.SetError(txtContrasenia, "El DNI debe tener entre 7 y 8 dígitos.");
                 txtContrasenia.Focus();
                 return;
             }
 
-            //INTEGRACIÓN: VALIDACIÓN CON LA CAPA DE DATOS
+            // Valida que sean solo números (permite el pegado de texto con Ctrl+V)
+            if (!long.TryParse(txtContrasenia.Text, out _))
+            {
+                errorProvider.SetError(txtContrasenia, "La contraseña (DNI) debe contener solo números.");
+                txtContrasenia.Focus();
+                return;
+            }
+
+            // INTEGRACIÓN: COMUNICACIÓN CON LA CAPA DE NEGOCIO (BLL)
             string usuarioIngresado = txtUsuario.Text;
             string dniIngresado = txtContrasenia.Text;
 
-            // Llamamos al método que simula la base de datos
-            bool credencialesValidas = ConsultarUsuarioEnBaseDeDatos(usuarioIngresado, dniIngresado);
+            // Se instancia la clase en la carpeta BLL
+            LogicaUsuario bll = new LogicaUsuario();
+            int idUsuarioEncontrado;
+            string rolAsignado;
+
+            // Se llama al método externo pasándole las variables de salida
+            bool credencialesValidas = bll.ValidarCredenciales(usuarioIngresado, dniIngresado, out idUsuarioEncontrado, out rolAsignado);
 
             if (credencialesValidas)
             {
-                // Guardamos los datos en la clase estática global Sesion
-                // Cuando esté EF Core, estos datos vendrán de la fila encontrada en la BD
-                Sesion.IdUsuario = 1;
-                Sesion.Rol = "Administrador";
+                // Se guardan los datos reales que procesó la capa lógica
+                Sesion.IdUsuario = idUsuarioEncontrado;
+                Sesion.Rol = rolAsignado;
 
-                // Le avisamos a Program.cs que el Login fue exitoso y cerramos
+                // Avisa que el Login fue exitoso y cierra
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             else
             {
-                // Si las credenciales no coinciden en la simulación
+                // Mensaje de alerta ante credenciales incorrectas
                 MessageBox.Show("El usuario o el DNI son incorrectos.", "Error de Autenticación",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // MÉTODO SIMULADO (Preparado para que después se use con Entity Framework Core)
-        private bool ConsultarUsuarioEnBaseDeDatos(string usuario, string dni)
-        {
-            // Por ahora, usamos datos de prueba fijos para que se pueda testear el flujo
-            // Probar con: admin y contraseña: 12345678
-            if (usuario == "admin" && dni == "12345678")
-            {
-                return true;
-            }
-
-            return false;
-        }
-
+        // Control de eventos visuales
         private void txtUsuario_TextChanged(object sender, EventArgs e)
         {
-            //Si el usuario ya escribió algo, se pasa un texto vacío("") al SetError para que el icono rojo desaparezca
             if (!string.IsNullOrWhiteSpace(txtUsuario.Text))
             {
                 errorProvider.SetError(txtUsuario, "");
@@ -98,22 +102,12 @@ namespace cantinaPadel
 
         private void txtUsuario_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Si la tecla presionada es el espacio, se anula
+            // Si la tecla presionada es el espacio, se anula en el usuario
             if (e.KeyChar == (char)Keys.Space)
             {
                 e.Handled = true;
             }
         }
 
-        private void txtContrasenia_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            //Verifica si la tecla presionada no es un número ni la tecla de borrado
-            if (!char.IsDigit(e.KeyChar) && e.KeyChar != (char)Keys.Back)
-            {
-                // Bloqueamos cualquier otra tecla (letras, símbolos, espacios)
-                e.Handled = true;
-            }
-        }
     }
-
 }
