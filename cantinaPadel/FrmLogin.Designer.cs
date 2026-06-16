@@ -115,7 +115,6 @@
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Acceso al Sistema - Complejo Pádel";
-            Load += FrmLogin_Load;
             ResumeLayout(false);
             PerformLayout();
         }
