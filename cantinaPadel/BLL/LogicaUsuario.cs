@@ -1,36 +1,31 @@
-﻿using System;
+﻿using cantinaPadel.DAL.Repositories;
+using cantinaPadel.Models;
 
 namespace cantinaPadel.BLL
 {
     public class LogicaUsuario
     {
-        public bool ValidarCredenciales(string usuario, string dni, out int idUsuario, out string rol)
+        private readonly IEmpleadoRepository _repo;
+
+        public LogicaUsuario()
         {
-            // Inicializamos los parámetros de salida por defecto
+            _repo = new EmpleadoRepository();
+        }
+
+        public bool ValidarCredenciales(string usuario, string contrasena,
+            out int idUsuario, out string? rol)
+        {
             idUsuario = 0;
-            rol = null;
+            rol       = null;
 
-            // CREDENCIALES DE PRUEBA
+            Empleado? empleado = _repo.ObtenerPorCredenciales(usuario, contrasena);
 
-            // Prueba para Administrador
-            if (usuario == "admin" && dni == "12345678")
-            {
-                idUsuario = 1;
-                rol = "Administrador";
-                return true;
-            }
+            if (empleado == null)
+                return false;
 
-            // Prueba para Cajero (Empleado)
-            // Probar con usuario: cajero y contraseña: 87654321
-            if (usuario == "cajero" && dni == "87654321")
-            {
-                idUsuario = 2;
-                rol = "Cajero";
-                return true;
-            }
-
-            // Si no coincide con ninguno, rebota
-            return false;
+            idUsuario = empleado.IdEmpleado;
+            rol       = empleado.Rol;
+            return true;
         }
     }
 }
