@@ -7,7 +7,7 @@ namespace cantinaPadel
     {
         // Propiedades globales obligatorias de la subtarea
         public static int IdUsuario { get; set; }
-        public static string Rol { get; set; }
+        public static string? Rol { get; set; }
 
         // Método opcional para limpiar los datos al cerrar sesión
         public static void CerrarSesion()

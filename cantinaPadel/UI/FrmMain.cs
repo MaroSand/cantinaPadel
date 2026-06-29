@@ -71,7 +71,7 @@ namespace cantinaPadel
         private void btnCerrarSesion_Click(object sender, EventArgs e)
         {
             var confirmacion = MessageBox.Show(
-                "¿Desea cerrar Sesión?", "Confirmar",
+                "¿Desea cerrar sesión?", "Confirmar",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirmacion == DialogResult.Yes)
             {
@@ -97,7 +97,12 @@ namespace cantinaPadel
         private void btnCanchas_Click(object sender, EventArgs e) => Navegar("Canchas");
         private void btnCaja_Click(object sender, EventArgs e) => Navegar("Caja");
         private void btnProveedores_Click(object sender, EventArgs e) => Navegar("Proveedores");
-        private void btnEmpleados_Click(object sender, EventArgs e) => Navegar("Empleados");
+        private void btnEmpleados_Click(object sender, EventArgs e)
+        {
+            Navegar("Empleados");
+            cantinaPadel.UI.FrmListadoEmpleados frm = new cantinaPadel.UI.FrmListadoEmpleados();
+            AbrirEnPanel(frm);
+        }
         private void btnReportes_Click(object sender, EventArgs e) => Navegar("Reportes");
 
     }
