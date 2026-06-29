@@ -13,14 +13,8 @@ namespace cantinaPadel.Models
         [Column("id_persona")]
         public int IdPersona { get; set; }
 
-        [Column("razon_social")]
-        public string? RazonSocial { get; set; }
-
-        [Column("cuit")]
-        public string? Cuit { get; set; }
-
-        [Column("condicion_iva")]
-        public string? CondicionIva { get; set; }
+        [Column("nombre_empresa")]
+        public string NombreEmpresa { get; set; }
 
         [ForeignKey("IdPersona")]
         public Persona Persona { get; set; }

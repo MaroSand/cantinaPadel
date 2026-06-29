@@ -20,6 +20,12 @@ namespace cantinaPadel.Models
 
         [Column("dni")]
         public string? Dni { get; set; }
+        
+        [Column("cuit")]
+        public string? Cuit { get; set; }
+        
+        [Column("condicion_iva")]
+        public string? CondicionIva { get; set; }
 
         [Column("telefono")]
         public string? Telefono { get; set; }
