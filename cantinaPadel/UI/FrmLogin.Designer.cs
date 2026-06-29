@@ -83,6 +83,7 @@
             txtContrasenia.TabIndex = 7;
             txtContrasenia.UseSystemPasswordChar = true;
             txtContrasenia.TextChanged += txtContrasenia_TextChanged;
+            txtContrasenia.KeyPress += txtUsuario_KeyPress;
             // 
             // btnIngresar
             // 

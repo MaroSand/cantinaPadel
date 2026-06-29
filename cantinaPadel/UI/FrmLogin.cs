@@ -19,7 +19,7 @@ namespace cantinaPadel
             // Trim() para eliminar cualquier espacio accidental
             txtUsuario.Text = txtUsuario.Text.Trim();
             txtContrasenia.Text = txtContrasenia.Text.Trim();
-            errorProvider.Clear();
+            errorProvider.Clear();  
 
             // Valida si el campo de Usuario está vacío
             if (string.IsNullOrWhiteSpace(txtUsuario.Text))
@@ -37,10 +37,10 @@ namespace cantinaPadel
                 return;
             }
 
-            // Verifica extensión del DNI (entre 7 y 8 dígitos)
+            // Verifica extensión de la contraseña (DNI entre 7 y 8 dígitos)
             if (txtContrasenia.Text.Length < 7 || txtContrasenia.Text.Length > 8)
             {
-                errorProvider.SetError(txtContrasenia, "El DNI debe tener entre 7 y 8 dígitos.");
+                errorProvider.SetError(txtContrasenia, "La contraseña debe tener entre 7 y 8 dígitos.");
                 txtContrasenia.Focus();
                 return;
             }
@@ -48,14 +48,14 @@ namespace cantinaPadel
             // Valida que sean solo números (permite el pegado de texto con Ctrl+V)
             if (!long.TryParse(txtContrasenia.Text, out _))
             {
-                errorProvider.SetError(txtContrasenia, "La contraseña (DNI) debe contener solo números.");
+                errorProvider.SetError(txtContrasenia, "La contraseña debe contener solo números.");
                 txtContrasenia.Focus();
                 return;
             }
 
             // INTEGRACIÓN: COMUNICACIÓN CON LA CAPA DE NEGOCIO (BLL)
             string usuarioIngresado = txtUsuario.Text;
-            string dniIngresado = txtContrasenia.Text;
+            string contraseniaIngresada = txtContrasenia.Text;
 
             // Se instancia la clase en la carpeta BLL
             LogicaUsuario bll = new LogicaUsuario();
@@ -63,7 +63,7 @@ namespace cantinaPadel
             string rolAsignado;
 
             // Se llama al método externo pasándole las variables de salida
-            bool credencialesValidas = bll.ValidarCredenciales(usuarioIngresado, dniIngresado, out idUsuarioEncontrado, out rolAsignado);
+            bool credencialesValidas = bll.ValidarCredenciales(usuarioIngresado, contraseniaIngresada, out idUsuarioEncontrado, out rolAsignado);
 
             if (credencialesValidas)
             {
@@ -78,7 +78,7 @@ namespace cantinaPadel
             else
             {
                 // Mensaje de alerta ante credenciales incorrectas
-                MessageBox.Show("El usuario o el DNI son incorrectos.", "Error de Autenticación",
+                MessageBox.Show("El usuario o contraseña son incorrectos.", "Error de Autenticación",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
