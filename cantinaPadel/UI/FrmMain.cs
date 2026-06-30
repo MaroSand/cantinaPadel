@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -71,7 +70,7 @@ namespace cantinaPadel
         private void btnCerrarSesion_Click(object sender, EventArgs e)
         {
             var confirmacion = MessageBox.Show(
-                "¿Desea cerrar Sesión?", "Confirmar",
+                "¿Desea cerrar sesión?", "Confirmar",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirmacion == DialogResult.Yes)
             {
@@ -101,11 +100,19 @@ namespace cantinaPadel
         private void btnTurnos_Click(object sender, EventArgs e) => Navegar("Turnos");
         private void btnCanchas_Click(object sender, EventArgs e) => Navegar("Canchas");
         private void btnCaja_Click(object sender, EventArgs e) => Navegar("Caja");
-        private void btnProveedores_Click(object sender, EventArgs e) => Navegar("Proveedores");
-        private void btnEmpleados_Click(object sender, EventArgs e) => Navegar("Empleados");
+        private void btnProveedores_Click(object sender, EventArgs e)
+        {
+            Navegar("Proveedores");
+            cantinaPadel.UI.FrmListadoProveedores frm = new cantinaPadel.UI.FrmListadoProveedores();
+            AbrirEnPanel(frm);
+        }
+        private void btnEmpleados_Click(object sender, EventArgs e)
+        {
+            Navegar("Empleados");
+            cantinaPadel.UI.FrmListadoEmpleados frm = new cantinaPadel.UI.FrmListadoEmpleados();
+            AbrirEnPanel(frm);
+        }
         private void btnReportes_Click(object sender, EventArgs e) => Navegar("Reportes");
 
     }
 }
-
-     
