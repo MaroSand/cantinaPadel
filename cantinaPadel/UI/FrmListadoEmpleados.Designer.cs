@@ -109,6 +109,7 @@
             btnBajaLogica.TabIndex = 2;
             btnBajaLogica.Text = " Dar de Baja/ Alta";
             btnBajaLogica.UseVisualStyleBackColor = true;
+            btnBajaLogica.Click += btnCambiarEstado_Click;
             // 
             // btnModificar
             // 
@@ -118,6 +119,7 @@
             btnModificar.TabIndex = 1;
             btnModificar.Text = "Modificar";
             btnModificar.UseVisualStyleBackColor = true;
+            btnModificar.Click += btnModificar_Click;
             // 
             // btnNuevo
             // 
@@ -127,6 +129,7 @@
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo Empleado";
             btnNuevo.UseVisualStyleBackColor = true;
+            btnNuevo.Click += btnNuevo_Click;
             // 
             // dgvEmpleados
             // 
