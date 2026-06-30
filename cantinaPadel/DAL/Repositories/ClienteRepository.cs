@@ -10,7 +10,6 @@ namespace cantinaPadel.DAL.Repositories
             using var context = new AppDbContext();
             return context.Clientes
                 .Include(c => c.Persona)
-                .Where(c => c.Persona.Activo)
                 .ToList();
         }
         public Cliente? ObtenerPorId(int id)
@@ -18,7 +17,7 @@ namespace cantinaPadel.DAL.Repositories
             using var context = new AppDbContext();
             return context.Clientes
                 .Include(c => c.Persona)
-                .FirstOrDefault(c => c.IdCliente == id && c.Persona.Activo);
+                .FirstOrDefault(c => c.IdCliente == id);
         }
         public void Agregar(Cliente cliente)
         {
@@ -35,10 +34,13 @@ namespace cantinaPadel.DAL.Repositories
         public void Bajalogica(int id)
         {
             using var context = new AppDbContext();
-            var cliente = context.Clientes.Find(id);
+            var cliente = context.Clientes
+                .Include(c => c.Persona)
+                .FirstOrDefault(c => c.IdCliente == id);
+
             if (cliente != null)
             {
-                cliente.Persona.Activo = false;
+                cliente.Persona.Activo = !cliente.Persona.Activo;
                 context.SaveChanges();
             }
         }

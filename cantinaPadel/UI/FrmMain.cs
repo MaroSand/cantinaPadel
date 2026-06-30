@@ -88,7 +88,12 @@ namespace cantinaPadel
         // Eventos de clic para los botones del menú, cada uno llama al método Navegar con el nombre del módulo correspondiente
         // => es una expresión lambda que simplifica la sintaxis del método, permitiendo escribirlo en una sola línea
         private void btnInicio_Click(object sender, EventArgs e) => Navegar("Inicio");
-        private void btnClientes_Click(object sender, EventArgs e) => Navegar("Clientes");
+        private void btnClientes_Click(object sender, EventArgs e)
+        {
+            Navegar("Clientes");
+            cantinaPadel.UI.FrmListadoClientes frm = new cantinaPadel.UI.FrmListadoClientes();
+            AbrirEnPanel(frm);
+        }
         private void btnPuntoVenta_Click(object sender, EventArgs e) => Navegar("Punto de Venta");
         private void btnStock_Click(object sender, EventArgs e) => Navegar("Stock");
         private void btnCompras_Click(object sender, EventArgs e) => Navegar("Compras");
