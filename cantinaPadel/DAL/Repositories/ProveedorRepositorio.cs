@@ -6,13 +6,12 @@ namespace cantinaPadel.DAL.Repositories
 {
     public class ProveedorRepositorio : IProveedorRepositorio
     {
-        // Trae todos los proveedores activos con su Persona incluida
+        // Trae todos los proveedores (activos e inactivos); el filtro de estado se hace en la UI
         public List<Proveedor> ObtenerTodos()
         {
             using var ctx = new AppDbContext();
             return ctx.Proveedores
                 .Include(p => p.Persona)
-                .Where(p => p.Persona.Activo)
                 .OrderBy(p => p.Persona.Apellido)
                 .ThenBy(p => p.Persona.Nombre)
                 .ToList();
@@ -27,13 +26,10 @@ namespace cantinaPadel.DAL.Repositories
             return ctx.Proveedores
                 .Include(p => p.Persona)
                 .Where(p =>
-                    p.Persona.Activo &&
-                    (
-                        (p.Persona.Nombre   + " " + p.Persona.Apellido).ToLower().Contains(termino) ||
-                        (p.Persona.Apellido + " " + p.Persona.Nombre).ToLower().Contains(termino)   ||
-                        (p.Persona.Cuit     != null && p.Persona.Cuit.Contains(termino))             ||
-                        (p.NombreEmpresa    != null && p.NombreEmpresa.ToLower().Contains(termino))
-                    )
+                    (p.Persona.Nombre   + " " + p.Persona.Apellido).ToLower().Contains(termino) ||
+                    (p.Persona.Apellido + " " + p.Persona.Nombre).ToLower().Contains(termino)   ||
+                    (p.Persona.Cuit     != null && p.Persona.Cuit.Contains(termino))             ||
+                    (p.NombreEmpresa    != null && p.NombreEmpresa.ToLower().Contains(termino))
                 )
                 .OrderBy(p => p.Persona.Apellido)
                 .ToList();
@@ -78,8 +74,7 @@ namespace cantinaPadel.DAL.Repositories
             tx.Commit();
         }
 
-        // Baja lógica: no borra filas, solo marca Persona.Activo = false
-        //TODO VER SI HAY QUE HACER BAJA LÓGICA DE PROVEEDOR Y DE PERSONA
+        // Baja/Alta lógica: no borra filas, alterna Persona.Activo (false <-> true)
         public void BajaLogica(int idProveedor)
         {
             using var ctx = new AppDbContext();
@@ -90,8 +85,8 @@ namespace cantinaPadel.DAL.Repositories
 
             if (proveedor == null) return;
 
-            proveedor.Persona.Activo = false;
-            proveedor.Persona.EsProveedor = false;
+            // Alterna el estado: si está activo lo da de baja, si está inactivo lo reactiva
+            proveedor.Persona.Activo = !proveedor.Persona.Activo;
             ctx.SaveChanges();
         }
     }
