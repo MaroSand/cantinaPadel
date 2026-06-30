@@ -53,68 +53,59 @@ namespace cantinaPadel.UI
 
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Se validan los campos obligatorios antes de continuar
-            if (string.IsNullOrWhiteSpace(txtDni.Text) || string.IsNullOrWhiteSpace(txtApellido.Text) ||
-                string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtUsuario.Text) ||
-                string.IsNullOrWhiteSpace(txtContrasena.Text) || cmbRol.SelectedItem == null)
-            {
-                MessageBox.Show("Por favor, complete todos los campos obligatorios.", "Atención", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
             try
             {
-                // Se verifica si es un registro nuevo
                 if (_empleadoEdicion == null)
                 {
-                    // Se crea la nueva entidad completa
+                    // Se crea una nueva instancia para el alta
                     Empleado nuevoEmpleado = new Empleado
                     {
-                        NombreUsuario = txtUsuario.Text.Trim(),
-                        Contrasena = txtContrasena.Text.Trim(),
-                        Rol = cmbRol.SelectedItem.ToString()!,
+                        NombreUsuario = txtUsuario.Text,
+                        Contrasena = txtContrasena.Text,
+                        Rol = cmbRol.SelectedItem?.ToString() ?? "",
                         Activo = true,
 
                         Persona = new Persona
                         {
-                            Dni = txtDni.Text.Trim(),
-                            Apellido = txtApellido.Text.Trim(),
-                            Nombre = txtNombre.Text.Trim(),
-                            Telefono = txtTelefono.Text.Trim()
+                            Dni = txtDni.Text,
+                            Apellido = txtApellido.Text,
+                            Nombre = txtNombre.Text,
+                            Telefono = txtTelefono.Text
                         }
                     };
 
-                    // Se envía el nuevo objeto a la capa de negocio
+                    // Se envía a la lógica (donde se aplican los Trims y validaciones)
                     _logicaEmpleado.RegistrarOGuardar(nuevoEmpleado);
                     MessageBox.Show("Empleado registrado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
-                    // Se actualizan los datos de la persona existente
-                    _empleadoEdicion.Persona.Apellido = txtApellido.Text.Trim();
-                    _empleadoEdicion.Persona.Nombre = txtNombre.Text.Trim();
-                    _empleadoEdicion.Persona.Telefono = txtTelefono.Text.Trim();
+                    // Se cargan las modificaciones en el objeto existente
+                    _empleadoEdicion.Persona.Apellido = txtApellido.Text;
+                    _empleadoEdicion.Persona.Nombre = txtNombre.Text;
+                    _empleadoEdicion.Persona.Telefono = txtTelefono.Text;
 
-                    // Se actualizan los datos del empleado existente
-                    _empleadoEdicion.NombreUsuario = txtUsuario.Text.Trim();
-                    _empleadoEdicion.Contrasena = txtContrasena.Text.Trim();
-                    _empleadoEdicion.Rol = cmbRol.SelectedItem.ToString()!;
+                    _empleadoEdicion.NombreUsuario = txtUsuario.Text;
+                    _empleadoEdicion.Contrasena = txtContrasena.Text;
+                    _empleadoEdicion.Rol = cmbRol.SelectedItem?.ToString() ?? "";
 
-                    // Se envían las modificaciones a la capa de negocio
+                    // Se envía a la lógica
                     _logicaEmpleado.RegistrarOGuardar(_empleadoEdicion);
-                    MessageBox.Show("Empleado personalizado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Empleado modificado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                // Se ejecuta la redirección limpia hacia la pantalla del listado
+                // Se redirige al listado si la operación fue exitosa
                 RegresarAlListado();
             }
             catch (ArgumentException ex)
             {
-                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                // Se muestran las excepciones de negocio de forma clara y limpia al usuario
+                MessageBox.Show(ex.Message, "Validación de Datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al guardar el empleado: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Se capturan errores inesperados de la base de datos o del sistema
+                MessageBox.Show($"Error interno al procesar la solicitud: {ex.Message}", "Error General", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -132,6 +123,41 @@ namespace cantinaPadel.UI
                 // Se vuelve a instanciar el listado para recargar la grilla desde la base de datos
                 FrmListadoEmpleados listado = new FrmListadoEmpleados();
                 mainForm.AbrirEnPanel(listado);
+            }
+        }
+
+        private void txtDni_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Se permite únicamente números y la tecla de borrar (BackSpace)
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true; // Se cancela la pulsación de la tecla
+            }
+        }
+
+        private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Se permite únicamente números y la tecla de borrar (BackSpace)
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true; // Se cancela la pulsación de la tecla
+            }
+        }
+
+        private void txtApellido_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Se permite únicamente letras, espacios y teclas de control como borrar
+            if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
+            {
+                e.Handled = true; // Se cancela la pulsación si es un número o símbolo
+            }
+        }
+
+        private void txtNombre_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
+            {
+                e.Handled = true;
             }
         }
     }
