@@ -51,12 +51,30 @@ namespace cantinaPadel.BLL
             }
         }
 
+        private void Validar(Cliente cliente)
+        {
+            if (cliente == null)
+                throw new ArgumentException("Los datos del cliente son obligatorios.");
+
+            if (cliente.Persona == null)
+                throw new ArgumentException("Los datos de la persona son obligatorios.");
+
+            cliente.Persona.ValidarDatosComunes();
+
+            cliente.Email = cliente.Email?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(cliente.Email))
+                throw new ArgumentException("El Email es obligatorio.");
+
+            if (!EsEmailValido(cliente.Email))
+                throw new ArgumentException("El Email ingresado no es válido.");
+        }
+
 
         // Método para modificar un cliente existente
         public void Modificar(Cliente cliente)
         {
-            if (!EsEmailValido(cliente.Email))
-                throw new ArgumentException("El Email ingresado no es válido.");
+            Validar(cliente);
 
             _clienteRepository.Modificar(cliente);
         }
@@ -66,10 +84,7 @@ namespace cantinaPadel.BLL
         public void Alta(Cliente cliente)
         {
 
-            // Validar el email del cliente antes de agregarlo
-            if (!EsEmailValido(cliente.Email))
-                throw new ArgumentException("El Email ingresado no es válido.");
-
+            Validar(cliente);
 
             Persona? personaExiste = null;
             // Verificar si la persona ya existe en la base de datos por su DNI
