@@ -14,6 +14,7 @@ namespace cantinaPadel.UI
         public FrmCRUDProveedor()
         {
             InitializeComponent();
+            CargarCondicionesIva();
             _logicaProveedor  = new LogicaProveedor();
             _proveedorEdicion = null;
             this.Text         = "Nuevo Proveedor";
@@ -36,6 +37,14 @@ namespace cantinaPadel.UI
                 CargarDatosEnFormulario();
         }
 
+        private void CargarCondicionesIva()
+        {
+            cmbCondicionIva.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCondicionIva.Items.Clear();
+            cmbCondicionIva.Items.AddRange(Persona.CondicionesIvaValidas);
+            cmbCondicionIva.SelectedIndex = -1;
+        }
+
         // Rellena los campos cuando es una modificación
         private void CargarDatosEnFormulario()
         {
@@ -48,7 +57,7 @@ namespace cantinaPadel.UI
             txtNombreEmpresa.Text = _proveedorEdicion.NombreEmpresa     ?? string.Empty;
 
             if (!string.IsNullOrEmpty(_proveedorEdicion.Persona.CondicionIva))
-                cmbCondicionIva.Text = _proveedorEdicion.Persona.CondicionIva;
+                cmbCondicionIva.SelectedItem = _proveedorEdicion.Persona.CondicionIva;
         }
 
         private void btnGuardar_Click(object sender, EventArgs e)
@@ -62,7 +71,7 @@ namespace cantinaPadel.UI
                 Cuit         = txtCuit.Text.Trim(),
                 Telefono     = txtTelefono.Text.Trim(),
                 Direccion    = txtDireccion.Text.Trim(),
-                CondicionIva = cmbCondicionIva.Text.Trim()
+                CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty
             };
 
             var proveedor = new Proveedor
@@ -70,37 +79,41 @@ namespace cantinaPadel.UI
                 NombreEmpresa = txtNombreEmpresa.Text.Trim()
             };
 
-            (bool ok, string error) resultado;
-
-            if (_proveedorEdicion == null)
+            try
             {
-                // Alta
-                resultado = _logicaProveedor.Agregar(persona, proveedor);
+                if (_proveedorEdicion == null)
+                {
+                    // Alta
+                    _logicaProveedor.Agregar(persona, proveedor);
+                }
+                else
+                {
+                    // Modificación: conserva los IDs originales
+                    persona.IdPersona     = _proveedorEdicion.IdPersona;
+                    persona.EsProveedor   = true;
+                    persona.FechaAlta     = _proveedorEdicion.Persona.FechaAlta;
+                    persona.Activo        = _proveedorEdicion.Persona.Activo;
+                    proveedor.IdProveedor = _proveedorEdicion.IdProveedor;
+                    proveedor.IdPersona   = _proveedorEdicion.IdPersona;
+
+                    _logicaProveedor.Modificar(persona, proveedor);
+                }
+
+                MessageBox.Show("Proveedor guardado correctamente.", "Éxito",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.DialogResult = DialogResult.OK;
+                this.Close();
             }
-            else
+            catch (ArgumentException ex)
             {
-                // Modificación: conserva los IDs originales
-                persona.IdPersona     = _proveedorEdicion.IdPersona;
-                persona.EsProveedor   = true;
-                persona.FechaAlta     = _proveedorEdicion.Persona.FechaAlta;
-                persona.Activo        = _proveedorEdicion.Persona.Activo;
-                proveedor.IdProveedor = _proveedorEdicion.IdProveedor;
-                proveedor.IdPersona   = _proveedorEdicion.IdPersona;
-
-                resultado = _logicaProveedor.Modificar(persona, proveedor);
-            }
-
-            if (!resultado.ok)
-            {
-                MessageBox.Show(resultado.error, "Validación",
+                MessageBox.Show(ex.Message, "Validación",
                     MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
             }
-
-            MessageBox.Show("Proveedor guardado correctamente.", "Éxito",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al guardar: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnCancelar_Click(object sender, EventArgs e)

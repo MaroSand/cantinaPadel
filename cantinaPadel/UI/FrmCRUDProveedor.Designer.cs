@@ -28,81 +28,55 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelHeader      = new Panel();
-            panelCuerpo      = new Panel();
-            panelFooter      = new Panel();
-            lblTitulo        = new Label();
-            lblNombre        = new Label();
-            txtNombre        = new TextBox();
-            lblApellido      = new Label();
-            txtApellido      = new TextBox();
-            lblDni           = new Label();
-            txtDni           = new TextBox();
-            lblCuit          = new Label();
-            txtCuit          = new TextBox();
-            lblCondicionIva  = new Label();
-            cmbCondicionIva  = new ComboBox();
-            lblTelefono      = new Label();
-            txtTelefono      = new TextBox();
-            lblDireccion     = new Label();
-            txtDireccion     = new TextBox();
-            lblNombreEmpresa = new Label();
-            txtNombreEmpresa = new TextBox();
-            btnGuardar       = new Button();
-            btnCancelar      = new Button();
+            panelHeader = new System.Windows.Forms.Panel();
+            lblTitulo = new System.Windows.Forms.Label();
+            panelCuerpo = new System.Windows.Forms.Panel();
+            lblNombreEmpresa = new System.Windows.Forms.Label();
+            txtNombreEmpresa = new System.Windows.Forms.TextBox();
+            lblApellido = new System.Windows.Forms.Label();
+            txtApellido = new System.Windows.Forms.TextBox();
+            lblNombre = new System.Windows.Forms.Label();
+            txtNombre = new System.Windows.Forms.TextBox();
+            lblDni = new System.Windows.Forms.Label();
+            txtDni = new System.Windows.Forms.TextBox();
+            lblCuit = new System.Windows.Forms.Label();
+            txtCuit = new System.Windows.Forms.TextBox();
+            lblCondicionIva = new System.Windows.Forms.Label();
+            cmbCondicionIva = new System.Windows.Forms.ComboBox();
+            lblTelefono = new System.Windows.Forms.Label();
+            txtTelefono = new System.Windows.Forms.TextBox();
+            lblDireccion = new System.Windows.Forms.Label();
+            txtDireccion = new System.Windows.Forms.TextBox();
+            panelFooter = new System.Windows.Forms.Panel();
+            btnGuardar = new System.Windows.Forms.Button();
+            btnCancelar = new System.Windows.Forms.Button();
             panelHeader.SuspendLayout();
             panelCuerpo.SuspendLayout();
             panelFooter.SuspendLayout();
             SuspendLayout();
-            //
+            // 
             // panelHeader
-            //
-            panelHeader.BackColor = Color.Gold;
+            // 
+            panelHeader.BackColor = System.Drawing.Color.Gold;
             panelHeader.Controls.Add(lblTitulo);
-            panelHeader.Dock     = DockStyle.Top;
-            panelHeader.Location = new Point(0, 0);
-            panelHeader.Name     = "panelHeader";
-            panelHeader.Size     = new Size(500, 50);
+            panelHeader.Dock = System.Windows.Forms.DockStyle.Top;
+            panelHeader.Location = new System.Drawing.Point(0, 0);
+            panelHeader.Name = "panelHeader";
+            panelHeader.Size = new System.Drawing.Size(500, 50);
             panelHeader.TabIndex = 0;
-            //
+            // 
             // lblTitulo
-            //
+            // 
             lblTitulo.AutoSize = true;
-            lblTitulo.Font     = new Font("Segoe UI", 13F, FontStyle.Bold);
-            lblTitulo.Location = new Point(16, 12);
-            lblTitulo.Name     = "lblTitulo";
-            lblTitulo.Text     = "Datos del Proveedor";
-            //
-            // panelFooter
-            //
-            panelFooter.Controls.Add(btnGuardar);
-            panelFooter.Controls.Add(btnCancelar);
-            panelFooter.Dock     = DockStyle.Bottom;
-            panelFooter.Location = new Point(0, 400);
-            panelFooter.Name     = "panelFooter";
-            panelFooter.Size     = new Size(500, 50);
-            panelFooter.TabIndex = 2;
-            //
-            // btnGuardar
-            //
-            btnGuardar.Location = new Point(270, 10);
-            btnGuardar.Name     = "btnGuardar";
-            btnGuardar.Size     = new Size(100, 29);
-            btnGuardar.TabIndex = 0;
-            btnGuardar.Text     = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = true;
-            //
-            // btnCancelar
-            //
-            btnCancelar.Location = new Point(380, 10);
-            btnCancelar.Name     = "btnCancelar";
-            btnCancelar.Size     = new Size(100, 29);
-            btnCancelar.TabIndex = 1;
-            btnCancelar.Text     = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
-            //
+            lblTitulo.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
+            lblTitulo.Location = new System.Drawing.Point(16, 12);
+            lblTitulo.Name = "lblTitulo";
+            lblTitulo.Size = new System.Drawing.Size(357, 47);
+            lblTitulo.TabIndex = 0;
+            lblTitulo.Text = "Datos del Proveedor";
+            // 
             // panelCuerpo
-            //
+            // 
             panelCuerpo.Controls.Add(lblNombreEmpresa);
             panelCuerpo.Controls.Add(txtNombreEmpresa);
             panelCuerpo.Controls.Add(lblApellido);
@@ -119,147 +93,190 @@
             panelCuerpo.Controls.Add(txtTelefono);
             panelCuerpo.Controls.Add(lblDireccion);
             panelCuerpo.Controls.Add(txtDireccion);
-            panelCuerpo.Dock     = DockStyle.Fill;
-            panelCuerpo.Location = new Point(0, 50);
-            panelCuerpo.Name     = "panelCuerpo";
-            panelCuerpo.Size     = new Size(500, 350);
+            panelCuerpo.Dock = System.Windows.Forms.DockStyle.Fill;
+            panelCuerpo.Location = new System.Drawing.Point(0, 50);
+            panelCuerpo.Name = "panelCuerpo";
+            panelCuerpo.Size = new System.Drawing.Size(500, 350);
             panelCuerpo.TabIndex = 1;
-            //
+            // 
             // lblNombreEmpresa
-            //
+            // 
             lblNombreEmpresa.AutoSize = true;
-            lblNombreEmpresa.Location = new Point(16, 20);
-            lblNombreEmpresa.Name     = "lblNombreEmpresa";
-            lblNombreEmpresa.Text     = "Nombre de Empresa:";
-            //
+            lblNombreEmpresa.Location = new System.Drawing.Point(16, 20);
+            lblNombreEmpresa.Name = "lblNombreEmpresa";
+            lblNombreEmpresa.Size = new System.Drawing.Size(238, 32);
+            lblNombreEmpresa.TabIndex = 0;
+            lblNombreEmpresa.Text = "Nombre de Empresa:";
+            // 
             // txtNombreEmpresa
-            //
-            txtNombreEmpresa.Location = new Point(200, 17);
-            txtNombreEmpresa.Name     = "txtNombreEmpresa";
-            txtNombreEmpresa.Size     = new Size(265, 27);
+            // 
+            txtNombreEmpresa.Location = new System.Drawing.Point(200, 17);
+            txtNombreEmpresa.MaxLength = 50;
+            txtNombreEmpresa.Name = "txtNombreEmpresa";
+            txtNombreEmpresa.Size = new System.Drawing.Size(265, 39);
             txtNombreEmpresa.TabIndex = 0;
-            //
+            // 
             // lblApellido
-            //
+            // 
             lblApellido.AutoSize = true;
-            lblApellido.Location = new Point(16, 60);
-            lblApellido.Name     = "lblApellido";
-            lblApellido.Text     = "Apellido: *";
-            //
+            lblApellido.Location = new System.Drawing.Point(16, 60);
+            lblApellido.Name = "lblApellido";
+            lblApellido.Size = new System.Drawing.Size(124, 32);
+            lblApellido.TabIndex = 1;
+            lblApellido.Text = "Apellido: *";
+            // 
             // txtApellido
-            //
-            txtApellido.Location = new Point(200, 57);
-            txtApellido.Name     = "txtApellido";
-            txtApellido.Size     = new Size(265, 27);
+            // 
+            txtApellido.Location = new System.Drawing.Point(200, 57);
+            txtApellido.MaxLength = 50;
+            txtApellido.Name = "txtApellido";
+            txtApellido.Size = new System.Drawing.Size(265, 39);
             txtApellido.TabIndex = 1;
-            //
+            // 
             // lblNombre
-            //
+            // 
             lblNombre.AutoSize = true;
-            lblNombre.Location = new Point(16, 100);
-            lblNombre.Name     = "lblNombre";
-            lblNombre.Text     = "Nombre: *";
-            //
+            lblNombre.Location = new System.Drawing.Point(16, 100);
+            lblNombre.Name = "lblNombre";
+            lblNombre.Size = new System.Drawing.Size(124, 32);
+            lblNombre.TabIndex = 2;
+            lblNombre.Text = "Nombre: *";
+            // 
             // txtNombre
-            //
-            txtNombre.Location = new Point(200, 97);
-            txtNombre.Name     = "txtNombre";
-            txtNombre.Size     = new Size(265, 27);
+            // 
+            txtNombre.Location = new System.Drawing.Point(200, 97);
+            txtNombre.MaxLength = 50;
+            txtNombre.Name = "txtNombre";
+            txtNombre.Size = new System.Drawing.Size(265, 39);
             txtNombre.TabIndex = 2;
-            //
+            // 
             // lblDni
-            //
+            // 
             lblDni.AutoSize = true;
-            lblDni.Location = new Point(16, 140);
-            lblDni.Name     = "lblDni";
-            lblDni.Text     = "DNI:";
-            //
+            lblDni.Location = new System.Drawing.Point(16, 140);
+            lblDni.Name = "lblDni";
+            lblDni.Size = new System.Drawing.Size(60, 32);
+            lblDni.TabIndex = 3;
+            lblDni.Text = "DNI:";
+            // 
             // txtDni
-            //
-            txtDni.Location = new Point(200, 137);
-            txtDni.Name     = "txtDni";
-            txtDni.Size     = new Size(130, 27);
+            // 
+            txtDni.Location = new System.Drawing.Point(200, 137);
+            txtDni.MaxLength = 8;
+            txtDni.Name = "txtDni";
+            txtDni.Size = new System.Drawing.Size(130, 39);
             txtDni.TabIndex = 3;
-            //
+            // 
             // lblCuit
-            //
+            // 
             lblCuit.AutoSize = true;
-            lblCuit.Location = new Point(16, 180);
-            lblCuit.Name     = "lblCuit";
-            lblCuit.Text     = "CUIT (XX-XXXXXXXX-X):";
-            //
+            lblCuit.Location = new System.Drawing.Point(16, 180);
+            lblCuit.Name = "lblCuit";
+            lblCuit.Size = new System.Drawing.Size(264, 32);
+            lblCuit.TabIndex = 4;
+            lblCuit.Text = "CUIT (XX-XXXXXXXX-X):";
+            // 
             // txtCuit
-            //
-            txtCuit.Location  = new Point(200, 177);
-            txtCuit.Name      = "txtCuit";
-            txtCuit.Size      = new Size(130, 27);
+            // 
+            txtCuit.Location = new System.Drawing.Point(200, 177);
             txtCuit.MaxLength = 13;
-            txtCuit.TabIndex  = 4;
-            //
+            txtCuit.Name = "txtCuit";
+            txtCuit.Size = new System.Drawing.Size(130, 39);
+            txtCuit.TabIndex = 4;
+            // 
             // lblCondicionIva
-            //
+            // 
             lblCondicionIva.AutoSize = true;
-            lblCondicionIva.Location = new Point(16, 220);
-            lblCondicionIva.Name     = "lblCondicionIva";
-            lblCondicionIva.Text     = "Condición IVA:";
-            //
+            lblCondicionIva.Location = new System.Drawing.Point(16, 220);
+            lblCondicionIva.Name = "lblCondicionIva";
+            lblCondicionIva.Size = new System.Drawing.Size(169, 32);
+            lblCondicionIva.TabIndex = 5;
+            lblCondicionIva.Text = "Condición IVA:";
+            // 
             // cmbCondicionIva
-            //
+            // 
             cmbCondicionIva.FormattingEnabled = true;
-            cmbCondicionIva.Items.AddRange(new object[]
-            {
-                "Responsable Inscripto",
-                "Monotributista",
-                "Exento",
-                "Consumidor Final"
-            });
-            cmbCondicionIva.Location = new Point(200, 217);
-            cmbCondicionIva.Name     = "cmbCondicionIva";
-            cmbCondicionIva.Size     = new Size(200, 28);
+            cmbCondicionIva.Location = new System.Drawing.Point(200, 217);
+            cmbCondicionIva.Name = "cmbCondicionIva";
+            cmbCondicionIva.Size = new System.Drawing.Size(225, 40);
             cmbCondicionIva.TabIndex = 5;
-            //
+            // 
             // lblTelefono
-            //
+            // 
             lblTelefono.AutoSize = true;
-            lblTelefono.Location = new Point(16, 262);
-            lblTelefono.Name     = "lblTelefono";
-            lblTelefono.Text     = "Teléfono:";
-            //
+            lblTelefono.Location = new System.Drawing.Point(16, 262);
+            lblTelefono.Name = "lblTelefono";
+            lblTelefono.Size = new System.Drawing.Size(112, 32);
+            lblTelefono.TabIndex = 6;
+            lblTelefono.Text = "Teléfono:";
+            // 
             // txtTelefono
-            //
-            txtTelefono.Location = new Point(200, 259);
-            txtTelefono.Name     = "txtTelefono";
-            txtTelefono.Size     = new Size(200, 27);
+            // 
+            txtTelefono.Location = new System.Drawing.Point(200, 259);
+            txtTelefono.MaxLength = 20;
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new System.Drawing.Size(200, 39);
             txtTelefono.TabIndex = 6;
-            //
+            // 
             // lblDireccion
-            //
+            // 
             lblDireccion.AutoSize = true;
-            lblDireccion.Location = new Point(16, 302);
-            lblDireccion.Name     = "lblDireccion";
-            lblDireccion.Text     = "Dirección:";
-            //
+            lblDireccion.Location = new System.Drawing.Point(16, 302);
+            lblDireccion.Name = "lblDireccion";
+            lblDireccion.Size = new System.Drawing.Size(119, 32);
+            lblDireccion.TabIndex = 7;
+            lblDireccion.Text = "Dirección:";
+            // 
             // txtDireccion
-            //
-            txtDireccion.Location = new Point(200, 299);
-            txtDireccion.Name     = "txtDireccion";
-            txtDireccion.Size     = new Size(265, 27);
+            // 
+            txtDireccion.Location = new System.Drawing.Point(200, 299);
+            txtDireccion.MaxLength = 100;
+            txtDireccion.Name = "txtDireccion";
+            txtDireccion.Size = new System.Drawing.Size(265, 39);
             txtDireccion.TabIndex = 7;
-            //
+            // 
+            // panelFooter
+            // 
+            panelFooter.Controls.Add(btnGuardar);
+            panelFooter.Controls.Add(btnCancelar);
+            panelFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
+            panelFooter.Location = new System.Drawing.Point(0, 400);
+            panelFooter.Name = "panelFooter";
+            panelFooter.Size = new System.Drawing.Size(500, 50);
+            panelFooter.TabIndex = 2;
+            // 
+            // btnGuardar
+            // 
+            btnGuardar.Location = new System.Drawing.Point(270, 10);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new System.Drawing.Size(100, 29);
+            btnGuardar.TabIndex = 0;
+            btnGuardar.Text = "Guardar";
+            btnGuardar.UseVisualStyleBackColor = true;
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.Location = new System.Drawing.Point(380, 10);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new System.Drawing.Size(100, 29);
+            btnCancelar.TabIndex = 1;
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.UseVisualStyleBackColor = true;
+            // 
             // FrmCRUDProveedor
-            //
-            AutoScaleDimensions = new SizeF(8F, 20F);
-            AutoScaleMode       = AutoScaleMode.Font;
-            ClientSize          = new Size(500, 450);
-            FormBorderStyle     = FormBorderStyle.FixedDialog;
-            MaximizeBox         = false;
-            MinimizeBox         = false;
-            StartPosition       = FormStartPosition.CenterParent;
+            // 
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(500, 450);
             Controls.Add(panelCuerpo);
             Controls.Add(panelFooter);
             Controls.Add(panelHeader);
-            Name  = "FrmCRUDProveedor";
-            Text  = "Proveedor";
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Text = "Proveedor";
             Load += FrmCRUDProveedor_Load;
             panelHeader.ResumeLayout(false);
             panelHeader.PerformLayout();
@@ -276,7 +293,7 @@
         private Panel    panelFooter;
         private Label    lblTitulo;
         private Label    lblNombreEmpresa;
-        private TextBox  txtNombreEmpresa;
+        private System.Windows.Forms.TextBox txtNombreEmpresa;
         private Label    lblNombre;
         private TextBox  txtNombre;
         private Label    lblApellido;
