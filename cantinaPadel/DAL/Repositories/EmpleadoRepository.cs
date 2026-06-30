@@ -1,4 +1,7 @@
-﻿using cantinaPadel.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.DAL.Repositories
@@ -15,12 +18,12 @@ namespace cantinaPadel.DAL.Repositories
             return context.Empleados
                 .Include(e => e.Persona)
                 .FirstOrDefault(e =>
-                    e.NombreUsuario  == nombreUsuario  &&
+                    e.NombreUsuario == nombreUsuario &&
                     e.Contrasena == contrasena &&
-                    e.Activo         == true);
+                    e.Activo == true);
         }
 
-        // Listar todo: Trae los empleados con su persona asociada (Para el FrmListadoEmpleados)
+        // Listar todo: Trae los empleados con su persona asociada
         public List<Empleado> ObtenerTodos()
         {
             using var context = new AppDbContext();
@@ -29,7 +32,7 @@ namespace cantinaPadel.DAL.Repositories
                 .ToList();
         }
 
-        // Guardar alta y modificación
+        // Se guarda el alta y modificación controlando entidades desconectadas
         public void Guardar(Empleado empleado)
         {
             using var context = new AppDbContext();
@@ -41,16 +44,35 @@ namespace cantinaPadel.DAL.Repositories
             }
             else
             {
-                // Modificación: Si ya tiene id, se adjunta y marcam como modificado
-                context.Entry(empleado).State = EntityState.Modified;
-                context.Entry(empleado.Persona).State = EntityState.Modified;
+                // Modificación y Baja: se busca el registro real trackeado por este contexto
+                var empleadoDb = context.Empleados
+                    .Include(e => e.Persona)
+                    .FirstOrDefault(e => e.IdEmpleado == empleado.IdEmpleado);
+
+                if (empleadoDb != null)
+                {
+                    // Se actualizan los datos del Empleado (incluyendo el estado Activo)
+                    empleadoDb.NombreUsuario = empleado.NombreUsuario;
+                    empleadoDb.Contrasena = empleado.Contrasena;
+                    empleadoDb.Rol = empleado.Rol;
+                    empleadoDb.Activo = empleado.Activo; // Acá se guarda la Baja/Alta lógica
+
+                    // Se actualizan los datos de la Persona asociada
+                    if (empleadoDb.Persona != null && empleado.Persona != null)
+                    {
+                        empleadoDb.Persona.Apellido = empleado.Persona.Apellido;
+                        empleadoDb.Persona.Nombre = empleado.Persona.Nombre;
+                        empleadoDb.Persona.Telefono = empleado.Persona.Telefono;
+                    }
+                }
             }
 
+            // Se impactan los cambios de forma segura
             context.SaveChanges();
         }
 
-        // Validad unicidad de usuario
-        // Verifica si el nombre de usuario ya existe (excluyendo al empleado actual si es una edición)
+        // Validar unicidad de usuario
+        // Se verifica si el nombre de usuario ya existe (excluyendo al empleado actual si es una edición)
         public bool ExisteUsuario(string nombreUsuario, int idEmpleadoExcluir)
         {
             using var context = new AppDbContext();
@@ -58,12 +80,15 @@ namespace cantinaPadel.DAL.Repositories
                 .Any(e => e.NombreUsuario == nombreUsuario && e.IdEmpleado != idEmpleadoExcluir);
         }
 
-        // Validad unicidad de DNI
-        public bool ExisteDni(string dni, int idPersonaExcluir)
+        // Se valida la unicidad del DNI buscando por la relación de Empleado
+        public bool ExisteDni(string dni, int idEmpleadoExcluir)
         {
             using var context = new AppDbContext();
-            return context.Personas
-                .Any(p => p.Dni == dni && p.IdPersona != idPersonaExcluir);
+
+            // Se busca si el DNI ya existe en el sistema, excluyendo al empleado que se está editando mediante su navegación
+            return context.Empleados
+                .Include(e => e.Persona)
+                .Any(e => e.Persona.Dni == dni && e.IdEmpleado != idEmpleadoExcluir);
         }
     }
 }

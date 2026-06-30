@@ -45,7 +45,7 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = Color.Gold;
+            panelFiltros.BackColor = SystemColors.Info;
             panelFiltros.Controls.Add(cmbEstado);
             panelFiltros.Controls.Add(label2);
             panelFiltros.Controls.Add(txtBuscarNombre);
@@ -64,6 +64,7 @@
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
+            cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
@@ -77,9 +78,11 @@
             // txtBuscarNombre
             // 
             txtBuscarNombre.Location = new Point(231, 16);
+            txtBuscarNombre.MaxLength = 30;
             txtBuscarNombre.Name = "txtBuscarNombre";
             txtBuscarNombre.Size = new Size(238, 27);
             txtBuscarNombre.TabIndex = 1;
+            txtBuscarNombre.TextChanged += txtBuscarNombre_TextChanged;
             // 
             // label1
             // 
@@ -103,6 +106,8 @@
             // 
             // btnBajaLogica
             // 
+            btnBajaLogica.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnBajaLogica.FlatStyle = FlatStyle.Flat;
             btnBajaLogica.Location = new Point(559, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
@@ -113,6 +118,8 @@
             // 
             // btnModificar
             // 
+            btnModificar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnModificar.FlatStyle = FlatStyle.Flat;
             btnModificar.Location = new Point(349, 9);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(111, 29);
@@ -123,6 +130,8 @@
             // 
             // btnNuevo
             // 
+            btnNuevo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Location = new Point(116, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);
@@ -133,15 +142,19 @@
             // 
             // dgvEmpleados
             // 
-            dgvEmpleados.BackgroundColor = SystemColors.Info;
+            dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvEmpleados.BackgroundColor = Color.White;
+            dgvEmpleados.BorderStyle = BorderStyle.None;
+            dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvEmpleados.Dock = DockStyle.Fill;
             dgvEmpleados.GridColor = SystemColors.Menu;
             dgvEmpleados.Location = new Point(0, 60);
             dgvEmpleados.Name = "dgvEmpleados";
+            dgvEmpleados.RowHeadersVisible = false;
             dgvEmpleados.RowHeadersWidth = 51;
             dgvEmpleados.Size = new Size(800, 340);
             dgvEmpleados.TabIndex = 2;
+            dgvEmpleados.SelectionChanged += dgvEmpleados_SelectionChanged;
             // 
             // FrmListadoEmpleados
             // 
@@ -152,7 +165,7 @@
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);
             Name = "FrmListadoEmpleados";
-            Text = "FrmListadoEmpleados";
+            Text = "Empleados";
             Load += FrmListadoEmpleados_Load;
             panelFiltros.ResumeLayout(false);
             panelFiltros.PerformLayout();
