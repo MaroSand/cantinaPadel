@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cantinaPadel.Models
@@ -18,5 +19,14 @@ namespace cantinaPadel.Models
 
         [ForeignKey("IdPersona")]
         public Persona Persona { get; set; }
+
+        // Valida atributo propio
+        public void ValidarNombreEmpresa()
+        {
+            NombreEmpresa = NombreEmpresa?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(NombreEmpresa))
+                throw new ArgumentException("El nombre de la empresa es obligatorio.");
+        }
     }
 }

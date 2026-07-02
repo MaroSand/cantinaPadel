@@ -37,37 +37,13 @@ namespace cantinaPadel.BLL
             _clienteRepository.Bajalogica(id);
         }
 
-        // Método privado para validar el formato del email
-        private bool EsEmailValido(string email)
-        {
-            try
-            {
-                var direccion = new System.Net.Mail.MailAddress(email);
-                return true;
-            }
-            catch (FormatException)
-            {
-                return false;
-            }
-        }
-
+        // Método privado para validar los datos de un cliente antes de agregarlo o modificarlo.
         private void Validar(Cliente cliente)
         {
             if (cliente == null)
                 throw new ArgumentException("Los datos del cliente son obligatorios.");
 
-            if (cliente.Persona == null)
-                throw new ArgumentException("Los datos de la persona son obligatorios.");
-
-            cliente.Persona.ValidarDatosComunes();
-
-            cliente.Email = cliente.Email?.Trim() ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(cliente.Email))
-                throw new ArgumentException("El Email es obligatorio.");
-
-            if (!EsEmailValido(cliente.Email))
-                throw new ArgumentException("El Email ingresado no es válido.");
+            cliente.Validar();
         }
 
 

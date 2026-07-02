@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cantinaPadel.Models
@@ -22,5 +23,35 @@ namespace cantinaPadel.Models
 
         [ForeignKey("IdPersona")]
         public Persona Persona { get; set; }
+
+        // Valida la estructura/formato del propio Cliente (y delega en Persona lo que es de Persona).
+        public void Validar()
+        {
+            if (Persona == null)
+                throw new ArgumentException("Los datos de la persona son obligatorios.");
+
+            Persona.ValidarDatosComunes();
+
+            Email = Email?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(Email))
+                throw new ArgumentException("El Email es obligatorio.");
+
+            if (!EsEmailValido(Email))
+                throw new ArgumentException("El Email ingresado no es válido.");
+        }
+
+        public static bool EsEmailValido(string email)
+        {
+            try
+            {
+                var direccion = new System.Net.Mail.MailAddress(email);
+                return true;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
     }
 }

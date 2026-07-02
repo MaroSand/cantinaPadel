@@ -5,11 +5,11 @@ namespace cantinaPadel.BLL
 {
     public class LogicaProveedor
     {
-        private readonly IProveedorRepositorio _repo;
+        private readonly IProveedorRepository _repo;
 
         public LogicaProveedor()
         {
-            _repo = new ProveedorRepositorio();
+            _repo = new ProveedorRepository();
         }
         
         public List<Proveedor> ObtenerTodos() => _repo.ObtenerTodos();
@@ -44,6 +44,8 @@ namespace cantinaPadel.BLL
         public void BajaLogica(int idProveedor) => _repo.BajaLogica(idProveedor);
 
         // Validaciones de negocio para alta/modificación de Proveedor.
+        // Los guards de null se quedan acá (no se le puede pedir a una referencia null
+        // que se autovalide); el formato de cada objeto lo resuelve cada uno por su cuenta.
         public void Validar(Persona persona, Proveedor proveedor)
         {
             if (persona == null)
@@ -53,11 +55,7 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("Los datos del proveedor son obligatorios.");
 
             persona.ValidarDatosComunes();
-
-            proveedor.NombreEmpresa = proveedor.NombreEmpresa?.Trim() ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(proveedor.NombreEmpresa))
-                throw new ArgumentException("El nombre de la empresa es obligatorio.");
+            proveedor.ValidarNombreEmpresa();
         }
     }
-}   
+}

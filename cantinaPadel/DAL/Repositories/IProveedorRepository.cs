@@ -2,7 +2,7 @@
 
 namespace cantinaPadel.DAL.Repositories;
 
-public interface IProveedorRepositorio
+public interface IProveedorRepository
 {
     List<Proveedor> ObtenerTodos();
     List<Proveedor> BuscarPorNombreOCuit(string termino);
