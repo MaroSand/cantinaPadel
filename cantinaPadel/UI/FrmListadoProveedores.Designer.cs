@@ -103,10 +103,7 @@
             // 
             // btnBajaLogica
             // 
-<<<<<<< HEAD
             btnBajaLogica.FlatStyle = FlatStyle.Flat;
-=======
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnBajaLogica.Location = new Point(559, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
@@ -116,10 +113,7 @@
             // 
             // btnModificar
             // 
-<<<<<<< HEAD
             btnModificar.FlatStyle = FlatStyle.Flat;
-=======
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnModificar.Location = new Point(349, 9);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(111, 29);
@@ -129,10 +123,7 @@
             // 
             // btnNuevo
             // 
-<<<<<<< HEAD
             btnNuevo.FlatStyle = FlatStyle.Flat;
-=======
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnNuevo.Location = new Point(116, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);

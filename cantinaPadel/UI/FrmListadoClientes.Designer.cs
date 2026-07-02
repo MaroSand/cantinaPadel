@@ -52,75 +52,46 @@
             panelFiltros.Controls.Add(label1);
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
-<<<<<<< HEAD
             panelFiltros.Margin = new Padding(3, 4, 3, 4);
             panelFiltros.Name = "panelFiltros";
             panelFiltros.Size = new Size(896, 80);
-=======
-            panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(784, 60);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
             cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-<<<<<<< HEAD
             cmbEstado.Location = new Point(720, 21);
             cmbEstado.Margin = new Padding(3, 4, 3, 4);
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(137, 28);
-=======
-            cmbEstado.Location = new Point(630, 16);
-            cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new Size(120, 23);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             cmbEstado.TabIndex = 3;
             cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
             label2.AutoSize = true;
-<<<<<<< HEAD
             label2.Location = new Point(651, 25);
             label2.Name = "label2";
             label2.Size = new Size(57, 20);
-=======
-            label2.Location = new Point(570, 19);
-            label2.Name = "label2";
-            label2.Size = new Size(45, 15);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             label2.TabIndex = 2;
             label2.Text = "Estado:";
             // 
             // txtBuscar
             // 
-<<<<<<< HEAD
             txtBuscar.Location = new Point(309, 21);
             txtBuscar.Margin = new Padding(3, 4, 3, 4);
             txtBuscar.Name = "txtBuscar";
             txtBuscar.Size = new Size(319, 27);
-=======
-            txtBuscar.Location = new Point(270, 16);
-            txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(280, 23);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             txtBuscar.TabIndex = 1;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-<<<<<<< HEAD
             label1.Location = new Point(24, 25);
             label1.Name = "label1";
             label1.Size = new Size(228, 20);
-=======
-            label1.Location = new Point(21, 19);
-            label1.Name = "label1";
-            label1.Size = new Size(181, 15);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             label1.TabIndex = 0;
             label1.Text = "Buscar por Nombre, Email o DNI:";
             // 
@@ -130,31 +101,19 @@
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
             panelAcciones.Dock = DockStyle.Bottom;
-<<<<<<< HEAD
             panelAcciones.Location = new Point(0, 481);
             panelAcciones.Margin = new Padding(3, 4, 3, 4);
             panelAcciones.Name = "panelAcciones";
             panelAcciones.Size = new Size(896, 67);
-=======
-            panelAcciones.Location = new Point(0, 361);
-            panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(784, 50);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
             // 
-<<<<<<< HEAD
             btnBajaLogica.FlatStyle = FlatStyle.Flat;
             btnBajaLogica.Location = new Point(639, 12);
             btnBajaLogica.Margin = new Padding(3, 4, 3, 4);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(159, 39);
-=======
-            btnBajaLogica.Location = new Point(559, 9);
-            btnBajaLogica.Name = "btnBajaLogica";
-            btnBajaLogica.Size = new Size(139, 29);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnBajaLogica.TabIndex = 2;
             btnBajaLogica.Text = "Dar de Baja / Alta";
             btnBajaLogica.UseVisualStyleBackColor = true;
@@ -162,17 +121,11 @@
             // 
             // btnModificar
             // 
-<<<<<<< HEAD
             btnModificar.FlatStyle = FlatStyle.Flat;
             btnModificar.Location = new Point(399, 12);
             btnModificar.Margin = new Padding(3, 4, 3, 4);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(127, 39);
-=======
-            btnModificar.Location = new Point(349, 9);
-            btnModificar.Name = "btnModificar";
-            btnModificar.Size = new Size(111, 29);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnModificar.TabIndex = 1;
             btnModificar.Text = "Modificar";
             btnModificar.UseVisualStyleBackColor = true;
@@ -180,17 +133,11 @@
             // 
             // btnNuevo
             // 
-<<<<<<< HEAD
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Location = new Point(133, 12);
             btnNuevo.Margin = new Padding(3, 4, 3, 4);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(158, 39);
-=======
-            btnNuevo.Location = new Point(116, 9);
-            btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(138, 29);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo Cliente";
             btnNuevo.UseVisualStyleBackColor = true;
@@ -202,23 +149,15 @@
             dgvClientes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvClientes.Dock = DockStyle.Fill;
             dgvClientes.GridColor = SystemColors.Menu;
-<<<<<<< HEAD
             dgvClientes.Location = new Point(0, 80);
             dgvClientes.Margin = new Padding(3, 4, 3, 4);
             dgvClientes.Name = "dgvClientes";
             dgvClientes.RowHeadersWidth = 51;
             dgvClientes.Size = new Size(896, 401);
-=======
-            dgvClientes.Location = new Point(0, 60);
-            dgvClientes.Name = "dgvClientes";
-            dgvClientes.RowHeadersWidth = 51;
-            dgvClientes.Size = new Size(784, 301);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             dgvClientes.TabIndex = 2;
             // 
             // FrmListadoClientes
             // 
-<<<<<<< HEAD
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(896, 548);
@@ -226,14 +165,6 @@
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);
             Margin = new Padding(3, 4, 3, 4);
-=======
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(784, 411);
-            Controls.Add(dgvClientes);
-            Controls.Add(panelAcciones);
-            Controls.Add(panelFiltros);
->>>>>>> 99a27226571ef3eb9876f402b3ca177f224b8140
             Name = "FrmListadoClientes";
             Text = "Form1";
             Load += FrmListadoClientes_Load;

@@ -30,7 +30,7 @@ namespace cantinaPadel.BLL
             // Se ejecutan las validaciones comunes de la tabla Persona diseñadas por Facu
             empleado.Persona.ValidarDatosComunes(dniObligatorio: true);
 
-            // --- VALIDACIONES DE LA TABLA EMPLEADO (Con Trim) ---
+            // Validaciones de la tabla empleado
             empleado.NombreUsuario = empleado.NombreUsuario?.Trim() ?? "";
             empleado.Contrasena = empleado.Contrasena?.Trim() ?? "";
             empleado.Rol = empleado.Rol?.Trim() ?? "";
@@ -51,7 +51,7 @@ namespace cantinaPadel.BLL
             if (string.IsNullOrWhiteSpace(empleado.Rol))
                 throw new ArgumentException("Debe seleccionar un Rol válido para el empleado.");
 
-            // --- VALIDACIONES DE UNICIDAD CONTRA LA BASE DE DATOS ---
+            // Validaciones de unicidad con la bd
             if (_empleadoRepository.ExisteUsuario(empleado.NombreUsuario, empleado.IdEmpleado))
             {
                 throw new ArgumentException("El nombre de usuario ya está registrado en el sistema.");
