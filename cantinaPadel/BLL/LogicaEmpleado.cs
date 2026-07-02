@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using cantinaPadel.DAL.Repositories;
+﻿using cantinaPadel.DAL.Repositories;
 using cantinaPadel.Models;
 
 namespace cantinaPadel.BLL
@@ -23,33 +20,11 @@ namespace cantinaPadel.BLL
 
         public void RegistrarOGuardar(Empleado empleado)
         {
-            // Se verifica que la entidad principal y su navegación no sean nulas
+            // Guard de entrada: no se le puede pedir a una referencia null que se autovalide
             if (empleado == null) throw new ArgumentException("Los datos del empleado no pueden estar vacíos.");
-            if (empleado.Persona == null) throw new ArgumentException("Los datos personales del empleado no pueden estar vacíos.");
 
-            // Se ejecutan las validaciones comunes de la tabla Persona diseñadas por Facu
-            empleado.Persona.ValidarDatosComunes(dniObligatorio: true);
-
-            // Validaciones de la tabla empleado
-            empleado.NombreUsuario = empleado.NombreUsuario?.Trim() ?? "";
-            empleado.Contrasena = empleado.Contrasena?.Trim() ?? "";
-            empleado.Rol = empleado.Rol?.Trim() ?? "";
-
-            if (string.IsNullOrWhiteSpace(empleado.NombreUsuario))
-                throw new ArgumentException("El campo Nombre de Usuario es obligatorio.");
-
-            // Se adopta el límite de 50 caracteres definido en la actualización de Facu
-            if (empleado.NombreUsuario.Length > 50)
-                throw new ArgumentException("El Nombre de Usuario no puede exceder los 50 caracteres.");
-
-            if (string.IsNullOrWhiteSpace(empleado.Contrasena))
-                throw new ArgumentException("El campo Contraseña es obligatorio.");
-
-            if (empleado.Contrasena.Length > 9)
-                throw new ArgumentException("La Contraseña no puede exceder los 9 caracteres.");
-
-            if (string.IsNullOrWhiteSpace(empleado.Rol))
-                throw new ArgumentException("Debe seleccionar un Rol válido para el empleado.");
+            // Formato/estructura (Persona + campos propios de Empleado) → responsabilidad del modelo
+            empleado.ValidarFormato(dniObligatorio: true);
 
             // Validaciones de unicidad con la bd
             if (_empleadoRepository.ExisteUsuario(empleado.NombreUsuario, empleado.IdEmpleado))

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.DAL.Repositories
 {
-    public class ProveedorRepositorio : IProveedorRepositorio
+    public class ProveedorRepository : IProveedorRepository
     {
         // Trae todos los proveedores (activos e inactivos); el filtro de estado se hace en la UI
         public List<Proveedor> ObtenerTodos()
