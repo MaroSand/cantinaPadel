@@ -1,6 +1,6 @@
 ﻿namespace cantinaPadel.UI
 {
-    partial class FrmListadoEmpleados
+    partial class FrmListadoProveedores
     {
         /// <summary>
         /// Required designer variable.
@@ -37,10 +37,10 @@
             btnBajaLogica = new Button();
             btnModificar = new Button();
             btnNuevo = new Button();
-            dgvEmpleados = new DataGridView();
+            dgvProveedores = new DataGridView();
             panelFiltros.SuspendLayout();
             panelAcciones.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvEmpleados).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvProveedores).BeginInit();
             SuspendLayout();
             // 
             // panelFiltros
@@ -64,7 +64,6 @@
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
-            cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
@@ -78,11 +77,9 @@
             // txtBuscarNombre
             // 
             txtBuscarNombre.Location = new Point(231, 16);
-            txtBuscarNombre.MaxLength = 30;
             txtBuscarNombre.Name = "txtBuscarNombre";
             txtBuscarNombre.Size = new Size(238, 27);
             txtBuscarNombre.TabIndex = 1;
-            txtBuscarNombre.TextChanged += txtBuscarNombre_TextChanged;
             // 
             // label1
             // 
@@ -91,7 +88,7 @@
             label1.Name = "label1";
             label1.Size = new Size(204, 20);
             label1.TabIndex = 0;
-            label1.Text = "Buscar por Nombre/Apellido:";
+            label1.Text = "Buscar por Nombre/Empresa:";
             // 
             // panelAcciones
             // 
@@ -106,19 +103,16 @@
             // 
             // btnBajaLogica
             // 
-            btnBajaLogica.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnBajaLogica.FlatStyle = FlatStyle.Flat;
             btnBajaLogica.Location = new Point(559, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
             btnBajaLogica.TabIndex = 2;
-            btnBajaLogica.Text = " Dar de Baja/ Alta";
+            btnBajaLogica.Text = "Dar de Baja / Alta";
             btnBajaLogica.UseVisualStyleBackColor = true;
-            btnBajaLogica.Click += btnCambiarEstado_Click;
             // 
             // btnModificar
             // 
-            btnModificar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnModificar.FlatStyle = FlatStyle.Flat;
             btnModificar.Location = new Point(349, 9);
             btnModificar.Name = "btnModificar";
@@ -126,51 +120,44 @@
             btnModificar.TabIndex = 1;
             btnModificar.Text = "Modificar";
             btnModificar.UseVisualStyleBackColor = true;
-            btnModificar.Click += btnModificar_Click;
             // 
             // btnNuevo
             // 
-            btnNuevo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Location = new Point(116, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);
             btnNuevo.TabIndex = 0;
-            btnNuevo.Text = "Nuevo Empleado";
+            btnNuevo.Text = "Nuevo Proveedor";
             btnNuevo.UseVisualStyleBackColor = true;
-            btnNuevo.Click += btnNuevo_Click;
             // 
-            // dgvEmpleados
+            // dgvProveedores
             // 
-            dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvEmpleados.BackgroundColor = SystemColors.Info;
-            dgvEmpleados.BorderStyle = BorderStyle.None;
-            dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
-            dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvEmpleados.GridColor = SystemColors.Menu;
-            dgvEmpleados.Location = new Point(0, 60);
-            dgvEmpleados.Name = "dgvEmpleados";
-            dgvEmpleados.RowHeadersVisible = false;
-            dgvEmpleados.RowHeadersWidth = 51;
-            dgvEmpleados.Size = new Size(800, 340);
-            dgvEmpleados.TabIndex = 2;
-            dgvEmpleados.SelectionChanged += dgvEmpleados_SelectionChanged;
+            dgvProveedores.BackgroundColor = SystemColors.Info;
+            dgvProveedores.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvProveedores.Dock = DockStyle.Fill;
+            dgvProveedores.GridColor = SystemColors.Menu;
+            dgvProveedores.Location = new Point(0, 60);
+            dgvProveedores.Name = "dgvProveedores";
+            dgvProveedores.RowHeadersWidth = 51;
+            dgvProveedores.Size = new Size(800, 340);
+            dgvProveedores.TabIndex = 2;
             // 
-            // FrmListadoEmpleados
+            // FrmListadoProveedores
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(dgvEmpleados);
+            Controls.Add(dgvProveedores);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);
-            Name = "FrmListadoEmpleados";
-            Text = "Empleados";
-            Load += FrmListadoEmpleados_Load;
+            Name = "FrmListadoProveedores";
+            Text = "Listado de Proveedores";
+            Load += FrmListadoProveedores_Load;
             panelFiltros.ResumeLayout(false);
             panelFiltros.PerformLayout();
             panelAcciones.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvEmpleados).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvProveedores).EndInit();
             ResumeLayout(false);
         }
 
@@ -185,6 +172,6 @@
         private Button btnBajaLogica;
         private Button btnModificar;
         private Button btnNuevo;
-        private DataGridView dgvEmpleados;
+        private DataGridView dgvProveedores;
     }
 }
