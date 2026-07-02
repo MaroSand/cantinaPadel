@@ -44,6 +44,10 @@
             label6 = new Label();
             label7 = new Label();
             cmbRol = new ComboBox();
+            label8 = new Label();
+            txtCuit = new TextBox();
+            textBox1 = new TextBox();
+            label9 = new Label();
             SuspendLayout();
             // 
             // btnGuardar
@@ -52,9 +56,9 @@
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(686, 400);
+            btnGuardar.Location = new Point(474, 465);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(94, 29);
+            btnGuardar.Size = new Size(322, 41);
             btnGuardar.TabIndex = 0;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -66,9 +70,9 @@
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(560, 400);
+            btnCancelar.Location = new Point(100, 465);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(94, 29);
+            btnCancelar.Size = new Size(322, 41);
             btnCancelar.TabIndex = 1;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;
@@ -77,7 +81,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(34, 41);
+            label1.Location = new Point(34, 154);
             label1.Name = "label1";
             label1.Size = new Size(35, 20);
             label1.TabIndex = 2;
@@ -85,7 +89,7 @@
             // 
             // txtDni
             // 
-            txtDni.Location = new Point(140, 38);
+            txtDni.Location = new Point(140, 154);
             txtDni.MaxLength = 8;
             txtDni.Name = "txtDni";
             txtDni.Size = new Size(125, 27);
@@ -113,7 +117,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(31, 153);
+            label3.Location = new Point(34, 37);
             label3.Name = "label3";
             label3.Size = new Size(64, 20);
             label3.TabIndex = 6;
@@ -121,7 +125,7 @@
             // 
             // txtNombre
             // 
-            txtNombre.Location = new Point(140, 150);
+            txtNombre.Location = new Point(140, 34);
             txtNombre.MaxLength = 30;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(125, 27);
@@ -199,12 +203,48 @@
             cmbRol.Size = new Size(125, 28);
             cmbRol.TabIndex = 15;
             // 
+            // label8
+            // 
+            label8.AutoSize = true;
+            label8.Location = new Point(442, 37);
+            label8.Name = "label8";
+            label8.Size = new Size(40, 20);
+            label8.TabIndex = 16;
+            label8.Text = "CUIT";
+            // 
+            // txtCuit
+            // 
+            txtCuit.Location = new Point(564, 34);
+            txtCuit.Name = "txtCuit";
+            txtCuit.Size = new Size(125, 27);
+            txtCuit.TabIndex = 17;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(564, 97);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(125, 27);
+            textBox1.TabIndex = 18;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(430, 101);
+            label9.Name = "label9";
+            label9.Size = new Size(102, 20);
+            label9.TabIndex = 19;
+            label9.Text = "Condición IVA";
+            // 
             // FrmCRUDEmpleado
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.WhiteSmoke;
-            ClientSize = new Size(800, 450);
+            BackColor = SystemColors.Info;
+            ClientSize = new Size(900, 574);
+            Controls.Add(label9);
+            Controls.Add(textBox1);
+            Controls.Add(txtCuit);
+            Controls.Add(label8);
             Controls.Add(cmbRol);
             Controls.Add(label7);
             Controls.Add(label6);
@@ -246,5 +286,9 @@
         private Label label6;
         private Label label7;
         private ComboBox cmbRol;
+        private Label label8;
+        private TextBox txtCuit;
+        private TextBox textBox1;
+        private Label label9;
     }
 }

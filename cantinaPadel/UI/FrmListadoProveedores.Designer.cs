@@ -103,6 +103,7 @@
             // 
             // btnBajaLogica
             // 
+            btnBajaLogica.FlatStyle = FlatStyle.Flat;
             btnBajaLogica.Location = new Point(559, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
@@ -112,6 +113,7 @@
             // 
             // btnModificar
             // 
+            btnModificar.FlatStyle = FlatStyle.Flat;
             btnModificar.Location = new Point(349, 9);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(111, 29);
@@ -121,6 +123,7 @@
             // 
             // btnNuevo
             // 
+            btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Location = new Point(116, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);

@@ -45,7 +45,7 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = SystemColors.Info;
+            panelFiltros.BackColor = Color.Gold;
             panelFiltros.Controls.Add(cmbEstado);
             panelFiltros.Controls.Add(label2);
             panelFiltros.Controls.Add(txtBuscarNombre);
@@ -59,7 +59,7 @@
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
-            cmbEstado.Items.AddRange(new object[] { "Todos", "", "Activos", "", "Inactivos" });
+            cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
             cmbEstado.Location = new Point(559, 16);
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(151, 28);
@@ -143,7 +143,7 @@
             // dgvEmpleados
             // 
             dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvEmpleados.BackgroundColor = Color.White;
+            dgvEmpleados.BackgroundColor = SystemColors.Info;
             dgvEmpleados.BorderStyle = BorderStyle.None;
             dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
