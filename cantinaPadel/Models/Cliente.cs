@@ -18,10 +18,7 @@ namespace cantinaPadel.Models
         public string Email { get; set; }
 
         [Column("saldo_cuenta_corriente")]
-        public decimal SaldoCuentaCorriente { get; set; } = 0;
-
-        [Column("fecha_registro")]
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public decimal SaldoCuentaCorriente { get; set; }
 
         [ForeignKey("IdPersona")]
         public Persona Persona { get; set; }

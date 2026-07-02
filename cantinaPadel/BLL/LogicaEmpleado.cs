@@ -9,12 +9,10 @@ namespace cantinaPadel.BLL
     public class LogicaEmpleado
     {
         private readonly IEmpleadoRepository _empleadoRepository;
-        private readonly LogicaPersona _logicaPersona;
 
         public LogicaEmpleado()
         {
             _empleadoRepository = new EmpleadoRepository();
-            _logicaPersona = new LogicaPersona();
         }
 
         public List<Empleado> ObtenerTodos()
@@ -29,8 +27,8 @@ namespace cantinaPadel.BLL
             if (empleado == null) throw new ArgumentException("Los datos del empleado no pueden estar vacíos.");
             if (empleado.Persona == null) throw new ArgumentException("Los datos personales del empleado no pueden estar vacíos.");
 
-            // Se delega el formateo y las validaciones de datos generales a la lógica de Persona
-            //_logicaPersona.ValidarDatosPersonales(empleado.Persona);
+            // Se ejecutan las validaciones comunes de la tabla Persona diseñadas por Facu
+            empleado.Persona.ValidarDatosComunes(dniObligatorio: true);
 
             // --- VALIDACIONES DE LA TABLA EMPLEADO (Con Trim) ---
             empleado.NombreUsuario = empleado.NombreUsuario?.Trim() ?? "";
@@ -40,8 +38,9 @@ namespace cantinaPadel.BLL
             if (string.IsNullOrWhiteSpace(empleado.NombreUsuario))
                 throw new ArgumentException("El campo Nombre de Usuario es obligatorio.");
 
-            if (empleado.NombreUsuario.Length > 30)
-                throw new ArgumentException("El Nombre de Usuario no puede exceder los 30 caracteres.");
+            // Se adopta el límite de 50 caracteres definido en la actualización de Facu
+            if (empleado.NombreUsuario.Length > 50)
+                throw new ArgumentException("El Nombre de Usuario no puede exceder los 50 caracteres.");
 
             if (string.IsNullOrWhiteSpace(empleado.Contrasena))
                 throw new ArgumentException("El campo Contraseña es obligatorio.");
@@ -52,14 +51,14 @@ namespace cantinaPadel.BLL
             if (string.IsNullOrWhiteSpace(empleado.Rol))
                 throw new ArgumentException("Debe seleccionar un Rol válido para el empleado.");
 
-            // Validaciones de unicidad con la bd 
+            // --- VALIDACIONES DE UNICIDAD CONTRA LA BASE DE DATOS ---
             if (_empleadoRepository.ExisteUsuario(empleado.NombreUsuario, empleado.IdEmpleado))
             {
                 throw new ArgumentException("El nombre de usuario ya está registrado en el sistema.");
             }
 
-            // Se controla si el documento ya se encuentra asignado a otro empleado activo o inactivo
-            if (_empleadoRepository.ExisteDni(empleado.Persona.Dni, empleado.IdEmpleado))
+            // Se controla si el documento ya se encuentra asignado a otro empleado activo o inactivo usando el operador de supresión de nulos
+            if (_empleadoRepository.ExisteDni(empleado.Persona.Dni!, empleado.IdEmpleado))
             {
                 throw new ArgumentException("El DNI ingresado ya pertenece a otra persona registrada.");
             }

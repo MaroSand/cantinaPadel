@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -89,14 +88,24 @@ namespace cantinaPadel
         // Eventos de clic para los botones del menú, cada uno llama al método Navegar con el nombre del módulo correspondiente
         // => es una expresión lambda que simplifica la sintaxis del método, permitiendo escribirlo en una sola línea
         private void btnInicio_Click(object sender, EventArgs e) => Navegar("Inicio");
-        private void btnClientes_Click(object sender, EventArgs e) => Navegar("Clientes");
+        private void btnClientes_Click(object sender, EventArgs e)
+        {
+            Navegar("Clientes");
+            cantinaPadel.UI.FrmListadoClientes frm = new cantinaPadel.UI.FrmListadoClientes();
+            AbrirEnPanel(frm);
+        }
         private void btnPuntoVenta_Click(object sender, EventArgs e) => Navegar("Punto de Venta");
         private void btnStock_Click(object sender, EventArgs e) => Navegar("Stock");
         private void btnCompras_Click(object sender, EventArgs e) => Navegar("Compras");
         private void btnTurnos_Click(object sender, EventArgs e) => Navegar("Turnos");
         private void btnCanchas_Click(object sender, EventArgs e) => Navegar("Canchas");
         private void btnCaja_Click(object sender, EventArgs e) => Navegar("Caja");
-        private void btnProveedores_Click(object sender, EventArgs e) => Navegar("Proveedores");
+        private void btnProveedores_Click(object sender, EventArgs e)
+        {
+            Navegar("Proveedores");
+            cantinaPadel.UI.FrmListadoProveedores frm = new cantinaPadel.UI.FrmListadoProveedores();
+            AbrirEnPanel(frm);
+        }
         private void btnEmpleados_Click(object sender, EventArgs e)
         {
             Navegar("Empleados");
@@ -107,5 +116,3 @@ namespace cantinaPadel
 
     }
 }
-
-     
