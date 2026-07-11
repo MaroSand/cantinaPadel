@@ -12,32 +12,28 @@ namespace cantinaPadel.Models
 
         [Column("nombre_categoria")]
         [Required]
-        public string NombreCategoria { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
 
-        [Column("descripcion")]
-        public string? Descripcion { get; set; }
-
-        [Column("activo")]
-        public bool Activo { get; set; } = true;
+        [Column("activa")]
+        public bool Activa { get; set; } = true;
 
         // HASTA QUE FACU CREES EL MODELO PRODUCTO
         // public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 
         public void Normalizar()
         {
-            NombreCategoria = NombreCategoria?.Trim() ?? string.Empty;
-            Descripcion = Descripcion?.Trim();
+            Nombre = Nombre?.Trim() ?? string.Empty;
         }
 
         public void Validar()
         {
             Normalizar();
 
-            if (string.IsNullOrWhiteSpace(NombreCategoria))
+            if (string.IsNullOrWhiteSpace(Nombre))
                 throw new ArgumentException("El nombre de la categoría es obligatorio.");
 
-            if (NombreCategoria.Length > 50)
-                throw new ArgumentException("El nombre de la categoría no puede superar los 50 caracteres.");
+            if (Nombre.Length > 100)
+                throw new ArgumentException("El nombre de la categoría no puede superar los 100 caracteres.");
         }
     }
 }
