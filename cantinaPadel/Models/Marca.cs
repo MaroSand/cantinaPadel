@@ -12,28 +12,28 @@ namespace cantinaPadel.Models
 
         [Column("nombre_marca")]
         [Required]
-        public string NombreMarca { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
 
-        [Column("activo")]
-        public bool Activo { get; set; } = true;
+        [Column("activa")]
+        public bool Activa { get; set; } = true;
 
         // HASTA QUE FACU CREES EL MODELO PRODUCTO
         // public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
 
         public void Normalizar()
         {
-            NombreMarca = NombreMarca?.Trim() ?? string.Empty;
+            Nombre = Nombre?.Trim() ?? string.Empty;
         }
 
         public void Validar()
         {
             Normalizar();
 
-            if (string.IsNullOrWhiteSpace(NombreMarca))
+            if (string.IsNullOrWhiteSpace(Nombre))
                 throw new ArgumentException("El nombre de la marca es obligatorio.");
 
-            if (NombreMarca.Length > 50)
-                throw new ArgumentException("El nombre de la marca no puede superar los 50 caracteres.");
+            if (Nombre.Length > 100)
+                throw new ArgumentException("El nombre de la marca no puede superar los 100 caracteres.");
         }
     }
 }
