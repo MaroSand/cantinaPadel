@@ -23,7 +23,7 @@ namespace cantinaPadel.BLL
             // Guard de entrada: no se le puede pedir a una referencia null que se autovalide
             if (empleado == null) throw new ArgumentException("Los datos del empleado no pueden estar vacíos.");
 
-            // Formato/estructura (Persona + campos propios de Empleado) → responsabilidad del modelo
+            // Formato/estructura (Persona + campos propios de Empleado) - responsabilidad del modelo
             empleado.ValidarFormato(dniObligatorio: true);
 
             // Validaciones de unicidad con la bd
