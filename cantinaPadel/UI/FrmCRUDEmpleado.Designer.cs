@@ -48,6 +48,9 @@
             txtCuit = new TextBox();
             textBox1 = new TextBox();
             label9 = new Label();
+            panel1 = new Panel();
+            label10 = new Label();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
             // btnGuardar
@@ -56,7 +59,7 @@
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(474, 465);
+            btnGuardar.Location = new Point(465, 370);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(322, 41);
             btnGuardar.TabIndex = 0;
@@ -70,7 +73,7 @@
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(100, 465);
+            btnCancelar.Location = new Point(95, 370);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(322, 41);
             btnCancelar.TabIndex = 1;
@@ -81,7 +84,7 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(34, 154);
+            label1.Location = new Point(34, 189);
             label1.Name = "label1";
             label1.Size = new Size(35, 20);
             label1.TabIndex = 2;
@@ -89,7 +92,7 @@
             // 
             // txtDni
             // 
-            txtDni.Location = new Point(140, 154);
+            txtDni.Location = new Point(140, 182);
             txtDni.MaxLength = 8;
             txtDni.Name = "txtDni";
             txtDni.Size = new Size(125, 27);
@@ -99,7 +102,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(31, 97);
+            label2.Location = new Point(32, 136);
             label2.Name = "label2";
             label2.Size = new Size(66, 20);
             label2.TabIndex = 4;
@@ -107,7 +110,7 @@
             // 
             // txtApellido
             // 
-            txtApellido.Location = new Point(140, 94);
+            txtApellido.Location = new Point(140, 129);
             txtApellido.MaxLength = 30;
             txtApellido.Name = "txtApellido";
             txtApellido.Size = new Size(125, 27);
@@ -117,7 +120,7 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(34, 37);
+            label3.Location = new Point(34, 77);
             label3.Name = "label3";
             label3.Size = new Size(64, 20);
             label3.TabIndex = 6;
@@ -125,7 +128,7 @@
             // 
             // txtNombre
             // 
-            txtNombre.Location = new Point(140, 34);
+            txtNombre.Location = new Point(140, 70);
             txtNombre.MaxLength = 30;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(125, 27);
@@ -135,7 +138,7 @@
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(31, 209);
+            label4.Location = new Point(34, 304);
             label4.Name = "label4";
             label4.Size = new Size(67, 20);
             label4.TabIndex = 8;
@@ -143,7 +146,7 @@
             // 
             // txtTelefono
             // 
-            txtTelefono.Location = new Point(140, 206);
+            txtTelefono.Location = new Point(140, 297);
             txtTelefono.MaxLength = 10;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new Size(125, 27);
@@ -153,7 +156,7 @@
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(34, 263);
+            label5.Location = new Point(431, 94);
             label5.Name = "label5";
             label5.Size = new Size(59, 20);
             label5.TabIndex = 10;
@@ -161,7 +164,7 @@
             // 
             // txtUsuario
             // 
-            txtUsuario.Location = new Point(140, 263);
+            txtUsuario.Location = new Point(564, 87);
             txtUsuario.MaxLength = 15;
             txtUsuario.Name = "txtUsuario";
             txtUsuario.Size = new Size(125, 27);
@@ -169,7 +172,7 @@
             // 
             // txtContrasena
             // 
-            txtContrasena.Location = new Point(140, 320);
+            txtContrasena.Location = new Point(564, 147);
             txtContrasena.MaxLength = 9;
             txtContrasena.Name = "txtContrasena";
             txtContrasena.Size = new Size(125, 27);
@@ -179,7 +182,7 @@
             // label6
             // 
             label6.AutoSize = true;
-            label6.Location = new Point(31, 323);
+            label6.Location = new Point(431, 157);
             label6.Name = "label6";
             label6.Size = new Size(83, 20);
             label6.TabIndex = 13;
@@ -188,7 +191,7 @@
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(34, 374);
+            label7.Location = new Point(431, 218);
             label7.Name = "label7";
             label7.Size = new Size(31, 20);
             label7.TabIndex = 14;
@@ -198,7 +201,7 @@
             // 
             cmbRol.FormattingEnabled = true;
             cmbRol.Items.AddRange(new object[] { "Admin", "Empleado" });
-            cmbRol.Location = new Point(140, 374);
+            cmbRol.Location = new Point(564, 210);
             cmbRol.Name = "cmbRol";
             cmbRol.Size = new Size(125, 28);
             cmbRol.TabIndex = 15;
@@ -206,7 +209,7 @@
             // label8
             // 
             label8.AutoSize = true;
-            label8.Location = new Point(442, 37);
+            label8.Location = new Point(34, 247);
             label8.Name = "label8";
             label8.Size = new Size(40, 20);
             label8.TabIndex = 16;
@@ -214,14 +217,14 @@
             // 
             // txtCuit
             // 
-            txtCuit.Location = new Point(564, 34);
+            txtCuit.Location = new Point(140, 240);
             txtCuit.Name = "txtCuit";
             txtCuit.Size = new Size(125, 27);
             txtCuit.TabIndex = 17;
             // 
             // textBox1
             // 
-            textBox1.Location = new Point(564, 97);
+            textBox1.Location = new Point(564, 274);
             textBox1.Name = "textBox1";
             textBox1.Size = new Size(125, 27);
             textBox1.TabIndex = 18;
@@ -229,18 +232,39 @@
             // label9
             // 
             label9.AutoSize = true;
-            label9.Location = new Point(430, 101);
+            label9.Location = new Point(431, 281);
             label9.Name = "label9";
             label9.Size = new Size(102, 20);
             label9.TabIndex = 19;
             label9.Text = "Condición IVA";
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.Gold;
+            panel1.Controls.Add(label10);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(882, 46);
+            panel1.TabIndex = 20;
+            // 
+            // label10
+            // 
+            label10.AutoSize = true;
+            label10.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label10.Location = new Point(32, 9);
+            label10.Name = "label10";
+            label10.Size = new Size(227, 31);
+            label10.TabIndex = 0;
+            label10.Text = "Datos del Empleado";
             // 
             // FrmCRUDEmpleado
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Info;
-            ClientSize = new Size(900, 574);
+            ClientSize = new Size(882, 453);
+            Controls.Add(panel1);
             Controls.Add(label9);
             Controls.Add(textBox1);
             Controls.Add(txtCuit);
@@ -264,6 +288,8 @@
             Name = "FrmCRUDEmpleado";
             Text = "Empleado";
             Load += FrmCRUDEmpleado_Load;
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -290,5 +316,7 @@
         private TextBox txtCuit;
         private TextBox textBox1;
         private Label label9;
+        private Panel panel1;
+        private Label label10;
     }
 }

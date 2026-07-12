@@ -54,7 +54,7 @@
             panelFiltros.Location = new Point(0, 0);
             panelFiltros.Margin = new Padding(3, 4, 3, 4);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(896, 80);
+            panelFiltros.Size = new Size(882, 80);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
@@ -101,10 +101,10 @@
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 481);
+            panelAcciones.Location = new Point(0, 386);
             panelAcciones.Margin = new Padding(3, 4, 3, 4);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(896, 67);
+            panelAcciones.Size = new Size(882, 67);
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
@@ -153,14 +153,14 @@
             dgvClientes.Margin = new Padding(3, 4, 3, 4);
             dgvClientes.Name = "dgvClientes";
             dgvClientes.RowHeadersWidth = 51;
-            dgvClientes.Size = new Size(896, 401);
+            dgvClientes.Size = new Size(882, 306);
             dgvClientes.TabIndex = 2;
             // 
             // FrmListadoClientes
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(896, 548);
+            ClientSize = new Size(882, 453);
             Controls.Add(dgvClientes);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);

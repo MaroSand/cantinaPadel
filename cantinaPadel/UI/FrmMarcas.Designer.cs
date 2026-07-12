@@ -1,6 +1,6 @@
 ﻿namespace cantinaPadel.UI
 {
-    partial class FrmCategorias
+    partial class FrmMarcas
     {
         /// <summary>
         /// Required designer variable.
@@ -40,11 +40,11 @@
             btnBajaAlta = new Button();
             btnGuardar = new Button();
             btnNuevo = new Button();
-            dgvCategorias = new DataGridView();
+            dgvMarcas = new DataGridView();
             panelFiltros.SuspendLayout();
             panelDatos.SuspendLayout();
             panelAcciones.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dgvCategorias).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvMarcas).BeginInit();
             SuspendLayout();
             // 
             // panelFiltros
@@ -64,7 +64,7 @@
             // 
             cmbEstado.FormattingEnabled = true;
             cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-            cmbEstado.Location = new Point(547, 20);
+            cmbEstado.Location = new Point(507, 22);
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
@@ -73,7 +73,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(473, 23);
+            label2.Location = new Point(444, 25);
             label2.Name = "label2";
             label2.Size = new Size(57, 20);
             label2.TabIndex = 2;
@@ -81,16 +81,16 @@
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new Point(108, 20);
+            txtBuscar.Location = new Point(115, 23);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(193, 27);
+            txtBuscar.Size = new Size(187, 27);
             txtBuscar.TabIndex = 1;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(47, 23);
+            label1.Location = new Point(54, 25);
             label1.Name = "label1";
             label1.Size = new Size(55, 20);
             label1.TabIndex = 0;
@@ -109,20 +109,20 @@
             // 
             // txtNombre
             // 
-            txtNombre.Location = new Point(29, 172);
+            txtNombre.Location = new Point(22, 170);
             txtNombre.Name = "txtNombre";
-            txtNombre.Size = new Size(125, 27);
+            txtNombre.Size = new Size(137, 27);
             txtNombre.TabIndex = 1;
             // 
             // label3
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3.Location = new Point(15, 138);
+            label3.Location = new Point(22, 135);
             label3.Name = "label3";
-            label3.Size = new Size(163, 20);
+            label3.Size = new Size(139, 20);
             label3.TabIndex = 0;
-            label3.Text = "Nombre de Categoría:";
+            label3.Text = "Nombre de Marca:";
             // 
             // panelAcciones
             // 
@@ -131,9 +131,9 @@
             panelAcciones.Controls.Add(btnGuardar);
             panelAcciones.Controls.Add(btnNuevo);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 397);
+            panelAcciones.Location = new Point(0, 396);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(698, 56);
+            panelAcciones.Size = new Size(698, 57);
             panelAcciones.TabIndex = 2;
             // 
             // btnBajaAlta
@@ -141,7 +141,7 @@
             btnBajaAlta.BackColor = Color.White;
             btnBajaAlta.FlatStyle = FlatStyle.Flat;
             btnBajaAlta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnBajaAlta.Location = new Point(428, 15);
+            btnBajaAlta.Location = new Point(429, 16);
             btnBajaAlta.Name = "btnBajaAlta";
             btnBajaAlta.Size = new Size(173, 29);
             btnBajaAlta.TabIndex = 2;
@@ -154,9 +154,9 @@
             btnGuardar.BackColor = Color.White;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnGuardar.Location = new Point(268, 15);
+            btnGuardar.Location = new Point(275, 16);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(94, 29);
+            btnGuardar.Size = new Size(89, 29);
             btnGuardar.TabIndex = 1;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -167,7 +167,7 @@
             btnNuevo.BackColor = Color.White;
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnNuevo.Location = new Point(108, 15);
+            btnNuevo.Location = new Point(115, 16);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(94, 29);
             btnNuevo.TabIndex = 0;
@@ -175,47 +175,46 @@
             btnNuevo.UseVisualStyleBackColor = false;
             btnNuevo.Click += btnNuevo_Click;
             // 
-            // dgvCategorias
+            // dgvMarcas
             // 
-            dgvCategorias.BackgroundColor = Color.White;
-            dgvCategorias.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvCategorias.Dock = DockStyle.Fill;
-            dgvCategorias.Location = new Point(0, 65);
-            dgvCategorias.Name = "dgvCategorias";
-            dgvCategorias.RowHeadersWidth = 51;
-            dgvCategorias.Size = new Size(698, 332);
-            dgvCategorias.TabIndex = 3;
-            dgvCategorias.SelectionChanged += dgvCategorias_SelectionChanged;
+            dgvMarcas.BackgroundColor = Color.White;
+            dgvMarcas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvMarcas.Dock = DockStyle.Fill;
+            dgvMarcas.Location = new Point(0, 65);
+            dgvMarcas.Name = "dgvMarcas";
+            dgvMarcas.RowHeadersWidth = 51;
+            dgvMarcas.Size = new Size(698, 331);
+            dgvMarcas.TabIndex = 3;
+            dgvMarcas.SelectionChanged += dgvMarcas_SelectionChanged;
             // 
-            // FrmCategorias
+            // FrmMarcas
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
             ClientSize = new Size(882, 453);
-            Controls.Add(dgvCategorias);
+            Controls.Add(dgvMarcas);
             Controls.Add(panelAcciones);
             Controls.Add(panelDatos);
             Controls.Add(panelFiltros);
-            Name = "FrmCategorias";
-            Text = "Gestión de Categorías";
-            Load += FrmCategorias_Load;
+            Name = "FrmMarcas";
+            Text = "Gestión de Marcas";
+            Load += FrmMarcas_Load;
             panelFiltros.ResumeLayout(false);
             panelFiltros.PerformLayout();
             panelDatos.ResumeLayout(false);
             panelDatos.PerformLayout();
             panelAcciones.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dgvCategorias).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvMarcas).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
         private Panel panelFiltros;
-        private ComboBox cmbEstado;
-        private Label label2;
-        private TextBox txtBuscar;
         private Label label1;
+        private TextBox txtBuscar;
+        private Label label2;
+        private ComboBox cmbEstado;
         private Panel panelDatos;
         private TextBox txtNombre;
         private Label label3;
@@ -223,6 +222,6 @@
         private Button btnBajaAlta;
         private Button btnGuardar;
         private Button btnNuevo;
-        private DataGridView dgvCategorias;
+        private DataGridView dgvMarcas;
     }
 }

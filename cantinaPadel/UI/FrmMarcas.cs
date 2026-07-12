@@ -8,22 +8,22 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.UI
 {
-    public partial class FrmCategorias : Form
+    public partial class FrmMarcas : Form
     {
-        // Se conecta con la capa de negocio
-        private readonly LogicaCategoria _logicaCategoria;
+        // Se conecta con la capa de negocio de marcas
+        private readonly LogicaMarca _logicaMarca;
 
-        // Se guarda de forma global la categoría que se toque en la grilla
-        private Categoria? _categoriaSeleccionada = null;
+        // Se guarda de forma global la marca que se toque en la grilla
+        private Marca? _marcaSeleccionada = null;
 
-        public FrmCategorias()
+        public FrmMarcas()
         {
             InitializeComponent();
             // Se inicializa la lógica pasándole la bd
-            _logicaCategoria = new LogicaCategoria(new AppDbContext());
+            _logicaMarca = new LogicaMarca(new AppDbContext());
         }
 
-        private void FrmCategorias_Load(object sender, EventArgs e)
+        private void FrmMarcas_Load(object sender, EventArgs e)
         {
             // Se preselecciona "Todos" en el combo, se llena la grilla y se limpia la pantalla
             cmbEstado.SelectedIndex = 0;
@@ -35,38 +35,38 @@ namespace cantinaPadel.UI
         {
             try
             {
-                // Se trae la lista completa desde la base de datos
-                var lista = _logicaCategoria.ListarTodas();
+                // Se trae la lista completa de marcas desde la bd
+                var lista = _logicaMarca.ListarTodas();
 
                 // Se filtra por lo que se escribe en el buscador
                 string buscar = txtBuscar.Text.ToLower().Trim();
                 if (!string.IsNullOrEmpty(buscar))
                 {
-                    lista = lista.Where(c => c.Nombre.ToLower().Contains(buscar)).ToList();
+                    lista = lista.Where(m => m.Nombre.ToLower().Contains(buscar)).ToList();
                 }
 
                 // Se filtra según el estado elegido (Activos o Inactivos)
                 if (cmbEstado.SelectedIndex == 1)
                 {
-                    lista = lista.Where(c => c.Activa).ToList();
+                    lista = lista.Where(m => m.Activa).ToList();
                 }
                 else if (cmbEstado.SelectedIndex == 2)
                 {
-                    lista = lista.Where(c => !c.Activa).ToList();
+                    lista = lista.Where(m => !m.Activa).ToList();
                 }
 
                 // Se refrescan los datos de la grilla
-                dgvCategorias.DataSource = null;
-                dgvCategorias.DataSource = lista;
+                dgvMarcas.DataSource = null;
+                dgvMarcas.DataSource = lista;
 
                 // Se acomodan los títulos de las columnas para que queden prolijos
-                var colId = dgvCategorias.Columns["IdCategoria"];
+                var colId = dgvMarcas.Columns["IdMarca"];
                 if (colId != null) colId.HeaderText = "ID";
 
-                var colNombre = dgvCategorias.Columns["Nombre"];
-                if (colNombre != null) colNombre.HeaderText = "Categoría";
+                var colNombre = dgvMarcas.Columns["Nombre"];
+                if (colNombre != null) colNombre.HeaderText = "Marca";
 
-                var colActiva = dgvCategorias.Columns["Activa"];
+                var colActiva = dgvMarcas.Columns["Activa"];
                 if (colActiva != null) colActiva.HeaderText = "Activa";
             }
             catch (Exception ex)
@@ -80,13 +80,13 @@ namespace cantinaPadel.UI
         private void txtBuscar_TextChanged(object sender, EventArgs e) => ActualizarGrilla();
         private void cmbEstado_SelectedIndexChanged(object sender, EventArgs e) => ActualizarGrilla();
 
-        private void dgvCategorias_SelectionChanged(object sender, EventArgs e)
+        private void dgvMarcas_SelectionChanged(object sender, EventArgs e)
         {
-            // Se pasa la categoría elegida a los campos de texto para poder editarla
-            if (dgvCategorias.CurrentRow != null && dgvCategorias.CurrentRow.DataBoundItem is Categoria cat)
+            // Se pasa la marca elegida a los campos de texto para poder editarla
+            if (dgvMarcas.CurrentRow != null && dgvMarcas.CurrentRow.DataBoundItem != null)
             {
-                _categoriaSeleccionada = cat;
-                txtNombre.Text = _categoriaSeleccionada.Nombre;
+                _marcaSeleccionada = (Marca)dgvMarcas.CurrentRow.DataBoundItem;
+                txtNombre.Text = _marcaSeleccionada.Nombre;
             }
         }
 
@@ -94,14 +94,14 @@ namespace cantinaPadel.UI
         {
             try
             {
-                // Se crea una categoría nueva o se edita la que ya estaba seleccionada
-                var cat = _categoriaSeleccionada ?? new Categoria();
-                cat.Nombre = txtNombre.Text;
+                // Se crea una marca nueva o se edita la que ya estaba seleccionada
+                var mar = _marcaSeleccionada ?? new Marca();
+                mar.Nombre = txtNombre.Text;
 
                 // Se manda a la capa de negocio para validarla y guardarla
-                _logicaCategoria.Guardar(cat);
+                _logicaMarca.Guardar(mar);
 
-                MessageBox.Show("Categoría guardada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Marca guardada correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 ActualizarGrilla();
                 LimpiarFormulario();
             }
@@ -122,24 +122,24 @@ namespace cantinaPadel.UI
         private void btnBajaAlta_Click(object sender, EventArgs e)
         {
             // Se frena el flujo si se quiere dar de baja algo sin haberlo tocado antes
-            if (_categoriaSeleccionada == null)
+            if (_marcaSeleccionada == null)
             {
-                MessageBox.Show("Seleccione una categoría primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Seleccione una marca primero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
                 // Se calcula el estado contrario al actual y se pide confirmación
-                bool nuevoEstado = !_categoriaSeleccionada.Activa;
+                bool nuevoEstado = !_marcaSeleccionada.Activa;
                 string accion = nuevoEstado ? "activar" : "desactivar";
 
-                var confirmacion = MessageBox.Show($"¿Desea {accion} la categoría '{_categoriaSeleccionada.Nombre}'?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var confirmacion = MessageBox.Show($"¿Desea {accion} la marca '{_marcaSeleccionada.Nombre}'?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (confirmacion == DialogResult.Yes)
                 {
                     // Se impacta el cambio de estado en la bd
-                    _logicaCategoria.CambiarEstado(_categoriaSeleccionada.IdCategoria, nuevoEstado);
+                    _logicaMarca.CambiarEstado(_marcaSeleccionada.IdMarca, nuevoEstado);
                     ActualizarGrilla();
                     LimpiarFormulario();
                 }
@@ -153,9 +153,9 @@ namespace cantinaPadel.UI
         private void LimpiarFormulario()
         {
             // Se resetea la variable global, se vacía el texto, se desmarca la grilla y se hace foco
-            _categoriaSeleccionada = null;
+            _marcaSeleccionada = null;
             txtNombre.Clear();
-            if (dgvCategorias.CurrentRow != null) dgvCategorias.CurrentRow.Selected = false;
+            if (dgvMarcas.CurrentRow != null) dgvMarcas.CurrentRow.Selected = false;
             txtNombre.Focus();
         }
     }

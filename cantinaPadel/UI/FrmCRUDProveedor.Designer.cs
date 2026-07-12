@@ -28,28 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelHeader = new System.Windows.Forms.Panel();
-            lblTitulo = new System.Windows.Forms.Label();
-            panelCuerpo = new System.Windows.Forms.Panel();
-            lblNombreEmpresa = new System.Windows.Forms.Label();
-            txtNombreEmpresa = new System.Windows.Forms.TextBox();
-            lblApellido = new System.Windows.Forms.Label();
-            txtApellido = new System.Windows.Forms.TextBox();
-            lblNombre = new System.Windows.Forms.Label();
-            txtNombre = new System.Windows.Forms.TextBox();
-            lblDni = new System.Windows.Forms.Label();
-            txtDni = new System.Windows.Forms.TextBox();
-            lblCuit = new System.Windows.Forms.Label();
-            txtCuit = new System.Windows.Forms.TextBox();
-            lblCondicionIva = new System.Windows.Forms.Label();
-            cmbCondicionIva = new System.Windows.Forms.ComboBox();
-            lblTelefono = new System.Windows.Forms.Label();
-            txtTelefono = new System.Windows.Forms.TextBox();
-            lblDireccion = new System.Windows.Forms.Label();
-            txtDireccion = new System.Windows.Forms.TextBox();
-            panelFooter = new System.Windows.Forms.Panel();
-            btnGuardar = new System.Windows.Forms.Button();
-            btnCancelar = new System.Windows.Forms.Button();
+            panelHeader = new Panel();
+            lblTitulo = new Label();
+            panelCuerpo = new Panel();
+            lblNombreEmpresa = new Label();
+            txtNombreEmpresa = new TextBox();
+            lblApellido = new Label();
+            txtApellido = new TextBox();
+            lblNombre = new Label();
+            txtNombre = new TextBox();
+            lblDni = new Label();
+            txtDni = new TextBox();
+            lblCuit = new Label();
+            txtCuit = new TextBox();
+            lblCondicionIva = new Label();
+            cmbCondicionIva = new ComboBox();
+            lblTelefono = new Label();
+            txtTelefono = new TextBox();
+            lblDireccion = new Label();
+            txtDireccion = new TextBox();
+            panelFooter = new Panel();
+            btnGuardar = new Button();
+            btnCancelar = new Button();
             panelHeader.SuspendLayout();
             panelCuerpo.SuspendLayout();
             panelFooter.SuspendLayout();
@@ -57,26 +57,29 @@
             // 
             // panelHeader
             // 
-            panelHeader.BackColor = System.Drawing.Color.Gold;
+            panelHeader.BackColor = Color.Gold;
             panelHeader.Controls.Add(lblTitulo);
-            panelHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            panelHeader.Location = new System.Drawing.Point(0, 0);
+            panelHeader.Dock = DockStyle.Top;
+            panelHeader.Location = new Point(0, 0);
+            panelHeader.Margin = new Padding(2);
             panelHeader.Name = "panelHeader";
-            panelHeader.Size = new System.Drawing.Size(500, 50);
+            panelHeader.Size = new Size(882, 46);
             panelHeader.TabIndex = 0;
             // 
             // lblTitulo
             // 
             lblTitulo.AutoSize = true;
-            lblTitulo.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
-            lblTitulo.Location = new System.Drawing.Point(16, 12);
+            lblTitulo.Font = new Font("Segoe UI", 13F, FontStyle.Bold);
+            lblTitulo.Location = new Point(27, 9);
+            lblTitulo.Margin = new Padding(2, 0, 2, 0);
             lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new System.Drawing.Size(357, 47);
+            lblTitulo.Size = new Size(225, 30);
             lblTitulo.TabIndex = 0;
             lblTitulo.Text = "Datos del Proveedor";
             // 
             // panelCuerpo
             // 
+            panelCuerpo.BackColor = SystemColors.Info;
             panelCuerpo.Controls.Add(lblNombreEmpresa);
             panelCuerpo.Controls.Add(txtNombreEmpresa);
             panelCuerpo.Controls.Add(lblApellido);
@@ -93,189 +96,218 @@
             panelCuerpo.Controls.Add(txtTelefono);
             panelCuerpo.Controls.Add(lblDireccion);
             panelCuerpo.Controls.Add(txtDireccion);
-            panelCuerpo.Dock = System.Windows.Forms.DockStyle.Fill;
-            panelCuerpo.Location = new System.Drawing.Point(0, 50);
+            panelCuerpo.Dock = DockStyle.Fill;
+            panelCuerpo.Location = new Point(0, 46);
+            panelCuerpo.Margin = new Padding(2);
             panelCuerpo.Name = "panelCuerpo";
-            panelCuerpo.Size = new System.Drawing.Size(500, 350);
+            panelCuerpo.Size = new Size(882, 345);
             panelCuerpo.TabIndex = 1;
             // 
             // lblNombreEmpresa
             // 
             lblNombreEmpresa.AutoSize = true;
-            lblNombreEmpresa.Location = new System.Drawing.Point(16, 20);
+            lblNombreEmpresa.Location = new Point(27, 39);
+            lblNombreEmpresa.Margin = new Padding(2, 0, 2, 0);
             lblNombreEmpresa.Name = "lblNombreEmpresa";
-            lblNombreEmpresa.Size = new System.Drawing.Size(238, 32);
+            lblNombreEmpresa.Size = new Size(149, 20);
             lblNombreEmpresa.TabIndex = 0;
             lblNombreEmpresa.Text = "Nombre de Empresa:";
             // 
             // txtNombreEmpresa
             // 
-            txtNombreEmpresa.Location = new System.Drawing.Point(200, 17);
+            txtNombreEmpresa.Location = new Point(187, 36);
+            txtNombreEmpresa.Margin = new Padding(2);
             txtNombreEmpresa.MaxLength = 50;
             txtNombreEmpresa.Name = "txtNombreEmpresa";
-            txtNombreEmpresa.Size = new System.Drawing.Size(265, 39);
+            txtNombreEmpresa.Size = new Size(165, 27);
             txtNombreEmpresa.TabIndex = 0;
             // 
             // lblApellido
             // 
             lblApellido.AutoSize = true;
-            lblApellido.Location = new System.Drawing.Point(16, 60);
+            lblApellido.Location = new Point(27, 117);
+            lblApellido.Margin = new Padding(2, 0, 2, 0);
             lblApellido.Name = "lblApellido";
-            lblApellido.Size = new System.Drawing.Size(124, 32);
+            lblApellido.Size = new Size(79, 20);
             lblApellido.TabIndex = 1;
             lblApellido.Text = "Apellido: *";
             // 
             // txtApellido
             // 
-            txtApellido.Location = new System.Drawing.Point(200, 57);
+            txtApellido.Location = new Point(187, 110);
+            txtApellido.Margin = new Padding(2);
             txtApellido.MaxLength = 50;
             txtApellido.Name = "txtApellido";
-            txtApellido.Size = new System.Drawing.Size(265, 39);
+            txtApellido.Size = new Size(165, 27);
             txtApellido.TabIndex = 1;
             // 
             // lblNombre
             // 
             lblNombre.AutoSize = true;
-            lblNombre.Location = new System.Drawing.Point(16, 100);
+            lblNombre.Location = new Point(27, 185);
+            lblNombre.Margin = new Padding(2, 0, 2, 0);
             lblNombre.Name = "lblNombre";
-            lblNombre.Size = new System.Drawing.Size(124, 32);
+            lblNombre.Size = new Size(77, 20);
             lblNombre.TabIndex = 2;
             lblNombre.Text = "Nombre: *";
             // 
             // txtNombre
             // 
-            txtNombre.Location = new System.Drawing.Point(200, 97);
+            txtNombre.Location = new Point(187, 185);
+            txtNombre.Margin = new Padding(2);
             txtNombre.MaxLength = 50;
             txtNombre.Name = "txtNombre";
-            txtNombre.Size = new System.Drawing.Size(265, 39);
+            txtNombre.Size = new Size(165, 27);
             txtNombre.TabIndex = 2;
             // 
             // lblDni
             // 
             lblDni.AutoSize = true;
-            lblDni.Location = new System.Drawing.Point(16, 140);
+            lblDni.Location = new Point(27, 260);
+            lblDni.Margin = new Padding(2, 0, 2, 0);
             lblDni.Name = "lblDni";
-            lblDni.Size = new System.Drawing.Size(60, 32);
+            lblDni.Size = new Size(38, 20);
             lblDni.TabIndex = 3;
             lblDni.Text = "DNI:";
             // 
             // txtDni
             // 
-            txtDni.Location = new System.Drawing.Point(200, 137);
+            txtDni.Location = new Point(187, 260);
+            txtDni.Margin = new Padding(2);
             txtDni.MaxLength = 8;
             txtDni.Name = "txtDni";
-            txtDni.Size = new System.Drawing.Size(130, 39);
+            txtDni.Size = new Size(165, 27);
             txtDni.TabIndex = 3;
             // 
             // lblCuit
             // 
             lblCuit.AutoSize = true;
-            lblCuit.Location = new System.Drawing.Point(16, 180);
+            lblCuit.Location = new Point(431, 39);
+            lblCuit.Margin = new Padding(2, 0, 2, 0);
             lblCuit.Name = "lblCuit";
-            lblCuit.Size = new System.Drawing.Size(264, 32);
+            lblCuit.Size = new Size(168, 20);
             lblCuit.TabIndex = 4;
             lblCuit.Text = "CUIT (XX-XXXXXXXX-X):";
             // 
             // txtCuit
             // 
-            txtCuit.Location = new System.Drawing.Point(200, 177);
+            txtCuit.Location = new Point(603, 36);
+            txtCuit.Margin = new Padding(2);
             txtCuit.MaxLength = 13;
             txtCuit.Name = "txtCuit";
-            txtCuit.Size = new System.Drawing.Size(130, 39);
+            txtCuit.Size = new Size(165, 27);
             txtCuit.TabIndex = 4;
             // 
             // lblCondicionIva
             // 
             lblCondicionIva.AutoSize = true;
-            lblCondicionIva.Location = new System.Drawing.Point(16, 220);
+            lblCondicionIva.Location = new Point(431, 117);
+            lblCondicionIva.Margin = new Padding(2, 0, 2, 0);
             lblCondicionIva.Name = "lblCondicionIva";
-            lblCondicionIva.Size = new System.Drawing.Size(169, 32);
+            lblCondicionIva.Size = new Size(105, 20);
             lblCondicionIva.TabIndex = 5;
             lblCondicionIva.Text = "Condición IVA:";
             // 
             // cmbCondicionIva
             // 
             cmbCondicionIva.FormattingEnabled = true;
-            cmbCondicionIva.Location = new System.Drawing.Point(200, 217);
+            cmbCondicionIva.Location = new Point(603, 117);
+            cmbCondicionIva.Margin = new Padding(2);
             cmbCondicionIva.Name = "cmbCondicionIva";
-            cmbCondicionIva.Size = new System.Drawing.Size(225, 40);
+            cmbCondicionIva.Size = new Size(165, 28);
             cmbCondicionIva.TabIndex = 5;
             // 
             // lblTelefono
             // 
             lblTelefono.AutoSize = true;
-            lblTelefono.Location = new System.Drawing.Point(16, 262);
+            lblTelefono.Location = new Point(431, 192);
+            lblTelefono.Margin = new Padding(2, 0, 2, 0);
             lblTelefono.Name = "lblTelefono";
-            lblTelefono.Size = new System.Drawing.Size(112, 32);
+            lblTelefono.Size = new Size(70, 20);
             lblTelefono.TabIndex = 6;
             lblTelefono.Text = "Teléfono:";
             // 
             // txtTelefono
             // 
-            txtTelefono.Location = new System.Drawing.Point(200, 259);
+            txtTelefono.Location = new Point(603, 192);
+            txtTelefono.Margin = new Padding(2);
             txtTelefono.MaxLength = 20;
             txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new System.Drawing.Size(200, 39);
+            txtTelefono.Size = new Size(165, 27);
             txtTelefono.TabIndex = 6;
             // 
             // lblDireccion
             // 
             lblDireccion.AutoSize = true;
-            lblDireccion.Location = new System.Drawing.Point(16, 302);
+            lblDireccion.Location = new Point(431, 267);
+            lblDireccion.Margin = new Padding(2, 0, 2, 0);
             lblDireccion.Name = "lblDireccion";
-            lblDireccion.Size = new System.Drawing.Size(119, 32);
+            lblDireccion.Size = new Size(75, 20);
             lblDireccion.TabIndex = 7;
             lblDireccion.Text = "Dirección:";
             // 
             // txtDireccion
             // 
-            txtDireccion.Location = new System.Drawing.Point(200, 299);
+            txtDireccion.Location = new Point(603, 267);
+            txtDireccion.Margin = new Padding(2);
             txtDireccion.MaxLength = 100;
             txtDireccion.Name = "txtDireccion";
-            txtDireccion.Size = new System.Drawing.Size(265, 39);
+            txtDireccion.Size = new Size(165, 27);
             txtDireccion.TabIndex = 7;
             // 
             // panelFooter
             // 
+            panelFooter.BackColor = SystemColors.Info;
             panelFooter.Controls.Add(btnGuardar);
             panelFooter.Controls.Add(btnCancelar);
-            panelFooter.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panelFooter.Location = new System.Drawing.Point(0, 400);
+            panelFooter.Dock = DockStyle.Bottom;
+            panelFooter.Location = new Point(0, 391);
+            panelFooter.Margin = new Padding(2);
             panelFooter.Name = "panelFooter";
-            panelFooter.Size = new System.Drawing.Size(500, 50);
+            panelFooter.Size = new Size(882, 62);
             panelFooter.TabIndex = 2;
             // 
             // btnGuardar
             // 
-            btnGuardar.Location = new System.Drawing.Point(270, 10);
+            btnGuardar.BackColor = Color.ForestGreen;
+            btnGuardar.FlatStyle = FlatStyle.Flat;
+            btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnGuardar.ForeColor = Color.White;
+            btnGuardar.Location = new Point(467, 10);
+            btnGuardar.Margin = new Padding(2);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new System.Drawing.Size(100, 29);
+            btnGuardar.Size = new Size(322, 41);
             btnGuardar.TabIndex = 0;
             btnGuardar.Text = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = true;
+            btnGuardar.UseVisualStyleBackColor = false;
             // 
             // btnCancelar
             // 
-            btnCancelar.Location = new System.Drawing.Point(380, 10);
+            btnCancelar.BackColor = Color.IndianRed;
+            btnCancelar.FlatStyle = FlatStyle.Flat;
+            btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnCancelar.ForeColor = Color.White;
+            btnCancelar.Location = new Point(87, 10);
+            btnCancelar.Margin = new Padding(2);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new System.Drawing.Size(100, 29);
+            btnCancelar.Size = new Size(322, 41);
             btnCancelar.TabIndex = 1;
             btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
+            btnCancelar.UseVisualStyleBackColor = false;
             // 
             // FrmCRUDProveedor
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(500, 450);
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(882, 453);
             Controls.Add(panelCuerpo);
             Controls.Add(panelFooter);
             Controls.Add(panelHeader);
-            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            Margin = new System.Windows.Forms.Padding(5, 5, 5, 5);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
+            Name = "FrmCRUDProveedor";
+            StartPosition = FormStartPosition.CenterParent;
             Text = "Proveedor";
             Load += FrmCRUDProveedor_Load;
             panelHeader.ResumeLayout(false);
