@@ -45,7 +45,7 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = SystemColors.Info;
+            panelFiltros.BackColor = Color.Gold;
             panelFiltros.Controls.Add(cmbEstado);
             panelFiltros.Controls.Add(label2);
             panelFiltros.Controls.Add(txtBuscarNombre);
@@ -53,14 +53,14 @@
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(800, 60);
+            panelFiltros.Size = new Size(882, 60);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
-            cmbEstado.Items.AddRange(new object[] { "Todos", "", "Activos", "", "Inactivos" });
-            cmbEstado.Location = new Point(559, 16);
+            cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
+            cmbEstado.Location = new Point(608, 19);
             cmbEstado.Name = "cmbEstado";
             cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
@@ -69,7 +69,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(496, 19);
+            label2.Location = new Point(522, 19);
             label2.Name = "label2";
             label2.Size = new Size(57, 20);
             label2.TabIndex = 2;
@@ -99,16 +99,16 @@
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 400);
+            panelAcciones.Location = new Point(0, 403);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(800, 50);
+            panelAcciones.Size = new Size(882, 50);
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
             // 
             btnBajaLogica.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnBajaLogica.FlatStyle = FlatStyle.Flat;
-            btnBajaLogica.Location = new Point(559, 9);
+            btnBajaLogica.Location = new Point(620, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
             btnBajaLogica.TabIndex = 2;
@@ -120,7 +120,7 @@
             // 
             btnModificar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnModificar.FlatStyle = FlatStyle.Flat;
-            btnModificar.Location = new Point(349, 9);
+            btnModificar.Location = new Point(403, 9);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(111, 29);
             btnModificar.TabIndex = 1;
@@ -132,7 +132,7 @@
             // 
             btnNuevo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnNuevo.FlatStyle = FlatStyle.Flat;
-            btnNuevo.Location = new Point(116, 9);
+            btnNuevo.Location = new Point(166, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);
             btnNuevo.TabIndex = 0;
@@ -143,7 +143,7 @@
             // dgvEmpleados
             // 
             dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dgvEmpleados.BackgroundColor = Color.White;
+            dgvEmpleados.BackgroundColor = SystemColors.Info;
             dgvEmpleados.BorderStyle = BorderStyle.None;
             dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -152,7 +152,7 @@
             dgvEmpleados.Name = "dgvEmpleados";
             dgvEmpleados.RowHeadersVisible = false;
             dgvEmpleados.RowHeadersWidth = 51;
-            dgvEmpleados.Size = new Size(800, 340);
+            dgvEmpleados.Size = new Size(882, 343);
             dgvEmpleados.TabIndex = 2;
             dgvEmpleados.SelectionChanged += dgvEmpleados_SelectionChanged;
             // 
@@ -160,7 +160,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(882, 453);
             Controls.Add(dgvEmpleados);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);

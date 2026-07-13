@@ -53,7 +53,7 @@
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(800, 60);
+            panelFiltros.Size = new Size(882, 60);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
@@ -96,14 +96,15 @@
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 400);
+            panelAcciones.Location = new Point(0, 403);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(800, 50);
+            panelAcciones.Size = new Size(882, 50);
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
             // 
-            btnBajaLogica.Location = new Point(559, 9);
+            btnBajaLogica.FlatStyle = FlatStyle.Flat;
+            btnBajaLogica.Location = new Point(571, 9);
             btnBajaLogica.Name = "btnBajaLogica";
             btnBajaLogica.Size = new Size(139, 29);
             btnBajaLogica.TabIndex = 2;
@@ -112,7 +113,8 @@
             // 
             // btnModificar
             // 
-            btnModificar.Location = new Point(349, 9);
+            btnModificar.FlatStyle = FlatStyle.Flat;
+            btnModificar.Location = new Point(392, 9);
             btnModificar.Name = "btnModificar";
             btnModificar.Size = new Size(111, 29);
             btnModificar.TabIndex = 1;
@@ -121,7 +123,8 @@
             // 
             // btnNuevo
             // 
-            btnNuevo.Location = new Point(116, 9);
+            btnNuevo.FlatStyle = FlatStyle.Flat;
+            btnNuevo.Location = new Point(165, 9);
             btnNuevo.Name = "btnNuevo";
             btnNuevo.Size = new Size(138, 29);
             btnNuevo.TabIndex = 0;
@@ -137,14 +140,14 @@
             dgvProveedores.Location = new Point(0, 60);
             dgvProveedores.Name = "dgvProveedores";
             dgvProveedores.RowHeadersWidth = 51;
-            dgvProveedores.Size = new Size(800, 340);
+            dgvProveedores.Size = new Size(882, 343);
             dgvProveedores.TabIndex = 2;
             // 
             // FrmListadoProveedores
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(800, 450);
+            ClientSize = new Size(882, 453);
             Controls.Add(dgvProveedores);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);

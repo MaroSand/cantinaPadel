@@ -68,14 +68,14 @@
             pnlSidebar.Location = new Point(0, 0);
             pnlSidebar.Margin = new Padding(3, 4, 3, 4);
             pnlSidebar.Name = "pnlSidebar";
-            pnlSidebar.Size = new Size(229, 815);
+            pnlSidebar.Size = new Size(229, 804);
             pnlSidebar.TabIndex = 0;
             // 
             // pnlSidebarFooter
             // 
             pnlSidebarFooter.Controls.Add(btnCerrarSesion);
             pnlSidebarFooter.Dock = DockStyle.Bottom;
-            pnlSidebarFooter.Location = new Point(0, 748);
+            pnlSidebarFooter.Location = new Point(0, 737);
             pnlSidebarFooter.Margin = new Padding(3, 4, 3, 4);
             pnlSidebarFooter.Name = "pnlSidebarFooter";
             pnlSidebarFooter.Size = new Size(229, 67);
@@ -116,7 +116,7 @@
             pnlNav.Location = new Point(0, 93);
             pnlNav.Margin = new Padding(3, 4, 3, 4);
             pnlNav.Name = "pnlNav";
-            pnlNav.Size = new Size(229, 722);
+            pnlNav.Size = new Size(229, 711);
             pnlNav.TabIndex = 1;
             // 
             // btnReportes
@@ -346,7 +346,7 @@
             pnlContenido.Location = new Point(229, 0);
             pnlContenido.Margin = new Padding(3, 4, 3, 4);
             pnlContenido.Name = "pnlContenido";
-            pnlContenido.Size = new Size(1010, 815);
+            pnlContenido.Size = new Size(1008, 804);
             pnlContenido.TabIndex = 1;
             // 
             // pnlTopbar
@@ -358,7 +358,7 @@
             pnlTopbar.Location = new Point(0, 0);
             pnlTopbar.Margin = new Padding(3, 4, 3, 4);
             pnlTopbar.Name = "pnlTopbar";
-            pnlTopbar.Size = new Size(1010, 67);
+            pnlTopbar.Size = new Size(1008, 67);
             pnlTopbar.TabIndex = 0;
             // 
             // lblUsuario
@@ -387,7 +387,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1239, 815);
+            ClientSize = new Size(1237, 804);
             Controls.Add(pnlContenido);
             Controls.Add(pnlSidebar);
             Margin = new Padding(3, 4, 3, 4);

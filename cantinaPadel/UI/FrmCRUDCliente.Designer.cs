@@ -29,24 +29,28 @@
         private void InitializeComponent()
         {
             panelDatos = new Panel();
-            label1 = new Label();
-            txtNombre = new TextBox();
-            txtApellido = new TextBox();
-            label2 = new Label();
-            label3 = new Label();
-            txtDni = new TextBox();
-            label4 = new Label();
-            txtTelefono = new TextBox();
-            label5 = new Label();
-            txtEmail = new TextBox();
-            btnGuardar = new Button();
             btnCancelar = new Button();
+            btnGuardar = new Button();
+            txtEmail = new TextBox();
+            label5 = new Label();
+            txtTelefono = new TextBox();
+            label4 = new Label();
+            txtDni = new TextBox();
+            label3 = new Label();
+            label2 = new Label();
+            txtApellido = new TextBox();
+            txtNombre = new TextBox();
+            label1 = new Label();
+            panel1 = new Panel();
+            label6 = new Label();
             panelDatos.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
             // panelDatos
             // 
-            panelDatos.BackColor = Color.White;
+            panelDatos.BackColor = SystemColors.Info;
+            panelDatos.Controls.Add(panel1);
             panelDatos.Controls.Add(btnCancelar);
             panelDatos.Controls.Add(btnGuardar);
             panelDatos.Controls.Add(txtEmail);
@@ -61,120 +65,159 @@
             panelDatos.Controls.Add(label1);
             panelDatos.Dock = DockStyle.Fill;
             panelDatos.Location = new Point(0, 0);
+            panelDatos.Margin = new Padding(3, 4, 3, 4);
             panelDatos.Name = "panelDatos";
-            panelDatos.Size = new Size(484, 361);
+            panelDatos.Size = new Size(882, 453);
             panelDatos.TabIndex = 0;
             // 
-            // label1
+            // btnCancelar
             // 
-            label1.AutoSize = true;
-            label1.Location = new Point(20, 20);
-            label1.Name = "label1";
-            label1.Size = new Size(54, 15);
-            label1.TabIndex = 0;
-            label1.Text = "Nombre:";
+            btnCancelar.BackColor = Color.IndianRed;
+            btnCancelar.FlatStyle = FlatStyle.Flat;
+            btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnCancelar.ForeColor = Color.White;
+            btnCancelar.Location = new Point(104, 333);
+            btnCancelar.Margin = new Padding(3, 4, 3, 4);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(322, 41);
+            btnCancelar.TabIndex = 11;
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.UseVisualStyleBackColor = false;
+            btnCancelar.Click += btnCancelar_Click;
             // 
-            // txtNombre
+            // btnGuardar
             // 
-            txtNombre.Location = new Point(120, 17);
-            txtNombre.Name = "txtNombre";
-            txtNombre.Size = new Size(300, 23);
-            txtNombre.TabIndex = 1;
+            btnGuardar.BackColor = Color.ForestGreen;
+            btnGuardar.FlatStyle = FlatStyle.Flat;
+            btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnGuardar.ForeColor = Color.White;
+            btnGuardar.Location = new Point(479, 333);
+            btnGuardar.Margin = new Padding(3, 4, 3, 4);
+            btnGuardar.Name = "btnGuardar";
+            btnGuardar.Size = new Size(322, 41);
+            btnGuardar.TabIndex = 10;
+            btnGuardar.Text = "Guardar";
+            btnGuardar.UseVisualStyleBackColor = false;
+            btnGuardar.Click += btnGuardar_Click;
             // 
-            // txtApellido
+            // txtEmail
             // 
-            txtApellido.Location = new Point(120, 57);
-            txtApellido.Name = "txtApellido";
-            txtApellido.Size = new Size(300, 23);
-            txtApellido.TabIndex = 2;
-            // 
-            // label2
-            // 
-            label2.AutoSize = true;
-            label2.Location = new Point(20, 60);
-            label2.Name = "label2";
-            label2.Size = new Size(54, 15);
-            label2.TabIndex = 3;
-            label2.Text = "Apellido:";
-            // 
-            // label3
-            // 
-            label3.AutoSize = true;
-            label3.Location = new Point(20, 100);
-            label3.Name = "label3";
-            label3.Size = new Size(30, 15);
-            label3.TabIndex = 4;
-            label3.Text = "DNI:";
-            // 
-            // txtDni
-            // 
-            txtDni.Location = new Point(120, 97);
-            txtDni.Name = "txtDni";
-            txtDni.Size = new Size(300, 23);
-            txtDni.TabIndex = 5;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(20, 140);
-            label4.Name = "label4";
-            label4.Size = new Size(56, 15);
-            label4.TabIndex = 6;
-            label4.Text = "Teléfono:";
-            // 
-            // txtTelefono
-            // 
-            txtTelefono.Location = new Point(120, 137);
-            txtTelefono.Name = "txtTelefono";
-            txtTelefono.Size = new Size(300, 23);
-            txtTelefono.TabIndex = 7;
+            txtEmail.Location = new Point(137, 267);
+            txtEmail.Margin = new Padding(3, 4, 3, 4);
+            txtEmail.Name = "txtEmail";
+            txtEmail.Size = new Size(342, 27);
+            txtEmail.TabIndex = 9;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(20, 180);
+            label5.Location = new Point(31, 267);
             label5.Name = "label5";
-            label5.Size = new Size(47, 15);
+            label5.Size = new Size(59, 20);
             label5.TabIndex = 8;
             label5.Text = "Email: *";
             // 
-            // txtEmail
+            // txtTelefono
             // 
-            txtEmail.Location = new Point(120, 177);
-            txtEmail.Name = "txtEmail";
-            txtEmail.Size = new Size(300, 23);
-            txtEmail.TabIndex = 9;
+            txtTelefono.Location = new Point(137, 215);
+            txtTelefono.Margin = new Padding(3, 4, 3, 4);
+            txtTelefono.Name = "txtTelefono";
+            txtTelefono.Size = new Size(342, 27);
+            txtTelefono.TabIndex = 7;
             // 
-            // btnGuardar
+            // label4
             // 
-            btnGuardar.Location = new Point(120, 240);
-            btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(120, 35);
-            btnGuardar.TabIndex = 10;
-            btnGuardar.Text = "Guardar";
-            btnGuardar.UseVisualStyleBackColor = true;
-            btnGuardar.Click += btnGuardar_Click;
+            label4.AutoSize = true;
+            label4.Location = new Point(31, 222);
+            label4.Name = "label4";
+            label4.Size = new Size(70, 20);
+            label4.TabIndex = 6;
+            label4.Text = "Teléfono:";
             // 
-            // btnCancelar
+            // txtDni
             // 
-            btnCancelar.Location = new Point(260, 240);
-            btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(120, 35);
-            btnCancelar.TabIndex = 11;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
-            btnCancelar.Click += btnCancelar_Click;
+            txtDni.Location = new Point(137, 173);
+            txtDni.Margin = new Padding(3, 4, 3, 4);
+            txtDni.Name = "txtDni";
+            txtDni.Size = new Size(342, 27);
+            txtDni.TabIndex = 5;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(31, 180);
+            label3.Name = "label3";
+            label3.Size = new Size(38, 20);
+            label3.TabIndex = 4;
+            label3.Text = "DNI:";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(32, 134);
+            label2.Name = "label2";
+            label2.Size = new Size(69, 20);
+            label2.TabIndex = 3;
+            label2.Text = "Apellido:";
+            // 
+            // txtApellido
+            // 
+            txtApellido.Location = new Point(137, 127);
+            txtApellido.Margin = new Padding(3, 4, 3, 4);
+            txtApellido.Name = "txtApellido";
+            txtApellido.Size = new Size(342, 27);
+            txtApellido.TabIndex = 2;
+            // 
+            // txtNombre
+            // 
+            txtNombre.Location = new Point(137, 81);
+            txtNombre.Margin = new Padding(3, 4, 3, 4);
+            txtNombre.Name = "txtNombre";
+            txtNombre.Size = new Size(342, 27);
+            txtNombre.TabIndex = 1;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(34, 84);
+            label1.Name = "label1";
+            label1.Size = new Size(67, 20);
+            label1.TabIndex = 0;
+            label1.Text = "Nombre:";
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.Gold;
+            panel1.Controls.Add(label6);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(882, 47);
+            panel1.TabIndex = 12;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label6.Location = new Point(32, 9);
+            label6.Name = "label6";
+            label6.Size = new Size(196, 31);
+            label6.TabIndex = 0;
+            label6.Text = "Datos del Cliente";
             // 
             // FrmCRUDCliente
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(484, 361);
+            ClientSize = new Size(882, 453);
             Controls.Add(panelDatos);
+            Margin = new Padding(3, 4, 3, 4);
             Name = "FrmCRUDCliente";
             Text = "Nuevo Cliente\n";
             panelDatos.ResumeLayout(false);
             panelDatos.PerformLayout();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -193,5 +236,7 @@
         private Button btnCancelar;
         private Button btnGuardar;
         private TextBox txtEmail;
+        private Panel panel1;
+        private Label label6;
     }
 }
