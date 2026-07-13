@@ -11,6 +11,8 @@ namespace cantinaPadel.DAL
         public DbSet<Empleado>  Empleados  { get; set; }
         public DbSet<Cliente>   Clientes   { get; set; }
         public DbSet<Proveedor> Proveedores { get; set; }
+        public DbSet<Producto>  Productos  { get; set; }
+        
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
