@@ -104,6 +104,7 @@
             // 
             txtEmail.Location = new Point(137, 267);
             txtEmail.Margin = new Padding(3, 4, 3, 4);
+            txtEmail.MaxLength = 100;
             txtEmail.Name = "txtEmail";
             txtEmail.Size = new Size(342, 27);
             txtEmail.TabIndex = 9;
@@ -121,9 +122,11 @@
             // 
             txtTelefono.Location = new Point(137, 215);
             txtTelefono.Margin = new Padding(3, 4, 3, 4);
+            txtTelefono.MaxLength = 20;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new Size(342, 27);
             txtTelefono.TabIndex = 7;
+            txtTelefono.KeyPress += txtTelefono_KeyPress;
             // 
             // label4
             // 
@@ -138,9 +141,11 @@
             // 
             txtDni.Location = new Point(137, 173);
             txtDni.Margin = new Padding(3, 4, 3, 4);
+            txtDni.MaxLength = 8;
             txtDni.Name = "txtDni";
             txtDni.Size = new Size(342, 27);
             txtDni.TabIndex = 5;
+            txtDni.KeyPress += txtDni_KeyPress;
             // 
             // label3
             // 
@@ -164,17 +169,21 @@
             // 
             txtApellido.Location = new Point(137, 127);
             txtApellido.Margin = new Padding(3, 4, 3, 4);
+            txtApellido.MaxLength = 100;
             txtApellido.Name = "txtApellido";
             txtApellido.Size = new Size(342, 27);
             txtApellido.TabIndex = 2;
+            txtApellido.KeyPress += txtNombreApellido_KeyPress;
             // 
             // txtNombre
             // 
             txtNombre.Location = new Point(137, 81);
             txtNombre.Margin = new Padding(3, 4, 3, 4);
+            txtNombre.MaxLength = 100;
             txtNombre.Name = "txtNombre";
             txtNombre.Size = new Size(342, 27);
             txtNombre.TabIndex = 1;
+            txtNombre.KeyPress += txtNombreApellido_KeyPress;
             // 
             // label1
             // 
