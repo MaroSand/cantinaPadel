@@ -135,7 +135,7 @@
             lblCodigoBarras.Name = "lblCodigoBarras";
             lblCodigoBarras.Size = new Size(163, 20);
             lblCodigoBarras.TabIndex = 1;
-            lblCodigoBarras.Text = "Código de Barras: *";
+            lblCodigoBarras.Text = "Código de Barras: ";
             // 
             // txtCodigoBarras
             // 
