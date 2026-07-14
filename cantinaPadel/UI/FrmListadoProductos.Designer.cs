@@ -37,187 +37,228 @@
             lblBuscar = new Label();
             tabControlMain = new TabControl();
             tabPageProductos = new TabPage();
-            tabPageMarcas = new TabPage();
-            tabPageActualizacionPrecios = new TabPage();
-            tabPageCategorias = new TabPage();
+            dgvProductos = new DataGridView();
             panelAcciones = new Panel();
             btnBajaLogica = new Button();
             btnModificar = new Button();
             btnNuevo = new Button();
-            dgvProductos = new DataGridView();
+            tabPageMarcas = new TabPage();
+            tabPageCategorias = new TabPage();
+            tabPageActualizacionPrecios = new TabPage();
             panelFiltros.SuspendLayout();
-            panelAcciones.SuspendLayout();
+            tabControlMain.SuspendLayout();
+            tabPageProductos.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvProductos).BeginInit();
+            panelAcciones.SuspendLayout();
             SuspendLayout();
             // 
             // panelFiltros
             // 
-             panelFiltros.BackColor = Color.Gold;
-             panelFiltros.Controls.Add(cmbMarcaFiltro);
-             panelFiltros.Controls.Add(lblMarca);
-             panelFiltros.Controls.Add(cmbCategoriaFiltro);
-             panelFiltros.Controls.Add(lblCategoria);
-             panelFiltros.Controls.Add(txtBuscar);
-             panelFiltros.Controls.Add(lblBuscar);
-             panelFiltros.Dock = DockStyle.Top;
-             panelFiltros.Location = new Point(0, 0);
-             panelFiltros.Name = "panelFiltros";
-             panelFiltros.Size = new Size(1060, 60);
-             panelFiltros.TabIndex = 0;
+            panelFiltros.BackColor = Color.Gold;
+            panelFiltros.Controls.Add(cmbMarcaFiltro);
+            panelFiltros.Controls.Add(lblMarca);
+            panelFiltros.Controls.Add(cmbCategoriaFiltro);
+            panelFiltros.Controls.Add(lblCategoria);
+            panelFiltros.Controls.Add(txtBuscar);
+            panelFiltros.Controls.Add(lblBuscar);
+            panelFiltros.Dock = DockStyle.Top;
+            panelFiltros.Location = new Point(0, 0);
+            panelFiltros.Margin = new Padding(5, 5, 5, 5);
+            panelFiltros.Name = "panelFiltros";
+            panelFiltros.Size = new Size(1706, 96);
+            panelFiltros.TabIndex = 0;
             // 
             // cmbMarcaFiltro
             // 
             cmbMarcaFiltro.FormattingEnabled = true;
-            cmbMarcaFiltro.Location = new Point(840, 16);
+            cmbMarcaFiltro.Location = new Point(1365, 26);
+            cmbMarcaFiltro.Margin = new Padding(5, 5, 5, 5);
             cmbMarcaFiltro.Name = "cmbMarcaFiltro";
-            cmbMarcaFiltro.Size = new Size(180, 28);
+            cmbMarcaFiltro.Size = new Size(290, 40);
             cmbMarcaFiltro.TabIndex = 5;
             // 
             // lblMarca
             // 
             lblMarca.AutoSize = true;
-            lblMarca.Location = new Point(780, 19);
+            lblMarca.Location = new Point(1268, 30);
+            lblMarca.Margin = new Padding(5, 0, 5, 0);
             lblMarca.Name = "lblMarca";
-            lblMarca.Size = new Size(54, 20);
+            lblMarca.Size = new Size(84, 32);
             lblMarca.TabIndex = 4;
             lblMarca.Text = "Marca:";
             // 
             // cmbCategoriaFiltro
             // 
             cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new Point(580, 16);
+            cmbCategoriaFiltro.Location = new Point(942, 26);
+            cmbCategoriaFiltro.Margin = new Padding(5, 5, 5, 5);
             cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new Size(180, 28);
+            cmbCategoriaFiltro.Size = new Size(290, 40);
             cmbCategoriaFiltro.TabIndex = 3;
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(500, 19);
+            lblCategoria.Location = new Point(812, 30);
+            lblCategoria.Margin = new Padding(5, 0, 5, 0);
             lblCategoria.Name = "lblCategoria";
-            lblCategoria.Size = new Size(78, 20);
+            lblCategoria.Size = new Size(121, 32);
             lblCategoria.TabIndex = 2;
             lblCategoria.Text = "Categoría:";
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new Point(240, 16);
+            txtBuscar.Location = new Point(390, 26);
+            txtBuscar.Margin = new Padding(5, 5, 5, 5);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(240, 27);
+            txtBuscar.Size = new Size(388, 39);
             txtBuscar.TabIndex = 1;
             // 
             // lblBuscar
             // 
             lblBuscar.AutoSize = true;
-            lblBuscar.Location = new Point(21, 19);
+            lblBuscar.Location = new Point(34, 30);
+            lblBuscar.Margin = new Padding(5, 0, 5, 0);
             lblBuscar.Name = "lblBuscar";
-            lblBuscar.Size = new Size(210, 20);
+            lblBuscar.Size = new Size(294, 32);
             lblBuscar.TabIndex = 0;
             lblBuscar.Text = "Buscar (nombre o código):";
             // 
-            // panelAcciones
-            // 
-             panelAcciones.Controls.Add(btnBajaLogica);
-             panelAcciones.Controls.Add(btnModificar);
-             panelAcciones.Controls.Add(btnNuevo);
-             panelAcciones.Dock = DockStyle.Bottom;
-             panelAcciones.Location = new Point(0, 430);
-             panelAcciones.Name = "panelAcciones";
-             panelAcciones.Size = new Size(1060, 50);
-             panelAcciones.TabIndex = 1;
-            // 
-            // btnBajaLogica
-            // 
-            btnBajaLogica.FlatStyle = FlatStyle.Flat;
-            btnBajaLogica.Location = new Point(600, 9);
-            btnBajaLogica.Name = "btnBajaLogica";
-            btnBajaLogica.Size = new Size(150, 29);
-            btnBajaLogica.TabIndex = 2;
-            btnBajaLogica.Text = "Dar de Baja";
-            btnBajaLogica.UseVisualStyleBackColor = true;
-            // 
-            // btnModificar
-            // 
-            btnModificar.FlatStyle = FlatStyle.Flat;
-            btnModificar.Location = new Point(420, 9);
-            btnModificar.Name = "btnModificar";
-            btnModificar.Size = new Size(130, 29);
-            btnModificar.TabIndex = 1;
-            btnModificar.Text = "Modificar";
-            btnModificar.UseVisualStyleBackColor = true;
-            // 
-            // btnNuevo
-            // 
-            btnNuevo.FlatStyle = FlatStyle.Flat;
-            btnNuevo.Location = new Point(200, 9);
-            btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(170, 29);
-            btnNuevo.TabIndex = 0;
-            btnNuevo.Text = "Nuevo Producto";
-            btnNuevo.UseVisualStyleBackColor = true;
-            // 
-            // dgvProductos
-            // 
-             dgvProductos.BackgroundColor = SystemColors.Info;
-             dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-             dgvProductos.Dock = DockStyle.Fill;
-             dgvProductos.GridColor = SystemColors.Menu;
-             dgvProductos.Location = new Point(0, 60);
-             dgvProductos.Name = "dgvProductos";
-             dgvProductos.RowHeadersWidth = 51;
-             dgvProductos.Size = new Size(1060, 370);
-             dgvProductos.TabIndex = 2;
-            // 
             // tabControlMain
             // 
+            tabControlMain.Controls.Add(tabPageProductos);
+            tabControlMain.Controls.Add(tabPageMarcas);
+            tabControlMain.Controls.Add(tabPageCategorias);
+            tabControlMain.Controls.Add(tabPageActualizacionPrecios);
             tabControlMain.Dock = DockStyle.Fill;
             tabControlMain.Location = new Point(0, 0);
+            tabControlMain.Margin = new Padding(5, 5, 5, 5);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(1060, 480);
+            tabControlMain.Size = new Size(1722, 768);
             tabControlMain.TabIndex = 3;
             // 
             // tabPageProductos
             // 
-            tabPageProductos.Text = "Productos";
-            tabPageProductos.UseVisualStyleBackColor = true;
+            tabPageProductos.BackColor = SystemColors.Info;
             tabPageProductos.Controls.Add(dgvProductos);
             tabPageProductos.Controls.Add(panelAcciones);
             tabPageProductos.Controls.Add(panelFiltros);
+            tabPageProductos.Location = new Point(8, 46);
+            tabPageProductos.Margin = new Padding(5, 5, 5, 5);
+            tabPageProductos.Name = "tabPageProductos";
+            tabPageProductos.Size = new Size(1706, 714);
+            tabPageProductos.TabIndex = 0;
+            tabPageProductos.Text = "Productos";
+            // 
+            // dgvProductos
+            // 
+            dgvProductos.BackgroundColor = Color.White;
+            dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvProductos.Dock = DockStyle.Fill;
+            dgvProductos.GridColor = SystemColors.Menu;
+            dgvProductos.Location = new Point(0, 96);
+            dgvProductos.Margin = new Padding(5, 5, 5, 5);
+            dgvProductos.Name = "dgvProductos";
+            dgvProductos.RowHeadersWidth = 51;
+            dgvProductos.Size = new Size(1706, 538);
+            dgvProductos.TabIndex = 2;
+            // 
+            // panelAcciones
+            // 
+            panelAcciones.BackColor = SystemColors.Info;
+            panelAcciones.Controls.Add(btnBajaLogica);
+            panelAcciones.Controls.Add(btnModificar);
+            panelAcciones.Controls.Add(btnNuevo);
+            panelAcciones.Dock = DockStyle.Bottom;
+            panelAcciones.Location = new Point(0, 634);
+            panelAcciones.Margin = new Padding(5, 5, 5, 5);
+            panelAcciones.Name = "panelAcciones";
+            panelAcciones.Size = new Size(1706, 80);
+            panelAcciones.TabIndex = 1;
+            // 
+            // btnBajaLogica
+            // 
+            btnBajaLogica.BackColor = Color.White;
+            btnBajaLogica.FlatStyle = FlatStyle.Flat;
+            btnBajaLogica.Location = new Point(975, 14);
+            btnBajaLogica.Margin = new Padding(5, 5, 5, 5);
+            btnBajaLogica.Name = "btnBajaLogica";
+            btnBajaLogica.Size = new Size(244, 46);
+            btnBajaLogica.TabIndex = 2;
+            btnBajaLogica.Text = "Activar / Desactivar";
+            btnBajaLogica.UseVisualStyleBackColor = false;
+            // 
+            // btnModificar
+            // 
+            btnModificar.BackColor = Color.White;
+            btnModificar.FlatStyle = FlatStyle.Flat;
+            btnModificar.Location = new Point(682, 14);
+            btnModificar.Margin = new Padding(5, 5, 5, 5);
+            btnModificar.Name = "btnModificar";
+            btnModificar.Size = new Size(211, 46);
+            btnModificar.TabIndex = 1;
+            btnModificar.Text = "Modificar";
+            btnModificar.UseVisualStyleBackColor = false;
+            // 
+            // btnNuevo
+            // 
+            btnNuevo.BackColor = Color.White;
+            btnNuevo.FlatStyle = FlatStyle.Flat;
+            btnNuevo.Location = new Point(325, 14);
+            btnNuevo.Margin = new Padding(5, 5, 5, 5);
+            btnNuevo.Name = "btnNuevo";
+            btnNuevo.Size = new Size(276, 46);
+            btnNuevo.TabIndex = 0;
+            btnNuevo.Text = "Nuevo Producto";
+            btnNuevo.UseVisualStyleBackColor = false;
             // 
             // tabPageMarcas
             // 
+            tabPageMarcas.Location = new Point(8, 46);
+            tabPageMarcas.Margin = new Padding(5, 5, 5, 5);
+            tabPageMarcas.Name = "tabPageMarcas";
+            tabPageMarcas.Size = new Size(1706, 714);
+            tabPageMarcas.TabIndex = 1;
             tabPageMarcas.Text = "Marcas";
             tabPageMarcas.UseVisualStyleBackColor = true;
             // 
             // tabPageCategorias
             // 
+            tabPageCategorias.Location = new Point(8, 46);
+            tabPageCategorias.Margin = new Padding(5, 5, 5, 5);
+            tabPageCategorias.Name = "tabPageCategorias";
+            tabPageCategorias.Size = new Size(1706, 714);
+            tabPageCategorias.TabIndex = 2;
             tabPageCategorias.Text = "Categorías";
             tabPageCategorias.UseVisualStyleBackColor = true;
-
+            // 
             // tabPageActualizacionPrecios
             // 
+            tabPageActualizacionPrecios.Location = new Point(8, 46);
+            tabPageActualizacionPrecios.Margin = new Padding(5, 5, 5, 5);
+            tabPageActualizacionPrecios.Name = "tabPageActualizacionPrecios";
+            tabPageActualizacionPrecios.Size = new Size(1706, 714);
+            tabPageActualizacionPrecios.TabIndex = 3;
             tabPageActualizacionPrecios.Text = "Actualización de Precios";
             tabPageActualizacionPrecios.UseVisualStyleBackColor = true;
             // 
-            // Add pages to tabControl
-            // 
-            tabControlMain.TabPages.AddRange(new TabPage[] { tabPageProductos, tabPageMarcas, tabPageCategorias, tabPageActualizacionPrecios });
-
-            // 
             // FrmListadoProductos
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1060, 480);
+            ClientSize = new Size(1722, 768);
             Controls.Add(tabControlMain);
+            Margin = new Padding(5, 5, 5, 5);
             Name = "FrmListadoProductos";
             Text = "Listado de Productos";
             Load += FrmListadoProductos_Load;
             panelFiltros.ResumeLayout(false);
             panelFiltros.PerformLayout();
-            panelAcciones.ResumeLayout(false);
+            tabControlMain.ResumeLayout(false);
+            tabPageProductos.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dgvProductos).EndInit();
+            panelAcciones.ResumeLayout(false);
             ResumeLayout(false);
         }
 

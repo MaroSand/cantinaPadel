@@ -47,26 +47,28 @@
             panelFiltros.Controls.Add(lblCategoria);
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
-            panelFiltros.Margin = new Padding(3, 2, 3, 2);
+            panelFiltros.Margin = new Padding(6, 4, 6, 4);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(928, 45);
+            panelFiltros.Size = new Size(1723, 113);
             panelFiltros.TabIndex = 0;
             // 
             // txtProductoFiltro
             // 
-            txtProductoFiltro.Location = new Point(18, 12);
-            txtProductoFiltro.Margin = new Padding(3, 2, 3, 2);
+            txtProductoFiltro.Location = new Point(33, 56);
+            txtProductoFiltro.Margin = new Padding(6, 4, 6, 4);
+            txtProductoFiltro.MaxLength = 100;
             txtProductoFiltro.Name = "txtProductoFiltro";
             txtProductoFiltro.PlaceholderText = "Nombre, código, marca o categoría...";
-            txtProductoFiltro.Size = new Size(280, 23);
+            txtProductoFiltro.Size = new Size(517, 39);
             txtProductoFiltro.TabIndex = 1;
             // 
             // lblProducto
             // 
             lblProducto.AutoSize = true;
-            lblProducto.Location = new Point(18, -3);
+            lblProducto.Location = new Point(33, 20);
+            lblProducto.Margin = new Padding(6, 0, 6, 0);
             lblProducto.Name = "lblProducto";
-            lblProducto.Size = new Size(97, 15);
+            lblProducto.Size = new Size(192, 32);
             lblProducto.TabIndex = 0;
             lblProducto.Text = "Buscar producto:";
             // 
@@ -74,18 +76,19 @@
             // 
             cmbMarcaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbMarcaFiltro.FormattingEnabled = true;
-            cmbMarcaFiltro.Location = new Point(516, 12);
-            cmbMarcaFiltro.Margin = new Padding(3, 2, 3, 2);
+            cmbMarcaFiltro.Location = new Point(958, 55);
+            cmbMarcaFiltro.Margin = new Padding(6, 4, 6, 4);
             cmbMarcaFiltro.Name = "cmbMarcaFiltro";
-            cmbMarcaFiltro.Size = new Size(176, 23);
+            cmbMarcaFiltro.Size = new Size(323, 40);
             cmbMarcaFiltro.TabIndex = 4;
             // 
             // lblMarca
             // 
             lblMarca.AutoSize = true;
-            lblMarca.Location = new Point(516, -3);
+            lblMarca.Location = new Point(958, 20);
+            lblMarca.Margin = new Padding(6, 0, 6, 0);
             lblMarca.Name = "lblMarca";
-            lblMarca.Size = new Size(43, 15);
+            lblMarca.Size = new Size(84, 32);
             lblMarca.TabIndex = 3;
             lblMarca.Text = "Marca:";
             // 
@@ -93,63 +96,67 @@
             // 
             cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
             cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new Point(320, 12);
-            cmbCategoriaFiltro.Margin = new Padding(3, 2, 3, 2);
+            cmbCategoriaFiltro.Location = new Point(594, 55);
+            cmbCategoriaFiltro.Margin = new Padding(6, 4, 6, 4);
             cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new Size(176, 23);
+            cmbCategoriaFiltro.Size = new Size(323, 40);
             cmbCategoriaFiltro.TabIndex = 3;
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(320, -3);
+            lblCategoria.Location = new Point(594, 20);
+            lblCategoria.Margin = new Padding(6, 0, 6, 0);
             lblCategoria.Name = "lblCategoria";
-            lblCategoria.Size = new Size(61, 15);
+            lblCategoria.Size = new Size(121, 32);
             lblCategoria.TabIndex = 2;
             lblCategoria.Text = "Categoría:";
             // 
             // panelAcciones
             // 
+            panelAcciones.BackColor = SystemColors.Info;
             panelAcciones.Controls.Add(btnConfirmar);
             panelAcciones.Controls.Add(nudPorcentaje);
             panelAcciones.Controls.Add(lblPorcentaje);
             panelAcciones.Controls.Add(lblAyudaPrecio);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 322);
-            panelAcciones.Margin = new Padding(3, 2, 3, 2);
+            panelAcciones.Location = new Point(0, 687);
+            panelAcciones.Margin = new Padding(6, 4, 6, 4);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(928, 38);
+            panelAcciones.Size = new Size(1723, 81);
             panelAcciones.TabIndex = 1;
             // 
             // btnConfirmar
             // 
             btnConfirmar.Anchor = AnchorStyles.None;
+            btnConfirmar.BackColor = Color.White;
             btnConfirmar.FlatStyle = FlatStyle.Flat;
-            btnConfirmar.Location = new Point(638, 8);
-            btnConfirmar.Margin = new Padding(3, 2, 3, 2);
+            btnConfirmar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnConfirmar.Location = new Point(1185, 17);
+            btnConfirmar.Margin = new Padding(6, 4, 6, 4);
             btnConfirmar.Name = "btnConfirmar";
-            btnConfirmar.Size = new Size(130, 22);
+            btnConfirmar.Size = new Size(241, 47);
             btnConfirmar.TabIndex = 2;
             btnConfirmar.Text = "Confirmar";
-            btnConfirmar.UseVisualStyleBackColor = true;
+            btnConfirmar.UseVisualStyleBackColor = false;
             // 
             // nudPorcentaje
             // 
             nudPorcentaje.DecimalPlaces = 2;
-            nudPorcentaje.Location = new Point(149, 10);
-            nudPorcentaje.Margin = new Padding(3, 2, 3, 2);
+            nudPorcentaje.Location = new Point(277, 21);
+            nudPorcentaje.Margin = new Padding(6, 4, 6, 4);
             nudPorcentaje.Maximum = new decimal(new int[] { 500, 0, 0, 0 });
-            nudPorcentaje.Minimum = new decimal(new int[] { 90, 0, 0, int.MinValue });
             nudPorcentaje.Name = "nudPorcentaje";
-            nudPorcentaje.Size = new Size(88, 23);
+            nudPorcentaje.Size = new Size(163, 39);
             nudPorcentaje.TabIndex = 0;
             // 
             // lblPorcentaje
             // 
             lblPorcentaje.AutoSize = true;
-            lblPorcentaje.Location = new Point(18, 11);
+            lblPorcentaje.Location = new Point(33, 23);
+            lblPorcentaje.Margin = new Padding(6, 0, 6, 0);
             lblPorcentaje.Name = "lblPorcentaje";
-            lblPorcentaje.Size = new Size(87, 15);
+            lblPorcentaje.Size = new Size(171, 32);
             lblPorcentaje.TabIndex = 0;
             lblPorcentaje.Text = "Porcentaje (%):";
             // 
@@ -157,36 +164,37 @@
             // 
             lblAyudaPrecio.AutoSize = true;
             lblAyudaPrecio.ForeColor = SystemColors.GrayText;
-            lblAyudaPrecio.Location = new Point(262, 11);
+            lblAyudaPrecio.Location = new Point(487, 23);
+            lblAyudaPrecio.Margin = new Padding(6, 0, 6, 0);
             lblAyudaPrecio.Name = "lblAyudaPrecio";
-            lblAyudaPrecio.Size = new Size(291, 15);
+            lblAyudaPrecio.Size = new Size(590, 32);
             lblAyudaPrecio.TabIndex = 1;
             lblAyudaPrecio.Text = "Tip: podés tipear el \"Precio Nuevo\" directo en la grilla.";
             // 
             // dgvPreview
             // 
-            dgvPreview.BackgroundColor = SystemColors.Info;
+            dgvPreview.BackgroundColor = Color.White;
             dgvPreview.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvPreview.Dock = DockStyle.Fill;
             dgvPreview.GridColor = SystemColors.Menu;
-            dgvPreview.Location = new Point(0, 45);
-            dgvPreview.Margin = new Padding(3, 2, 3, 2);
+            dgvPreview.Location = new Point(0, 113);
+            dgvPreview.Margin = new Padding(6, 4, 6, 4);
             dgvPreview.Name = "dgvPreview";
             dgvPreview.RowHeadersWidth = 51;
-            dgvPreview.Size = new Size(928, 277);
+            dgvPreview.Size = new Size(1723, 574);
             dgvPreview.TabIndex = 2;
             // 
             // FrmActualizacionPrecios
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(928, 360);
+            ClientSize = new Size(1723, 768);
             Controls.Add(dgvPreview);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);
-            Margin = new Padding(3, 2, 3, 2);
+            Margin = new Padding(6, 4, 6, 4);
             Name = "FrmActualizacionPrecios";
-            Text = "Actualización Masiva de Precios";
+            Text = "Actualización de Precios";
             Load += FrmActualizacionPrecios_Load;
             panelFiltros.ResumeLayout(false);
             panelFiltros.PerformLayout();

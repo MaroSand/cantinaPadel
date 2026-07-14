@@ -34,33 +34,45 @@
             lblContrasenia = new Label();
             txtContrasenia = new TextBox();
             btnIngresar = new Button();
+            panel1 = new Panel();
+            panel2 = new Panel();
+            panel3 = new Panel();
+            panel1.SuspendLayout();
+            panel2.SuspendLayout();
             SuspendLayout();
             // 
             // label1
             // 
             label1.AutoSize = true;
+            label1.BackColor = SystemColors.Info;
             label1.Font = new Font("Trebuchet MS", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(339, 73);
+            label1.ForeColor = SystemColors.ActiveCaptionText;
+            label1.Location = new Point(278, 89);
+            label1.Margin = new Padding(5, 0, 5, 0);
             label1.Name = "label1";
-            label1.Size = new Size(169, 28);
+            label1.Size = new Size(275, 46);
             label1.TabIndex = 0;
             label1.Text = "INICIAR SESIÓN";
             // 
             // lblUsuario
             // 
             lblUsuario.AutoSize = true;
-            lblUsuario.Location = new Point(315, 161);
+            lblUsuario.BackColor = SystemColors.Info;
+            lblUsuario.ForeColor = SystemColors.ActiveCaptionText;
+            lblUsuario.Location = new Point(234, 209);
+            lblUsuario.Margin = new Padding(5, 0, 5, 0);
             lblUsuario.Name = "lblUsuario";
-            lblUsuario.Size = new Size(62, 20);
+            lblUsuario.Size = new Size(99, 32);
             lblUsuario.TabIndex = 1;
             lblUsuario.Text = "Usuario:";
             // 
             // txtUsuario
             // 
-            txtUsuario.Location = new Point(407, 158);
+            txtUsuario.Location = new Point(399, 206);
+            txtUsuario.Margin = new Padding(5);
             txtUsuario.MaxLength = 25;
             txtUsuario.Name = "txtUsuario";
-            txtUsuario.Size = new Size(125, 27);
+            txtUsuario.Size = new Size(201, 39);
             txtUsuario.TabIndex = 3;
             txtUsuario.TextChanged += txtUsuario_TextChanged;
             txtUsuario.KeyPress += txtUsuario_KeyPress;
@@ -68,18 +80,22 @@
             // lblContrasenia
             // 
             lblContrasenia.AutoSize = true;
-            lblContrasenia.Location = new Point(315, 210);
+            lblContrasenia.BackColor = SystemColors.Info;
+            lblContrasenia.ForeColor = SystemColors.ActiveCaptionText;
+            lblContrasenia.Location = new Point(234, 298);
+            lblContrasenia.Margin = new Padding(5, 0, 5, 0);
             lblContrasenia.Name = "lblContrasenia";
-            lblContrasenia.Size = new Size(86, 20);
+            lblContrasenia.Size = new Size(139, 32);
             lblContrasenia.TabIndex = 4;
             lblContrasenia.Text = "Contraseña:";
             // 
             // txtContrasenia
             // 
-            txtContrasenia.Location = new Point(407, 207);
+            txtContrasenia.Location = new Point(399, 291);
+            txtContrasenia.Margin = new Padding(5);
             txtContrasenia.MaxLength = 8;
             txtContrasenia.Name = "txtContrasenia";
-            txtContrasenia.Size = new Size(125, 27);
+            txtContrasenia.Size = new Size(201, 39);
             txtContrasenia.TabIndex = 7;
             txtContrasenia.UseSystemPasswordChar = true;
             txtContrasenia.TextChanged += txtContrasenia_TextChanged;
@@ -87,37 +103,70 @@
             // 
             // btnIngresar
             // 
-            btnIngresar.BackColor = Color.Ivory;
+            btnIngresar.BackColor = Color.White;
             btnIngresar.FlatStyle = FlatStyle.Flat;
             btnIngresar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnIngresar.ForeColor = SystemColors.ActiveCaptionText;
-            btnIngresar.Location = new Point(379, 275);
+            btnIngresar.Location = new Point(342, 445);
+            btnIngresar.Margin = new Padding(5);
             btnIngresar.Name = "btnIngresar";
-            btnIngresar.Size = new Size(94, 41);
+            btnIngresar.Size = new Size(153, 72);
             btnIngresar.TabIndex = 8;
             btnIngresar.Text = "Ingresar";
             btnIngresar.UseVisualStyleBackColor = false;
             btnIngresar.Click += btnIngresar_Click;
             // 
+            // panel1
+            // 
+            panel1.BackColor = SystemColors.Info;
+            panel1.Controls.Add(btnIngresar);
+            panel1.Controls.Add(label1);
+            panel1.Controls.Add(txtContrasenia);
+            panel1.Controls.Add(lblUsuario);
+            panel1.Controls.Add(lblContrasenia);
+            panel1.Controls.Add(txtUsuario);
+            panel1.Location = new Point(24, 51);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(850, 565);
+            panel1.TabIndex = 9;
+            // 
+            // panel2
+            // 
+            panel2.BackColor = Color.Gold;
+            panel2.Controls.Add(panel1);
+            panel2.ForeColor = Color.DarkGreen;
+            panel2.Location = new Point(37, 122);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(900, 655);
+            panel2.TabIndex = 10;
+            // 
+            // panel3
+            // 
+            panel3.BackColor = Color.White;
+            panel3.ForeColor = Color.White;
+            panel3.Location = new Point(28, 107);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(919, 684);
+            panel3.TabIndex = 11;
+            // 
             // FrmLogin
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.Beige;
-            ClientSize = new Size(882, 453);
-            Controls.Add(btnIngresar);
-            Controls.Add(txtContrasenia);
-            Controls.Add(lblContrasenia);
-            Controls.Add(txtUsuario);
-            Controls.Add(lblUsuario);
-            Controls.Add(label1);
+            BackColor = SystemColors.Info;
+            ClientSize = new Size(974, 929);
+            Controls.Add(panel2);
+            Controls.Add(panel3);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Margin = new Padding(5);
             MaximizeBox = false;
             Name = "FrmLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Acceso al Sistema - Complejo Pádel";
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
+            panel2.ResumeLayout(false);
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
@@ -128,5 +177,8 @@
         private Label lblContrasenia;
         private TextBox txtContrasenia;
         private Button btnIngresar;
+        private Panel panel1;
+        private Panel panel2;
+        private Panel panel3;
     }
 }

@@ -14,6 +14,7 @@ namespace cantinaPadel.UI
         public FrmCRUDEmpleado()
         {
             InitializeComponent();
+            CargarCondicionesIva();
             // Se instancia la lógica para usarla en toda la pantalla
             _logicaEmpleado = new LogicaEmpleado();
             _empleadoEdicion = null;
@@ -25,6 +26,14 @@ namespace cantinaPadel.UI
             // Se recibe el empleado desde el listado para el modo edición
             _empleadoEdicion = empleado;
             this.Text = "Modificar Empleado";
+        }
+
+        private void CargarCondicionesIva()
+        {
+            cmbCondicionIva.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCondicionIva.Items.Clear();
+            cmbCondicionIva.Items.AddRange(Persona.CondicionesIvaValidas);
+            cmbCondicionIva.SelectedIndex = -1;
         }
 
         private void FrmCRUDEmpleado_Load(object sender, EventArgs e)
@@ -41,6 +50,9 @@ namespace cantinaPadel.UI
             txtApellido.Text = _empleadoEdicion.Persona.Apellido;
             txtNombre.Text = _empleadoEdicion.Persona.Nombre;
             txtTelefono.Text = _empleadoEdicion.Persona.Telefono;
+
+            if (!string.IsNullOrEmpty(_empleadoEdicion.Persona.CondicionIva))
+                cmbCondicionIva.SelectedItem = _empleadoEdicion.Persona.CondicionIva;
 
             // Se cargan los datos del Empleado en los controles
             txtUsuario.Text = _empleadoEdicion.NombreUsuario;
@@ -70,7 +82,8 @@ namespace cantinaPadel.UI
                             Dni = txtDni.Text,
                             Apellido = txtApellido.Text,
                             Nombre = txtNombre.Text,
-                            Telefono = txtTelefono.Text
+                            Telefono = txtTelefono.Text,
+                            CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty
                         }
                     };
 
@@ -84,6 +97,7 @@ namespace cantinaPadel.UI
                     _empleadoEdicion.Persona.Apellido = txtApellido.Text;
                     _empleadoEdicion.Persona.Nombre = txtNombre.Text;
                     _empleadoEdicion.Persona.Telefono = txtTelefono.Text;
+                    _empleadoEdicion.Persona.CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty;
 
                     _empleadoEdicion.NombreUsuario = txtUsuario.Text;
                     _empleadoEdicion.Contrasena = txtContrasena.Text;
