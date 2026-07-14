@@ -47,6 +47,10 @@ namespace cantinaPadel.UI
             {
                 CargarFormularioEnTab(typeof(FrmCategorias), tabPageCategorias);
             }
+            else if (tabControlMain.SelectedTab == tabPageActualizacionPrecios)
+            {
+                CargarFormularioEnTab(typeof(FrmActualizacionPrecios), tabPageActualizacionPrecios);
+            }
         }
 
         private void CargarFormularioEnTab(Type formType, TabPage tab)
