@@ -10,7 +10,7 @@ namespace cantinaPadel.Models
         [Column("id_marca")]
         public int IdMarca { get; set; }
 
-        [Column("nombre_marca")]
+        [Column("nombre")]
         [Required]
         public string Nombre { get; set; } = string.Empty;
 
