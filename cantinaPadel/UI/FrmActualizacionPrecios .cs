@@ -10,10 +10,22 @@ namespace cantinaPadel.UI
     {
         private readonly LogicaProducto _logicaProducto;
 
-        // Guarda la última previsualización, para que Confirmar aplique
-        // exactamente sobre los productos que se mostraron en pantalla
-        // (y no vuelva a resolver el criterio, por si el usuario tocó los combos entremedio).
-        private List<ProductoPrecioPreview> _ultimaPreview = new();
+        // Resultado del último listado (según los filtros vigentes). Confirmar
+        // aplica sobre los ítems de esta lista que tengan Aplicar = true, con
+        // el PrecioNuevo que haya quedado en cada fila (por % o a mano).
+        private List<ProductoPrecioPreview> _listado = new();
+
+        // Envuelve _listado para que la grilla se refresque sola (ResetBindings)
+        // cuando recalculamos precios por código, sin tener que reasignar DataSource.
+        private readonly BindingSource _bindingSource = new();
+
+        // Espera una pausa corta después de la última tecla antes de buscar,
+        // para no pegarle a la base con una consulta por carácter tipeado.
+        private readonly System.Windows.Forms.Timer _debounceTexto = new() { Interval = 350 };
+
+        // Evita que el recálculo/refresco de la grilla dispare por error el
+        // handler de "edité una celda a mano".
+        private bool _refrescandoGrilla;
 
         public FrmActualizacionPrecios()
         {
@@ -26,32 +38,58 @@ namespace cantinaPadel.UI
             ConfigurarGrilla();
             CargarCombos();
 
-            cmbCriterio.SelectedIndexChanged += cmbCriterio_SelectedIndexChanged;
-            btnPrevisualizar.Click += btnPrevisualizar_Click;
+            _debounceTexto.Tick += (s, e2) => { _debounceTexto.Stop(); ActualizarListado(); };
+            txtProductoFiltro.TextChanged += (s, e2) => { _debounceTexto.Stop(); _debounceTexto.Start(); };
+
+            cmbCategoriaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
+            cmbMarcaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
+            nudPorcentaje.ValueChanged += (s, e2) => RecalcularPreciosPorPorcentaje();
+
+            dgvPreview.CellContentClick += dgvPreview_CellContentClick;
+            dgvPreview.CellEndEdit += dgvPreview_CellEndEdit;
+            dgvPreview.DataError += dgvPreview_DataError;
+
             btnConfirmar.Click += btnConfirmar_Click;
 
-            cmbCriterio.SelectedIndex = 0;
-            ActualizarVisibilidadCombos();
+            // Primer listado: sin filtros = todos los productos activos,
+            // igual que el patrón ya usado en FrmListadoProductos.
+            ActualizarListado();
         }
 
         private void ConfigurarGrilla()
         {
             dgvPreview.AutoGenerateColumns = false;
             dgvPreview.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvPreview.ReadOnly = true;
+            dgvPreview.ReadOnly = false;
             dgvPreview.MultiSelect = false;
+            dgvPreview.DataSource = _bindingSource;
 
             dgvPreview.Columns.Clear();
+            dgvPreview.Columns.Add(new DataGridViewCheckBoxColumn
+            {
+                Name = "Aplicar",
+                DataPropertyName = "Aplicar",
+                HeaderText = "Aplicar",
+                Width = 60,
+                ReadOnly = false
+            });
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
             { Name = "IdProducto", DataPropertyName = "IdProducto", Visible = false });
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "Nombre", DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 280 });
+            {
+                Name = "Nombre",
+                DataPropertyName = "Nombre",
+                HeaderText = "Nombre",
+                Width = 280,
+                ReadOnly = true
+            });
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "PrecioActual",
                 DataPropertyName = "PrecioActual",
                 HeaderText = "Precio Actual",
                 Width = 130,
+                ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle
                 { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
             });
@@ -61,25 +99,28 @@ namespace cantinaPadel.UI
                 DataPropertyName = "PrecioNuevo",
                 HeaderText = "Precio Nuevo",
                 Width = 130,
+                // Editable: click y tipeás. Sirve para aumentos que no son
+                // por porcentaje (ej. sumar $5 fijo a un producto puntual).
+                ReadOnly = false,
                 DefaultCellStyle = new DataGridViewCellStyle
-                { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
+                {
+                    Format = "C2",
+                    Alignment = DataGridViewContentAlignment.MiddleRight,
+                    BackColor = Color.LightYellow
+                }
             });
         }
 
-        // Carga cmbCriterio (fijo) y los tres combos de valores (categoría, marca, producto)
+        // Carga los combos de categoría y marca con una opción "Todas" (Id
+        // null) al principio, para que puedan quedar sin filtrar.
         private void CargarCombos()
         {
             try
             {
-                cmbCriterio.DropDownStyle = ComboBoxStyle.DropDownList;
-                cmbCriterio.Items.Clear();
-                cmbCriterio.Items.Add("Categoría");
-                cmbCriterio.Items.Add("Marca");
-                cmbCriterio.Items.Add("Producto individual");
-
                 var categorias = _logicaProducto.ObtenerCategoriasActivas()
                     .Select(c => new { Id = (int?)c.IdCategoria, Nombre = c.Nombre })
                     .ToList();
+                categorias.Insert(0, new { Id = (int?)null, Nombre = "Todas las categorías" });
                 cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbCategoriaFiltro.DisplayMember = "Nombre";
                 cmbCategoriaFiltro.ValueMember = "Id";
@@ -88,18 +129,11 @@ namespace cantinaPadel.UI
                 var marcas = _logicaProducto.ObtenerMarcasActivas()
                     .Select(m => new { Id = (int?)m.IdMarca, Nombre = m.Nombre })
                     .ToList();
+                marcas.Insert(0, new { Id = (int?)null, Nombre = "Todas las marcas" });
                 cmbMarcaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbMarcaFiltro.DisplayMember = "Nombre";
                 cmbMarcaFiltro.ValueMember = "Id";
                 cmbMarcaFiltro.DataSource = marcas;
-
-                var productos = _logicaProducto.ObtenerTodos()
-                    .Select(p => new { Id = (int?)p.IdProducto, Nombre = p.Nombre })
-                    .ToList();
-                cmbProductoFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
-                cmbProductoFiltro.DisplayMember = "Nombre";
-                cmbProductoFiltro.ValueMember = "Id";
-                cmbProductoFiltro.DataSource = productos;
             }
             catch (Exception ex)
             {
@@ -108,88 +142,140 @@ namespace cantinaPadel.UI
             }
         }
 
-        private void cmbCriterio_SelectedIndexChanged(object? sender, EventArgs e)
-            => ActualizarVisibilidadCombos();
-
-        // Muestra únicamente el combo correspondiente al criterio elegido.
-        // Los tres están superpuestos en el mismo lugar del Designer.
-        private void ActualizarVisibilidadCombos()
-        {
-            cmbCategoriaFiltro.Visible = cmbCriterio.SelectedIndex == 0;
-            lblCategoria.Visible = cmbCriterio.SelectedIndex == 0;
-
-            cmbMarcaFiltro.Visible = cmbCriterio.SelectedIndex == 1;
-            lblMarca.Visible = cmbCriterio.SelectedIndex == 1;
-
-            cmbProductoFiltro.Visible = cmbCriterio.SelectedIndex == 2;
-            lblProducto.Visible = cmbCriterio.SelectedIndex == 2;
-
-            // Cambió el criterio: la preview anterior ya no es válida
-            _ultimaPreview.Clear();
-            dgvPreview.DataSource = null;
-        }
-
-        private void btnPrevisualizar_Click(object? sender, EventArgs e)
+        // Dispara la búsqueda con los 3 filtros combinados (texto + categoría
+        // + marca), sin botón. Se llama al tipear (con debounce) y al cambiar
+        // cualquiera de los combos.
+        private void ActualizarListado()
         {
             try
             {
-                int? idCategoria = cmbCriterio.SelectedIndex == 0 ? cmbCategoriaFiltro.SelectedValue as int? : null;
-                int? idMarca = cmbCriterio.SelectedIndex == 1 ? cmbMarcaFiltro.SelectedValue as int? : null;
-                int? idProducto = cmbCriterio.SelectedIndex == 2 ? cmbProductoFiltro.SelectedValue as int? : null;
-
-                if (idCategoria == null && idMarca == null && idProducto == null)
-                {
-                    MessageBox.Show("Seleccione un valor para el criterio elegido.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
+                string? texto = string.IsNullOrWhiteSpace(txtProductoFiltro.Text) ? null : txtProductoFiltro.Text.Trim();
+                int? idCategoria = cmbCategoriaFiltro.SelectedValue as int?;
+                int? idMarca = cmbMarcaFiltro.SelectedValue as int?;
                 decimal porcentaje = nudPorcentaje.Value;
 
-                _ultimaPreview = _logicaProducto.PrevisualizarActualizacion(idCategoria, idMarca, idProducto, porcentaje);
+                // Antes de pisar el listado, guardamos qué precios habían
+                // sido editados a mano, para no perderlos si el producto
+                // sigue apareciendo en el nuevo resultado.
+                var manuales = _listado
+                    .Where(p => p.EditadoManualmente)
+                    .ToDictionary(p => p.IdProducto, p => p.PrecioNuevo);
 
-                if (_ultimaPreview.Count == 0)
+                _listado = _logicaProducto.BuscarParaActualizacion(texto, idCategoria, idMarca, porcentaje);
+
+                foreach (var item in _listado)
                 {
-                    MessageBox.Show("No se encontraron productos para el criterio seleccionado.",
-                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    if (manuales.TryGetValue(item.IdProducto, out var precioManual))
+                    {
+                        item.PrecioNuevo = precioManual;
+                        item.EditadoManualmente = true;
+                    }
                 }
 
-                dgvPreview.DataSource = _ultimaPreview;
+                _refrescandoGrilla = true;
+                _bindingSource.DataSource = _listado;
+                _refrescandoGrilla = false;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error al previsualizar: {ex.Message}",
+                MessageBox.Show($"Error al buscar productos: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        // Recalcula "Precio Nuevo" para todas las filas que NO fueron editadas
+        // a mano, cada vez que cambia el porcentaje. Las editadas a mano quedan
+        // como el usuario las dejó.
+        private void RecalcularPreciosPorPorcentaje()
+        {
+            if (_listado.Count == 0) return;
+
+            decimal factor = 1 + (nudPorcentaje.Value / 100m);
+            foreach (var item in _listado)
+            {
+                if (!item.EditadoManualmente)
+                    item.PrecioNuevo = Math.Round(item.PrecioActual * factor, 2);
+            }
+
+            _refrescandoGrilla = true;
+            _bindingSource.ResetBindings(false);
+            _refrescandoGrilla = false;
+        }
+
+        // Commitea el checkbox al toque, sin esperar a que la celda pierda el foco.
+        private void dgvPreview_CellContentClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (dgvPreview.Columns[e.ColumnIndex].Name != "Aplicar") return;
+
+            dgvPreview.CommitEdit(DataGridViewDataErrorContexts.Commit);
+        }
+
+        // El usuario tipeó un precio distinto en "Precio Nuevo": lo marcamos
+        // como editado a mano para que el porcentaje deje de pisarlo.
+        private void dgvPreview_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (_refrescandoGrilla) return;
+            if (e.RowIndex < 0) return;
+            if (dgvPreview.Columns[e.ColumnIndex].Name != "PrecioNuevo") return;
+            if (e.RowIndex >= _listado.Count) return;
+
+            var item = _listado[e.RowIndex];
+
+            if (item.PrecioNuevo < 0)
+            {
+                item.PrecioNuevo = item.PrecioActual;
+                MessageBox.Show("El precio no puede ser negativo.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _refrescandoGrilla = true;
+                _bindingSource.ResetBindings(false);
+                _refrescandoGrilla = false;
+                return;
+            }
+
+            item.EditadoManualmente = true;
+        }
+
+        // Si tipean algo que no es un número válido, avisamos y cancelamos
+        // en vez de dejar que la excepción tire abajo la grilla.
+        private void dgvPreview_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+        {
+            MessageBox.Show("Ingresá un valor numérico válido para el precio.",
+                "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            e.ThrowException = false;
+            e.Cancel = true;
+        }
+
         private void btnConfirmar_Click(object? sender, EventArgs e)
         {
-            if (_ultimaPreview.Count == 0)
+            var seleccionados = _listado.Where(p => p.Aplicar).ToList();
+
+            if (seleccionados.Count == 0)
             {
-                MessageBox.Show("Primero generá una previsualización antes de confirmar.",
+                MessageBox.Show("No hay productos tildados para actualizar.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             var confirmacion = MessageBox.Show(
-                $"¿Confirma la actualización de precios para {_ultimaPreview.Count} producto(s)?",
+                $"¿Confirma la actualización de precios para {seleccionados.Count} producto(s)?",
                 "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (confirmacion != DialogResult.Yes) return;
 
             try
             {
-                var ids = _ultimaPreview.Select(p => p.IdProducto).ToList();
-                decimal porcentaje = nudPorcentaje.Value;
+                var preciosFinales = seleccionados
+                    .GroupBy(p => p.IdProducto)
+                    .ToDictionary(g => g.Key, g => g.First().PrecioNuevo);
 
-                _logicaProducto.ConfirmarActualizacion(ids, porcentaje);
+                _logicaProducto.ConfirmarActualizacion(preciosFinales);
 
                 MessageBox.Show("Precios actualizados correctamente.",
                     "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                _ultimaPreview.Clear();
-                dgvPreview.DataSource = null;
+                // Recarga el listado para reflejar los nuevos "Precio Actual"
+                ActualizarListado();
             }
             catch (Exception ex)
             {

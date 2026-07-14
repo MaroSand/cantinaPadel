@@ -12,6 +12,13 @@ namespace cantinaPadel.BLL
         public string Nombre { get; set; } = string.Empty;
         public decimal PrecioActual { get; set; }
         public decimal PrecioNuevo { get; set; }
+        // Tildado en la grilla: indica si este producto se incluye al confirmar.
+        // Por default viene tildado (true) al previsualizar.
+        public bool Aplicar { get; set; } = true;
+        // No se muestra en la grilla (no es columna). Se usa para que el
+        // recálculo automático por porcentaje NO pise un precio que el
+        // usuario ya tipeó a mano en la celda "Precio Nuevo".
+        public bool EditadoManualmente { get; set; } = false;
     }
     public class LogicaProducto
     {
@@ -54,9 +61,38 @@ namespace cantinaPadel.BLL
 
         public void BajaLogica(int idProducto) => _repo.BajaLogica(idProducto);
 
-        public List<ProductoPrecioPreview> PrevisualizarActualizacion(int? idCategoria, int? idMarca, int? idProducto, decimal porcentaje)
+        // Búsqueda única para FrmActualizacionPrecios: combina texto libre
+        // (nombre, código, categoría o marca) con los combos de categoría y
+        // marca, todo en simultáneo (AND). Reemplaza a los antiguos
+        // PrevisualizarActualizacion / PrevisualizarPorTexto: ya no hace
+        // falta elegir un "criterio" único, se usa lo que el usuario haya
+        // completado de cada filtro.
+        public List<ProductoPrecioPreview> BuscarParaActualizacion(string? texto, int? idCategoria, int? idMarca, decimal porcentaje)
         {
-            var productos = _repo.ObtenerPorCriterio(idCategoria, idMarca, idProducto);
+            using var ctx = new DAL.AppDbContext();
+
+            IQueryable<Producto> query = ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .Where(p => p.Activo);
+
+            if (!string.IsNullOrWhiteSpace(texto))
+            {
+                var t = texto.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Nombre.ToLower().Contains(t) ||
+                    (p.CodigoBarras != null && p.CodigoBarras.Contains(t)) ||
+                    p.Categoria.Nombre.ToLower().Contains(t) ||
+                    (p.Marca != null && p.Marca.Nombre.ToLower().Contains(t)));
+            }
+
+            if (idCategoria.HasValue)
+                query = query.Where(p => p.IdCategoria == idCategoria.Value);
+
+            if (idMarca.HasValue)
+                query = query.Where(p => p.IdMarca == idMarca.Value);
+
+            var productos = query.OrderBy(p => p.Nombre).ToList();
             decimal factor = 1 + (porcentaje / 100m);
 
             return productos.Select(p => new ProductoPrecioPreview
@@ -68,8 +104,11 @@ namespace cantinaPadel.BLL
             }).ToList();
         }
 
-        public void ConfirmarActualizacion(List<int> idsProductos, decimal porcentaje)
-            => _repo.ActualizarPreciosMasivo(idsProductos, porcentaje);
+        // Confirma los precios finales tal cual quedaron en la grilla del
+        // usuario (ya sea calculados por porcentaje o tipeados a mano),
+        // no un porcentaje único para todos.
+        public void ConfirmarActualizacion(Dictionary<int, decimal> preciosFinales)
+            => _repo.ActualizarPrecios(preciosFinales);
 
         public decimal CalcularPrecioConIva(decimal precioBase)
             => Math.Round(precioBase * 1.21m, 2);
