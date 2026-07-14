@@ -5,9 +5,11 @@ namespace cantinaPadel.DAL.Repositories
     public interface IProductoRepository
     {
         List<Producto> ObtenerTodos();
-        List<Producto> BuscarPorNombre(string nombre);
-        List<Producto> BuscarPorIdProducto(int idProducto);
-        List<Producto> BuscarPorMarca(int idMarca);
+
+        // Un solo método de búsqueda "todo en uno". Cada parámetro es opcional
+        // (nullable). Si viene null, ese filtro simplemente no se aplica.
+        List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca);
+
         Producto? ObtenerPorCodigoBarras(string codigoBarras);
         Producto? ObtenerPorId(int idProducto);
         bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null);

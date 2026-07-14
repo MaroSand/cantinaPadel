@@ -20,6 +20,12 @@
     <Compile Update="UI\FrmListadoProveedores.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="UI\FrmListadoProductos.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="UI\FrmCRUDProducto.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>

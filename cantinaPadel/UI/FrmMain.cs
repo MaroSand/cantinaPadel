@@ -95,7 +95,12 @@ namespace cantinaPadel
             AbrirEnPanel(frm);
         }
         private void btnPuntoVenta_Click(object sender, EventArgs e) => Navegar("Punto de Venta");
-        private void btnStock_Click(object sender, EventArgs e) => Navegar("Stock");
+        private void btnStock_Click(object sender, EventArgs e)
+        {
+            Navegar("Stock");
+            cantinaPadel.UI.FrmListadoProductos frm = new cantinaPadel.UI.FrmListadoProductos();
+            AbrirEnPanel(frm);
+        }
         private void btnCompras_Click(object sender, EventArgs e) => Navegar("Compras");
         private void btnTurnos_Click(object sender, EventArgs e) => Navegar("Turnos");
         private void btnCanchas_Click(object sender, EventArgs e) => Navegar("Canchas");

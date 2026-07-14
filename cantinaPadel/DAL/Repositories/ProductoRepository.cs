@@ -1,63 +1,98 @@
 ﻿using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace cantinaPadel.DAL.Repositories;
-
-public class ProductoRepository : IProductoRepository
+namespace cantinaPadel.DAL.Repositories
 {
-    public List<Producto> ObtenerTodos()
+    public class ProductoRepository : IProductoRepository
     {
-        using var ctx = new AppDbContext();
-        return ctx.Productos
-            .Include(p => p.Categoria)
-            .Include(p => p.Marca)
-            .Where(p => p.Activo)
-            .OrderBy(p => p.Nombre)
-            .ToList();
-    }
+        public List<Producto> ObtenerTodos()
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .Where(p => p.Activo)
+                .OrderBy(p => p.Nombre)
+                .ToList();
+        }
+        
+        public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca)
+        {
+            using var ctx = new AppDbContext();
 
-    public List<Producto> BuscarPorNombre(string nombre)
-    {
-        throw new NotImplementedException();
-    }
+            IQueryable<Producto> query = ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .Where(p => p.Activo);
 
-    public List<Producto> BuscarPorIdProducto(int idProducto)
-    {
-        throw new NotImplementedException();
-    }
+            if (!string.IsNullOrWhiteSpace(texto))
+            {
+                texto = texto.Trim().ToLower();
+                query = query.Where(p =>
+                    p.Nombre.ToLower().Contains(texto) ||
+                    p.CodigoBarras.Contains(texto));
+            }
 
-    public List<Producto> BuscarPorMarca(int idMarca)
-    {
-        throw new NotImplementedException();
-    }
+            if (idCategoria.HasValue)
+                query = query.Where(p => p.IdCategoria == idCategoria.Value);
 
-    public Producto? ObtenerPorCodigoBarras(string codigoBarras)
-    {
-        throw new NotImplementedException();
-    }
+            if (idMarca.HasValue)
+                query = query.Where(p => p.IdMarca == idMarca.Value);
 
-    public Producto? ObtenerPorId(int idProducto)
-    {
-        throw new NotImplementedException();
-    }
+            return query.OrderBy(p => p.Nombre).ToList();
+        }
 
-    public bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null)
-    {
-        throw new NotImplementedException();
-    }
+        // Usado por el lector de código de barras: escaneás y busca al toque
+        public Producto? ObtenerPorCodigoBarras(string codigoBarras)
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .FirstOrDefault(p => p.CodigoBarras == codigoBarras && p.Activo);
+        }
 
-    public void Agregar(Producto producto)
-    {
-        throw new NotImplementedException();
-    }
+        public Producto? ObtenerPorId(int idProducto)
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .FirstOrDefault(p => p.IdProducto == idProducto);
+        }
 
-    public void Modificar(Producto producto)
-    {
-        throw new NotImplementedException();
-    }
+        // Valida unicidad del código de barras antes de guardar.
+        public bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null)
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Productos.Any(p =>
+                p.CodigoBarras == codigoBarras &&
+                p.IdProducto   != (idProductoExcluir ?? 0));
+        }
 
-    public void BajaLogica(int idProducto)
-    {
-        throw new NotImplementedException();
+        public void Agregar(Producto producto)
+        {
+            using var ctx = new AppDbContext();
+            ctx.Productos.Add(producto);
+            ctx.SaveChanges();
+        }
+
+        public void Modificar(Producto producto)
+        {
+            using var ctx = new AppDbContext();
+            ctx.Productos.Update(producto);
+            ctx.SaveChanges();
+        }
+
+        // Baja lógica: no se borra un producto, se desactiva.
+        public void BajaLogica(int idProducto)
+        {
+            using var ctx = new AppDbContext();
+            var producto = ctx.Productos.Find(idProducto);
+            if (producto == null) return;
+
+            producto.Activo = false;
+            ctx.SaveChanges();
+        }
     }
 }
