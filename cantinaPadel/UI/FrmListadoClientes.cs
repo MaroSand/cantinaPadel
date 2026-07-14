@@ -27,6 +27,7 @@ namespace cantinaPadel.UI
             ConfigurarGrilla();
             CargarDatos();
         }
+        // Configura las propiedades de la grilla de clientes
         private void ConfigurarGrilla()
         {
             cmbEstado.SelectedIndex = 1; // Activos por defecto
@@ -45,7 +46,7 @@ namespace cantinaPadel.UI
             dgvClientes.Columns.Add(new DataGridViewCheckBoxColumn { HeaderText = "Activo", DataPropertyName = "Activo", Width = 60 });
         }
 
-
+        // Carga los datos de los clientes desde la base de datos y los muestra en la grilla
         private void CargarDatos()
         {
             try
@@ -59,6 +60,7 @@ namespace cantinaPadel.UI
             }
         }
 
+        // Filtra los datos según el texto de búsqueda y el estado seleccionado, y los muestra en la grilla
         private void FiltrarYMostrarDatos()
         {
             if (_listaOriginal == null) return;
@@ -90,11 +92,13 @@ namespace cantinaPadel.UI
             }).ToList();
             dgvClientes.DataSource = listaFiltrada;
         }
+        // Evento que se dispara cuando cambia el texto de búsqueda, para filtrar los datos
         private void txtBuscar_TextChanged(object sender, EventArgs e)
         {
             FiltrarYMostrarDatos();
         }
 
+        // Evento que se dispara al hacer clic en el botón de baja lógica, para dar de baja o alta a un cliente
         private void btnBajaLogica_Click(object sender, EventArgs e)
         {
             if (dgvClientes.SelectedRows.Count == 0)
@@ -119,7 +123,7 @@ namespace cantinaPadel.UI
                 CargarDatos();
             }
         }
-
+        // Evento que se dispara al hacer clic en el botón de modificar, para abrir el formulario de modificación de cliente
         private void btnModificar_Click(object sender, EventArgs e)
         {
             if (dgvClientes.SelectedRows.Count == 0)

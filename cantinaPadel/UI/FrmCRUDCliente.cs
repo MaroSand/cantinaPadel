@@ -89,5 +89,36 @@ namespace cantinaPadel.UI
         {
             this.Close();
         }
+
+        // Permite solo letras (incluye acentos/ñ), espacios y teclas de control (Backspace, etc.)
+        // Coincide con la regla de Persona.ValidarNombre / ValidarApellido.
+        private void txtNombreApellido_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            if (!char.IsLetter(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
+                e.Handled = true;
+        }
+
+        // Permite solo dígitos y teclas de control. Coincide con Persona.ValidarDni (7-8 dígitos).
+        private void txtDni_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            if (!char.IsDigit(e.KeyChar))
+                e.Handled = true;
+        }
+
+        // Permite dígitos, espacio, guion y '+'. Coincide con Persona.ValidarTelefono.
+        private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (char.IsControl(e.KeyChar))
+                return;
+
+            if (!char.IsDigit(e.KeyChar) && e.KeyChar != ' ' && e.KeyChar != '-' && e.KeyChar != '+')
+                e.Handled = true;
+        }
     }
 }

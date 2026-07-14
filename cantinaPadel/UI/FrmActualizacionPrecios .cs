@@ -7,11 +7,14 @@ using System.Windows.Forms;
 
 namespace cantinaPadel.UI
 {
+
+    // Formulario para actualizar precios de productos en lote, con filtros
     public partial class FrmActualizacionPrecios : Form
     {
 
         private static readonly CultureInfo _culturaPesos = CrearCulturaPesos();
 
+        // Crea una cultura clonada de la actual, pero con símbolo de moneda "$"
         private static CultureInfo CrearCulturaPesos()
         {
             var cultura = (CultureInfo)CultureInfo.CurrentCulture.Clone();
@@ -19,34 +22,36 @@ namespace cantinaPadel.UI
             return cultura;
         }
         private readonly LogicaProducto _logicaProducto;
-
+        // Listado de productos que se muestra en la grilla, con sus precios
 
         private List<ProductoPrecioPreview> _listado = new();
 
         private readonly BindingSource _bindingSource = new();
 
+        // Timer para hacer debounce en la búsqueda de productos al tipear
         private readonly System.Windows.Forms.Timer _debounceTexto = new() { Interval = 350 };
 
         private bool _refrescandoGrilla;
 
+        // Constructor del formulario, inicializa componentes y lógica de negocio
         public FrmActualizacionPrecios()
         {
             InitializeComponent();
             _logicaProducto = new LogicaProducto();
         }
 
+        // Evento Load del formulario, configura la grilla, carga los combos y asigna eventos
         private void FrmActualizacionPrecios_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
             CargarCombos();
-
+            // Asignar eventos a los controles
             _debounceTexto.Tick += (s, e2) => { _debounceTexto.Stop(); ActualizarListado(); };
             txtProductoFiltro.TextChanged += (s, e2) => { _debounceTexto.Stop(); _debounceTexto.Start(); };
-
+            // Cuando cambian los combos de categoría o marca, se actualiza el listado
             cmbCategoriaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             cmbMarcaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             nudPorcentaje.ValueChanged += (s, e2) => RecalcularPreciosPorPorcentaje();
-
             dgvPreview.CellContentClick += dgvPreview_CellContentClick;
             dgvPreview.CellEndEdit += dgvPreview_CellEndEdit;
             dgvPreview.DataError += dgvPreview_DataError;
@@ -55,7 +60,7 @@ namespace cantinaPadel.UI
 
             ActualizarListado();
         }
-
+        // Configura la grilla de vista previa de productos y precios, con columnas específicas
         private void ConfigurarGrilla()
         {
             dgvPreview.AutoGenerateColumns = false;
@@ -64,7 +69,7 @@ namespace cantinaPadel.UI
             dgvPreview.MultiSelect = false;
             dgvPreview.AllowUserToAddRows = false;  
             dgvPreview.DataSource = _bindingSource;
-
+            // Configura las columnas de la grilla
             dgvPreview.Columns.Clear();
             dgvPreview.Columns.Add(new DataGridViewCheckBoxColumn
             {
@@ -115,8 +120,7 @@ namespace cantinaPadel.UI
             });
         }
 
-        // Carga los combos de categoría y marca con una opción "Todas" (Id
-        // null) al principio, para que puedan quedar sin filtrar.
+        // Carga los combos de categoría y marca con opciones activas, incluyendo "Todas"
         private void CargarCombos()
         {
             try
@@ -146,9 +150,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Dispara la búsqueda con los 3 filtros combinados (texto + categoría
-        // + marca), sin botón. Se llama al tipear (con debounce) y al cambiar
-        // cualquiera de los combos.
+        // Actualiza el listado de productos según los filtros y el porcentaje, preservando precios editados manualmente
         private void ActualizarListado()
         {
             try
@@ -158,15 +160,15 @@ namespace cantinaPadel.UI
                 int? idMarca = cmbMarcaFiltro.SelectedValue as int?;
                 decimal porcentaje = nudPorcentaje.Value;
 
-                // Antes de pisar el listado, guardamos qué precios habían
-                // sido editados a mano, para no perderlos si el producto
-                // sigue apareciendo en el nuevo resultado.
+                // Guardamos los precios editados manualmente antes de recargar el listado
                 var manuales = _listado
                     .Where(p => p.EditadoManualmente)
                     .ToDictionary(p => p.IdProducto, p => p.PrecioNuevo);
 
+                // Buscamos los productos según los filtros y el porcentaje
                 _listado = _logicaProducto.BuscarParaActualizacion(texto, idCategoria, idMarca, porcentaje);
 
+                // Restauramos los precios editados manualmente en el nuevo listado
                 foreach (var item in _listado)
                 {
                     if (manuales.TryGetValue(item.IdProducto, out var precioManual))
@@ -187,9 +189,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Recalcula "Precio Nuevo" para todas las filas que NO fueron editadas
-        // a mano, cada vez que cambia el porcentaje. Las editadas a mano quedan
-        // como el usuario las dejó.
+        // Recalcula los precios nuevos de los productos en la grilla según el porcentaje ingresado,
         private void RecalcularPreciosPorPorcentaje()
         {
             if (_listado.Count == 0) return;
@@ -206,7 +206,7 @@ namespace cantinaPadel.UI
             _refrescandoGrilla = false;
         }
 
-        // Commitea el checkbox al toque, sin esperar a que la celda pierda el foco.
+        // El usuario hizo click en el checkbox "Aplicar" de la grilla: confirmamos el cambio
         private void dgvPreview_CellContentClick(object? sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex < 0) return;
@@ -215,8 +215,8 @@ namespace cantinaPadel.UI
             dgvPreview.CommitEdit(DataGridViewDataErrorContexts.Commit);
         }
 
-        // El usuario tipeó un precio distinto en "Precio Nuevo": lo marcamos
-        // como editado a mano para que el porcentaje deje de pisarlo.
+
+        // El usuario terminó de editar la celda "PrecioNuevo": validamos que no sea negativo y marcamos como editado manualmente
         private void dgvPreview_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
         {
             if (_refrescandoGrilla) return;
@@ -240,8 +240,8 @@ namespace cantinaPadel.UI
             item.EditadoManualmente = true;
         }
 
-        // Si tipean algo que no es un número válido, avisamos y cancelamos
-        // en vez de dejar que la excepción tire abajo la grilla.
+
+        // Maneja errores de datos en la grilla, mostrando un mensaje si el valor ingresado no es numérico
         private void dgvPreview_DataError(object? sender, DataGridViewDataErrorEventArgs e)
         {
             MessageBox.Show("Ingresá un valor numérico válido para el precio.",
@@ -250,6 +250,7 @@ namespace cantinaPadel.UI
             e.Cancel = true;
         }
 
+        // El usuario hizo click en el botón "Confirmar": valida y confirma la actualización de precios
         private void btnConfirmar_Click(object? sender, EventArgs e)
         {
             var seleccionados = _listado.Where(p => p.Aplicar).ToList();
