@@ -59,9 +59,11 @@ namespace cantinaPadel.UI
                 dgvMarcas.DataSource = null;
                 dgvMarcas.DataSource = lista;
 
-                // Se acomodan los títulos de las columnas para que queden prolijos
-                var colId = dgvMarcas.Columns["IdMarca"];
-                if (colId != null) colId.HeaderText = "ID";
+                // Ocultar ID de forma segura contra nulls
+                if (dgvMarcas.Columns["IdMarca"] is DataGridViewColumn colId)
+                {
+                    colId.Visible = false;
+                }
 
                 var colNombre = dgvMarcas.Columns["Nombre"];
                 if (colNombre != null) colNombre.HeaderText = "Marca";
