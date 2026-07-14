@@ -42,6 +42,40 @@ namespace cantinaPadel.DAL.Repositories
             return query.OrderBy(p => p.Nombre).ToList();
         }
 
+        // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto.
+        public List<Producto> ObtenerPorCriterio(int? idCategoria, int? idMarca, int? idProducto)
+        {
+            using var ctx = new AppDbContext();
+
+            IQueryable<Producto> query = ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.Marca)
+                .Where(p => p.Activo);
+
+            if (idProducto.HasValue)
+                query = query.Where(p => p.IdProducto == idProducto.Value);
+
+            if (idCategoria.HasValue)
+                query = query.Where(p => p.IdCategoria == idCategoria.Value);
+
+            if (idMarca.HasValue)
+                query = query.Where(p => p.IdMarca == idMarca.Value);
+
+            return query.OrderBy(p => p.Nombre).ToList();
+        }
+
+        public void ActualizarPreciosMasivo(List<int> idsProductos, decimal porcentaje)
+        {
+            if (idsProductos == null || idsProductos.Count == 0) return;
+
+            using var ctx = new AppDbContext();
+            decimal factor = 1 + (porcentaje / 100m);
+            ctx.Productos
+                .Where(p => idsProductos.Contains(p.IdProducto))
+                .ExecuteUpdate(setters => setters
+                    .SetProperty(p => p.PrecioVenta, p => Math.Round(p.PrecioVenta * factor, 2)));
+        }
+
         // Usado por el lector de código de barras: escaneás y busca al toque
         public Producto? ObtenerPorCodigoBarras(string codigoBarras)
         {

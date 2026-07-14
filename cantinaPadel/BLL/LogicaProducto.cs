@@ -4,6 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.BLL
 {
+
+
+    public class ProductoPrecioPreview
+    {
+        public int IdProducto { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public decimal PrecioActual { get; set; }
+        public decimal PrecioNuevo { get; set; }
+    }
     public class LogicaProducto
     {
         private readonly IProductoRepository _repo;
@@ -45,8 +54,26 @@ namespace cantinaPadel.BLL
 
         public void BajaLogica(int idProducto) => _repo.BajaLogica(idProducto);
 
+        public List<ProductoPrecioPreview> PrevisualizarActualizacion(int? idCategoria, int? idMarca, int? idProducto, decimal porcentaje)
+        {
+            var productos = _repo.ObtenerPorCriterio(idCategoria, idMarca, idProducto);
+            decimal factor = 1 + (porcentaje / 100m);
+
+            return productos.Select(p => new ProductoPrecioPreview
+            {
+                IdProducto = p.IdProducto,
+                Nombre = p.Nombre,
+                PrecioActual = p.PrecioVenta,
+                PrecioNuevo = Math.Round(p.PrecioVenta * factor, 2)
+            }).ToList();
+        }
+
+        public void ConfirmarActualizacion(List<int> idsProductos, decimal porcentaje)
+            => _repo.ActualizarPreciosMasivo(idsProductos, porcentaje);
+
         public decimal CalcularPrecioConIva(decimal precioBase)
             => Math.Round(precioBase * 1.21m, 2);
+
 
         // Helpers
         public List<Categoria> ObtenerCategoriasActivas()
@@ -100,4 +127,6 @@ namespace cantinaPadel.BLL
             return (true, string.Empty);
         }
     }
+
+
 }

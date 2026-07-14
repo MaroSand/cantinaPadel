@@ -38,6 +38,7 @@
             tabControlMain = new TabControl();
             tabPageProductos = new TabPage();
             tabPageMarcas = new TabPage();
+            tabPageActualizacionPrecios = new TabPage();
             tabPageCategorias = new TabPage();
             panelAcciones = new Panel();
             btnBajaLogica = new Button();
@@ -193,10 +194,16 @@
             // 
             tabPageCategorias.Text = "Categorías";
             tabPageCategorias.UseVisualStyleBackColor = true;
+
+            // tabPageActualizacionPrecios
+            // 
+            tabPageActualizacionPrecios.Text = "Actualización de Precios";
+            tabPageActualizacionPrecios.UseVisualStyleBackColor = true;
             // 
             // Add pages to tabControl
             // 
-            tabControlMain.TabPages.AddRange(new TabPage[] { tabPageProductos, tabPageMarcas, tabPageCategorias });
+            tabControlMain.TabPages.AddRange(new TabPage[] { tabPageProductos, tabPageMarcas, tabPageCategorias, tabPageActualizacionPrecios });
+
             // 
             // FrmListadoProductos
             // 
@@ -232,5 +239,7 @@
         private Button btnModificar;
         private Button btnNuevo;
         private DataGridView dgvProductos;
+        private TabPage tabPageActualizacionPrecios;
+
     }
 }
