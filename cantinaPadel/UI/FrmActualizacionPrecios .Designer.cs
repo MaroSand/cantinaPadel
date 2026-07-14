@@ -128,7 +128,8 @@
             // btnConfirmar
             // 
             btnConfirmar.FlatStyle = FlatStyle.Flat;
-            btnConfirmar.Location = new Point(780, 7);
+            btnConfirmar.Anchor = AnchorStyles.None;
+            btnConfirmar.Location = new Point((928 - 130) / 2, 7);
             btnConfirmar.Margin = new Padding(3, 2, 3, 2);
             btnConfirmar.Name = "btnConfirmar";
             btnConfirmar.Size = new Size(130, 22);

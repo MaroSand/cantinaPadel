@@ -1,30 +1,32 @@
-﻿using System;
+﻿using cantinaPadel.BLL;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
-using cantinaPadel.BLL;
 
 namespace cantinaPadel.UI
 {
     public partial class FrmActualizacionPrecios : Form
     {
+
+        private static readonly CultureInfo _culturaPesos = CrearCulturaPesos();
+
+        private static CultureInfo CrearCulturaPesos()
+        {
+            var cultura = (CultureInfo)CultureInfo.CurrentCulture.Clone();
+            cultura.NumberFormat.CurrencySymbol = "$";
+            return cultura;
+        }
         private readonly LogicaProducto _logicaProducto;
 
-        // Resultado del último listado (según los filtros vigentes). Confirmar
-        // aplica sobre los ítems de esta lista que tengan Aplicar = true, con
-        // el PrecioNuevo que haya quedado en cada fila (por % o a mano).
+
         private List<ProductoPrecioPreview> _listado = new();
 
-        // Envuelve _listado para que la grilla se refresque sola (ResetBindings)
-        // cuando recalculamos precios por código, sin tener que reasignar DataSource.
         private readonly BindingSource _bindingSource = new();
 
-        // Espera una pausa corta después de la última tecla antes de buscar,
-        // para no pegarle a la base con una consulta por carácter tipeado.
         private readonly System.Windows.Forms.Timer _debounceTexto = new() { Interval = 350 };
 
-        // Evita que el recálculo/refresco de la grilla dispare por error el
-        // handler de "edité una celda a mano".
         private bool _refrescandoGrilla;
 
         public FrmActualizacionPrecios()
@@ -51,8 +53,6 @@ namespace cantinaPadel.UI
 
             btnConfirmar.Click += btnConfirmar_Click;
 
-            // Primer listado: sin filtros = todos los productos activos,
-            // igual que el patrón ya usado en FrmListadoProductos.
             ActualizarListado();
         }
 
@@ -62,6 +62,7 @@ namespace cantinaPadel.UI
             dgvPreview.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvPreview.ReadOnly = false;
             dgvPreview.MultiSelect = false;
+            dgvPreview.AllowUserToAddRows = false;  
             dgvPreview.DataSource = _bindingSource;
 
             dgvPreview.Columns.Clear();
@@ -91,7 +92,9 @@ namespace cantinaPadel.UI
                 Width = 130,
                 ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle
-                { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
+                { Format = "C2",
+                    FormatProvider = _culturaPesos,
+                    Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -105,6 +108,7 @@ namespace cantinaPadel.UI
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Format = "C2",
+                    FormatProvider = _culturaPesos,
                     Alignment = DataGridViewContentAlignment.MiddleRight,
                     BackColor = Color.LightYellow
                 }
