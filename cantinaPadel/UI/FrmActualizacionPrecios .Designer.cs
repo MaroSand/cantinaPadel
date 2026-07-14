@@ -54,44 +54,21 @@
             // 
             // txtProductoFiltro
             // 
-            // Búsqueda libre: nombre, código, marca o categoría. Se dispara sola
-            // (con un pequeño debounce) al tipear, sin botón.
             txtProductoFiltro.Location = new Point(18, 12);
             txtProductoFiltro.Margin = new Padding(3, 2, 3, 2);
             txtProductoFiltro.Name = "txtProductoFiltro";
+            txtProductoFiltro.PlaceholderText = "Nombre, código, marca o categoría...";
             txtProductoFiltro.Size = new Size(280, 23);
             txtProductoFiltro.TabIndex = 1;
-            txtProductoFiltro.PlaceholderText = "Nombre, código, marca o categoría...";
             // 
             // lblProducto
             // 
             lblProducto.AutoSize = true;
             lblProducto.Location = new Point(18, -3);
             lblProducto.Name = "lblProducto";
-            lblProducto.Size = new Size(102, 15);
+            lblProducto.Size = new Size(97, 15);
             lblProducto.TabIndex = 0;
             lblProducto.Text = "Buscar producto:";
-            // 
-            // cmbCategoriaFiltro
-            // 
-            // Combina en simultáneo con el texto y con Marca (AND). Incluye
-            // una opción "Todas las categorías" (Id null) para no filtrar.
-            cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new Point(320, 12);
-            cmbCategoriaFiltro.Margin = new Padding(3, 2, 3, 2);
-            cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new Size(176, 23);
-            cmbCategoriaFiltro.TabIndex = 3;
-            // 
-            // lblCategoria
-            // 
-            lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(320, -3);
-            lblCategoria.Name = "lblCategoria";
-            lblCategoria.Size = new Size(61, 15);
-            lblCategoria.TabIndex = 2;
-            lblCategoria.Text = "Categoría:";
             // 
             // cmbMarcaFiltro
             // 
@@ -112,6 +89,25 @@
             lblMarca.TabIndex = 3;
             lblMarca.Text = "Marca:";
             // 
+            // cmbCategoriaFiltro
+            // 
+            cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCategoriaFiltro.FormattingEnabled = true;
+            cmbCategoriaFiltro.Location = new Point(320, 12);
+            cmbCategoriaFiltro.Margin = new Padding(3, 2, 3, 2);
+            cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
+            cmbCategoriaFiltro.Size = new Size(176, 23);
+            cmbCategoriaFiltro.TabIndex = 3;
+            // 
+            // lblCategoria
+            // 
+            lblCategoria.AutoSize = true;
+            lblCategoria.Location = new Point(320, -3);
+            lblCategoria.Name = "lblCategoria";
+            lblCategoria.Size = new Size(61, 15);
+            lblCategoria.TabIndex = 2;
+            lblCategoria.Text = "Categoría:";
+            // 
             // panelAcciones
             // 
             panelAcciones.Controls.Add(btnConfirmar);
@@ -127,9 +123,9 @@
             // 
             // btnConfirmar
             // 
-            btnConfirmar.FlatStyle = FlatStyle.Flat;
             btnConfirmar.Anchor = AnchorStyles.None;
-            btnConfirmar.Location = new Point((928 - 130) / 2, 7);
+            btnConfirmar.FlatStyle = FlatStyle.Flat;
+            btnConfirmar.Location = new Point(638, 8);
             btnConfirmar.Margin = new Padding(3, 2, 3, 2);
             btnConfirmar.Name = "btnConfirmar";
             btnConfirmar.Size = new Size(130, 22);
@@ -139,8 +135,6 @@
             // 
             // nudPorcentaje
             // 
-            // Recalcula en vivo (ValueChanged) el "Precio Nuevo" de todas
-            // las filas que no fueron editadas a mano en la grilla.
             nudPorcentaje.DecimalPlaces = 2;
             nudPorcentaje.Location = new Point(149, 10);
             nudPorcentaje.Margin = new Padding(3, 2, 3, 2);
@@ -161,12 +155,11 @@
             // 
             // lblAyudaPrecio
             // 
-            // Aviso de que "Precio Nuevo" también se puede tipear a mano.
             lblAyudaPrecio.AutoSize = true;
             lblAyudaPrecio.ForeColor = SystemColors.GrayText;
             lblAyudaPrecio.Location = new Point(262, 11);
             lblAyudaPrecio.Name = "lblAyudaPrecio";
-            lblAyudaPrecio.Size = new Size(330, 15);
+            lblAyudaPrecio.Size = new Size(291, 15);
             lblAyudaPrecio.TabIndex = 1;
             lblAyudaPrecio.Text = "Tip: podés tipear el \"Precio Nuevo\" directo en la grilla.";
             // 
@@ -179,7 +172,6 @@
             dgvPreview.Location = new Point(0, 45);
             dgvPreview.Margin = new Padding(3, 2, 3, 2);
             dgvPreview.Name = "dgvPreview";
-            dgvPreview.ReadOnly = false;
             dgvPreview.RowHeadersWidth = 51;
             dgvPreview.Size = new Size(928, 277);
             dgvPreview.TabIndex = 2;
