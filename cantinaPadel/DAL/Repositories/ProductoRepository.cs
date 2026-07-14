@@ -15,7 +15,7 @@ namespace cantinaPadel.DAL.Repositories
                 .OrderBy(p => p.Nombre)
                 .ToList();
         }
-        
+
         public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca)
         {
             using var ctx = new AppDbContext();
@@ -64,16 +64,28 @@ namespace cantinaPadel.DAL.Repositories
             return query.OrderBy(p => p.Nombre).ToList();
         }
 
-        public void ActualizarPreciosMasivo(List<int> idsProductos, decimal porcentaje)
+        // Actualiza cada producto a su precio final indicado en el diccionario.
+        // A diferencia del viejo esquema (un solo % para todos, resuelto con
+        // ExecuteUpdate), acá cada fila puede traer un valor distinto, así
+        // que se trackean las entidades y se guardan con SaveChanges.
+        public void ActualizarPrecios(Dictionary<int, decimal> preciosNuevos)
         {
-            if (idsProductos == null || idsProductos.Count == 0) return;
+            if (preciosNuevos == null || preciosNuevos.Count == 0) return;
 
             using var ctx = new AppDbContext();
-            decimal factor = 1 + (porcentaje / 100m);
-            ctx.Productos
-                .Where(p => idsProductos.Contains(p.IdProducto))
-                .ExecuteUpdate(setters => setters
-                    .SetProperty(p => p.PrecioVenta, p => Math.Round(p.PrecioVenta * factor, 2)));
+            var ids = preciosNuevos.Keys.ToList();
+
+            var productos = ctx.Productos
+                .Where(p => ids.Contains(p.IdProducto))
+                .ToList();
+
+            foreach (var producto in productos)
+            {
+                if (preciosNuevos.TryGetValue(producto.IdProducto, out var precioNuevo))
+                    producto.PrecioVenta = precioNuevo;
+            }
+
+            ctx.SaveChanges();
         }
 
         // Usado por el lector de código de barras: escaneás y busca al toque
@@ -101,7 +113,7 @@ namespace cantinaPadel.DAL.Repositories
             using var ctx = new AppDbContext();
             return ctx.Productos.Any(p =>
                 p.CodigoBarras == codigoBarras &&
-                p.IdProducto   != (idProductoExcluir ?? 0));
+                p.IdProducto != (idProductoExcluir ?? 0));
         }
 
         public void Agregar(Producto producto)

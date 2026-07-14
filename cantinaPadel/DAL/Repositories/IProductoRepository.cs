@@ -19,7 +19,11 @@ namespace cantinaPadel.DAL.Repositories
 
         // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto.
         List<Producto> ObtenerPorCriterio(int? idCategoria, int? idMarca, int? idProducto);
-        // Actualiza los precios de los productos indicados en la lista, aplicando un porcentaje de incremento o decremento.
-        void ActualizarPreciosMasivo(List<int> idsProductos, decimal porcentaje);
+
+        // Actualiza el precio de venta de cada producto al valor final indicado
+        // en el diccionario (idProducto -> precioNuevo). Reemplaza al viejo
+        // esquema de "un solo porcentaje para todos", porque ahora cada fila
+        // puede tener un precio distinto (por % o editado a mano).
+        void ActualizarPrecios(Dictionary<int, decimal> preciosNuevos);
     }
 }
