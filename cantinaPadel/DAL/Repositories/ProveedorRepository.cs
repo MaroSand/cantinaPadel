@@ -52,7 +52,7 @@ namespace cantinaPadel.DAL.Repositories
 
             persona.EsProveedor = true;
             ctx.Personas.Add(persona);
-            ctx.SaveChanges();              // genera id_persona
+            ctx.SaveChanges(); // genera id_persona
 
             proveedor.IdPersona = persona.IdPersona;
             ctx.Proveedores.Add(proveedor);
