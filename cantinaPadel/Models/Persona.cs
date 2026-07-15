@@ -134,7 +134,7 @@ namespace cantinaPadel.Models
         public static void ValidarCuit(string? cuit)
         {
             if (!string.IsNullOrWhiteSpace(cuit) && !Regex.IsMatch(cuit, @"^\d{2}-\d{8}-\d{1}$"))
-                throw new ArgumentException("El CUIT debe tener el formato XX-XXXXXXXX-X.");
+                throw new ArgumentException("El CUIT debe tener el formato XX-XXXXXXXX-X. Debe ser numérico y contener 11 dígitos en total.");
         }
 
         public static void ValidarTelefono(string? telefono)

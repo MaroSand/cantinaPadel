@@ -7,11 +7,15 @@ namespace cantinaPadel.BLL
     {
         private readonly IProveedorRepository _repo;
 
-        public LogicaProveedor()
+        public LogicaProveedor() : this(new ProveedorRepository())
         {
-            _repo = new ProveedorRepository();
         }
-        
+
+        public LogicaProveedor(IProveedorRepository repo)
+        {
+            _repo = repo;
+        }
+
         public List<Proveedor> ObtenerTodos() => _repo.ObtenerTodos();
 
         public List<Proveedor> Buscar(string termino)

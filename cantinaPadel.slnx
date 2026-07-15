@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="cantinaPadel.Tests/cantinaPadel.Tests.csproj" />
   <Project Path="cantinaPadel/cantinaPadel.csproj" />
 </Solution>

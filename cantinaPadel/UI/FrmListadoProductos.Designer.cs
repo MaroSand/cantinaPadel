@@ -86,7 +86,7 @@
             lblMarca.Size = new Size(84, 32);
             lblMarca.TabIndex = 4;
             lblMarca.Text = "Marca:";
-            // 
+            //
             // cmbCategoriaFiltro
             // 
             cmbCategoriaFiltro.FormattingEnabled = true;
