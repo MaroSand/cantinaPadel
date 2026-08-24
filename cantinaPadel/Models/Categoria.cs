@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace cantinaPadel.Models
 {
@@ -34,6 +35,9 @@ namespace cantinaPadel.Models
 
             if (Nombre.Length > 100)
                 throw new ArgumentException("El nombre de la categoría no puede superar los 100 caracteres.");
+
+            if (Nombre.Any(char.IsDigit))
+                throw new ArgumentException("El nombre de la categoría no puede contener números.");
 
             if (PorcentajeGanancia < 0)
                 throw new ArgumentException("El porcentaje de ganancia no puede ser negativo.");

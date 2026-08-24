@@ -168,11 +168,16 @@ namespace cantinaPadel.UI
 
         private void LimpiarFormulario()
         {
-            // Se resetea la variable global, se vacía el texto, se desmarca la grilla y se hace foco
+            // Se resetea la variable global, se vacía el texto y se hace foco
             _categoriaSeleccionada = null;
             txtNombre.Clear();
             txtPorcentajeGanancia.Clear();
-            if (dgvCategorias.CurrentRow != null) dgvCategorias.CurrentRow.Selected = false;
+
+            // ClearSelection() + CurrentCell = null son necesarios juntos: ClearSelection()
+            // saca el resaltado de fila, pero mientras CurrentCell siga apuntando a una celda
+            dgvCategorias.ClearSelection();
+            dgvCategorias.CurrentCell = null;
+
             txtNombre.Focus();
         }
 
