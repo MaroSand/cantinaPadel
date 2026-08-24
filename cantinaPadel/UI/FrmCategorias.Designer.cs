@@ -35,6 +35,8 @@
             txtBuscar = new TextBox();
             label1 = new Label();
             panelDatos = new Panel();
+            txtPorcentajeGanancia = new TextBox();
+            lblPorcentajeGanancia = new Label();
             txtNombre = new TextBox();
             btnGuardar = new Button();
             label3 = new Label();
@@ -108,6 +110,8 @@
             // 
             panelDatos.BackColor = SystemColors.Info;
             panelDatos.Controls.Add(label4);
+            panelDatos.Controls.Add(txtPorcentajeGanancia);
+            panelDatos.Controls.Add(lblPorcentajeGanancia);
             panelDatos.Controls.Add(txtNombre);
             panelDatos.Controls.Add(btnGuardar);
             panelDatos.Controls.Add(label3);
@@ -126,12 +130,31 @@
             txtNombre.Size = new Size(201, 39);
             txtNombre.TabIndex = 1;
             // 
+            // lblPorcentajeGanancia
+            // 
+            lblPorcentajeGanancia.AutoSize = true;
+            lblPorcentajeGanancia.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblPorcentajeGanancia.Location = new Point(24, 334);
+            lblPorcentajeGanancia.Margin = new Padding(5, 0, 5, 0);
+            lblPorcentajeGanancia.Name = "lblPorcentajeGanancia";
+            lblPorcentajeGanancia.Size = new Size(221, 32);
+            lblPorcentajeGanancia.TabIndex = 3;
+            lblPorcentajeGanancia.Text = "% Ganancia:";
+            // 
+            // txtPorcentajeGanancia
+            // 
+            txtPorcentajeGanancia.Location = new Point(47, 381);
+            txtPorcentajeGanancia.Margin = new Padding(5);
+            txtPorcentajeGanancia.Name = "txtPorcentajeGanancia";
+            txtPorcentajeGanancia.Size = new Size(201, 39);
+            txtPorcentajeGanancia.TabIndex = 2;
+            // 
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.White;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnGuardar.Location = new Point(73, 388);
+            btnGuardar.Location = new Point(73, 478);
             btnGuardar.Margin = new Padding(5);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(153, 46);
@@ -252,6 +275,8 @@
         private Panel panelDatos;
         private TextBox txtNombre;
         private Label label3;
+        private TextBox txtPorcentajeGanancia;
+        private Label lblPorcentajeGanancia;
         private Button btnBajaAlta;
         private Button btnGuardar;
         private Button btnNuevo;

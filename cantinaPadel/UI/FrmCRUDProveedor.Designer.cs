@@ -97,7 +97,7 @@
             panelCuerpo.Dock = System.Windows.Forms.DockStyle.Fill;
             panelCuerpo.Location = new System.Drawing.Point(0, 74);
             panelCuerpo.Name = "panelCuerpo";
-            panelCuerpo.Size = new System.Drawing.Size(1433, 651);
+            panelCuerpo.Size = new System.Drawing.Size(1433, 664);
             panelCuerpo.TabIndex = 1;
             // 
             // btnGuardar
@@ -268,7 +268,7 @@
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
             AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1433, 725);
+            ClientSize = new System.Drawing.Size(1433, 738);
             Controls.Add(panelCuerpo);
             Controls.Add(panelHeader);
             FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
@@ -288,7 +288,7 @@
         #endregion
 
         private Panel    panelHeader;
-        private Panel    panelCuerpo;
+        private System.Windows.Forms.Panel panelCuerpo;
         private Label    lblTitulo;
         private System.Windows.Forms.Label lblNombreEmpresa;
         private System.Windows.Forms.TextBox txtNombreEmpresa;

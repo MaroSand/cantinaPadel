@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             panelFiltros = new Panel();
+            cmbEstadoFiltro = new ComboBox();
+            lblEstado = new Label();
             cmbMarcaFiltro = new ComboBox();
             lblMarca = new Label();
             cmbCategoriaFiltro = new ComboBox();
@@ -55,6 +57,8 @@
             // panelFiltros
             // 
             panelFiltros.BackColor = Color.Gold;
+            panelFiltros.Controls.Add(cmbEstadoFiltro);
+            panelFiltros.Controls.Add(lblEstado);
             panelFiltros.Controls.Add(cmbMarcaFiltro);
             panelFiltros.Controls.Add(lblMarca);
             panelFiltros.Controls.Add(cmbCategoriaFiltro);
@@ -71,16 +75,16 @@
             // cmbMarcaFiltro
             // 
             cmbMarcaFiltro.FormattingEnabled = true;
-            cmbMarcaFiltro.Location = new Point(1365, 26);
+            cmbMarcaFiltro.Location = new Point(1215, 26);
             cmbMarcaFiltro.Margin = new Padding(5, 5, 5, 5);
             cmbMarcaFiltro.Name = "cmbMarcaFiltro";
-            cmbMarcaFiltro.Size = new Size(290, 40);
+            cmbMarcaFiltro.Size = new Size(220, 40);
             cmbMarcaFiltro.TabIndex = 5;
             // 
             // lblMarca
             // 
             lblMarca.AutoSize = true;
-            lblMarca.Location = new Point(1268, 30);
+            lblMarca.Location = new Point(1130, 30);
             lblMarca.Margin = new Padding(5, 0, 5, 0);
             lblMarca.Name = "lblMarca";
             lblMarca.Size = new Size(84, 32);
@@ -90,16 +94,16 @@
             // cmbCategoriaFiltro
             // 
             cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new Point(942, 26);
+            cmbCategoriaFiltro.Location = new Point(865, 26);
             cmbCategoriaFiltro.Margin = new Padding(5, 5, 5, 5);
             cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new Size(290, 40);
+            cmbCategoriaFiltro.Size = new Size(240, 40);
             cmbCategoriaFiltro.TabIndex = 3;
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(812, 30);
+            lblCategoria.Location = new Point(735, 30);
             lblCategoria.Margin = new Padding(5, 0, 5, 0);
             lblCategoria.Name = "lblCategoria";
             lblCategoria.Size = new Size(121, 32);
@@ -111,7 +115,7 @@
             txtBuscar.Location = new Point(390, 26);
             txtBuscar.Margin = new Padding(5, 5, 5, 5);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(388, 39);
+            txtBuscar.Size = new Size(315, 39);
             txtBuscar.TabIndex = 1;
             // 
             // lblBuscar
@@ -123,6 +127,25 @@
             lblBuscar.Size = new Size(294, 32);
             lblBuscar.TabIndex = 0;
             lblBuscar.Text = "Buscar (nombre o código):";
+            // 
+            // lblEstado
+            // 
+            lblEstado.AutoSize = true;
+            lblEstado.Location = new Point(1460, 30);
+            lblEstado.Margin = new Padding(5, 0, 5, 0);
+            lblEstado.Name = "lblEstado";
+            lblEstado.Size = new Size(89, 32);
+            lblEstado.TabIndex = 6;
+            lblEstado.Text = "Estado:";
+            // 
+            // cmbEstadoFiltro
+            // 
+            cmbEstadoFiltro.FormattingEnabled = true;
+            cmbEstadoFiltro.Location = new Point(1560, 26);
+            cmbEstadoFiltro.Margin = new Padding(5);
+            cmbEstadoFiltro.Name = "cmbEstadoFiltro";
+            cmbEstadoFiltro.Size = new Size(135, 40);
+            cmbEstadoFiltro.TabIndex = 7;
             // 
             // tabControlMain
             // 
@@ -271,6 +294,8 @@
         private ComboBox cmbCategoriaFiltro;
         private Label lblMarca;
         private ComboBox cmbMarcaFiltro;
+        private Label lblEstado;
+        private ComboBox cmbEstadoFiltro;
         private TabControl tabControlMain;
         private TabPage tabPageProductos;
         private TabPage tabPageMarcas;

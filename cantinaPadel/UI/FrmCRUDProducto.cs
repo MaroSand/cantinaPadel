@@ -35,10 +35,12 @@ namespace cantinaPadel.UI
             btnCancelar.Click += btnCancelar_Click;
             txtCodigoBarras.KeyDown += txtCodigoBarras_KeyDown;
             txtPrecioCosto.KeyPress += TxtDecimal_KeyPress;
-            txtPrecioVenta.KeyPress += TxtDecimal_KeyPress;
+            txtPrecioCosto.TextChanged += RecalcularPrecioVenta_Evento;
+            cmbCategoria.SelectedIndexChanged += RecalcularPrecioVenta_Evento;
             txtPrecioVenta.TextChanged += txtPrecioVenta_TextChanged;
             txtStockActual.KeyPress += TxtEntero_KeyPress;
             txtStockMinimo.KeyPress += TxtEntero_KeyPress;
+            txtPrecioVenta.ReadOnly = true;
 
             CargarCombos();
 
@@ -55,8 +57,8 @@ namespace cantinaPadel.UI
             ActualizarPrecioConIva();
         }
 
-        // Carga los combos de Categoría y Marca. Marca
-        // es opcional, por eso lleva una opción "(Ninguna/o)" con valor null.
+        // Carga los combos. Marca y proveedor son opcionales, por eso llevan
+        // una opción inicial con valor null.
         private void CargarCombos()
         {
             try
@@ -77,6 +79,23 @@ namespace cantinaPadel.UI
                 cmbMarca.ValueMember = "Id";
                 cmbMarca.DataSource = marcas;
                 cmbMarca.SelectedIndex = 0;
+
+                var proveedores = _logicaProducto.ObtenerProveedoresActivos()
+                    .Select(p => new
+                    {
+                        Id = (int?)p.IdProveedor,
+                        Nombre = string.IsNullOrWhiteSpace(p.NombreEmpresa)
+                            ? $"{p.Persona.Apellido}, {p.Persona.Nombre}"
+                            : p.NombreEmpresa
+                    })
+                    .ToList();
+                proveedores.Insert(0, new { Id = (int?)null, Nombre = "(Sin proveedor)" });
+
+                cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbProveedor.DisplayMember = "Nombre";
+                cmbProveedor.ValueMember = "Id";
+                cmbProveedor.DataSource = proveedores;
+                cmbProveedor.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -133,10 +152,44 @@ namespace cantinaPadel.UI
             {
                 cmbMarca.SelectedIndex = 0;
             }
+
+            if (_productoEdicion.IdProveedor.HasValue)
+            {
+                try
+                {
+                    cmbProveedor.SelectedValue = _productoEdicion.IdProveedor.Value;
+                }
+                catch
+                {
+                    cmbProveedor.SelectedIndex = 0;
+                }
+            }
+            else
+            {
+                cmbProveedor.SelectedIndex = 0;
+            }
         }
 
         // Recalcula en vivo el precio final con IVA a medida que se tipea el precio de venta
         private void txtPrecioVenta_TextChanged(object sender, EventArgs e) => ActualizarPrecioConIva();
+
+        private void RecalcularPrecioVenta_Evento(object? sender, EventArgs e) => RecalcularPrecioVenta();
+
+        private void RecalcularPrecioVenta()
+        {
+            if (!decimal.TryParse(txtPrecioCosto.Text, NumberStyles.Number, CultureInfo.CurrentCulture,
+                    out decimal precioCosto) ||
+                cmbCategoria.SelectedValue is not int idCategoria)
+            {
+                txtPrecioVenta.Text = string.Empty;
+                return;
+            }
+
+            decimal precioVenta = _logicaProducto.CalcularPrecioVenta(precioCosto, idCategoria);
+            txtPrecioVenta.Text = precioVenta > 0
+                ? precioVenta.ToString("0.00", CultureInfo.CurrentCulture)
+                : string.Empty;
+        }
 
         private void ActualizarPrecioConIva()
         {
@@ -169,6 +222,7 @@ namespace cantinaPadel.UI
                 CodigoBarras = string.IsNullOrWhiteSpace(txtCodigoBarras.Text) ? null : txtCodigoBarras.Text.Trim(),
                 IdCategoria = cmbCategoria.SelectedValue is int idCategoria ? idCategoria : 0,
                 IdMarca = cmbMarca.SelectedValue as int?,
+                IdProveedor = cmbProveedor.SelectedValue as int?,
                 PrecioCosto = precioCosto,
                 PrecioVenta = precioVenta,
                 StockActual = stockActual,
@@ -177,12 +231,10 @@ namespace cantinaPadel.UI
 
             try
             {
-                (bool ok, string error) resultado;
-
                 if (_productoEdicion == null)
                 {
                     // Alta
-                    resultado = _logicaProducto.Agregar(producto);
+                    _logicaProducto.Agregar(producto);
                 }
                 else
                 {
@@ -190,20 +242,18 @@ namespace cantinaPadel.UI
                     producto.IdProducto = _productoEdicion.IdProducto;
                     producto.Activo = _productoEdicion.Activo;
 
-                    resultado = _logicaProducto.Modificar(producto);
-                }
-
-                if (!resultado.ok)
-                {
-                    MessageBox.Show(resultado.error, "Validación",
-                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    _logicaProducto.Modificar(producto);
                 }
 
                 MessageBox.Show("Producto guardado correctamente.", "Éxito",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
                 this.Close();
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Validación",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

@@ -5,32 +5,41 @@ namespace cantinaPadel.DAL.Repositories
 {
     public class ProductoRepository : IProductoRepository
     {
-        public List<Producto> ObtenerTodos()
+        public List<Producto> ObtenerTodos(bool? activo = true)
         {
             using var ctx = new AppDbContext();
-            return ctx.Productos
+            IQueryable<Producto> query = ctx.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Marca)
-                .Where(p => p.Activo)
-                .OrderBy(p => p.Nombre)
-                .ToList();
+                .Include(p => p.Proveedor)
+                    .ThenInclude(p => p.Persona);
+
+            if (activo.HasValue)
+                query = query.Where(p => p.Activo == activo.Value);
+
+            return query.OrderBy(p => p.Nombre).ToList();
         }
 
-        public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca)
+        public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca, bool? activo = true)
         {
             using var ctx = new AppDbContext();
 
             IQueryable<Producto> query = ctx.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Marca)
-                .Where(p => p.Activo);
+                .Include(p => p.Proveedor)
+                    .ThenInclude(p => p.Persona);
+
+            if (activo.HasValue)
+                query = query.Where(p => p.Activo == activo.Value);
 
             if (!string.IsNullOrWhiteSpace(texto))
             {
                 texto = texto.Trim().ToLower();
                 query = query.Where(p =>
                     p.Nombre.ToLower().Contains(texto) ||
-                    p.CodigoBarras.Contains(texto));
+                    (p.CodigoBarras != null && p.CodigoBarras.Contains(texto)) ||
+                    (p.Proveedor != null && p.Proveedor.NombreEmpresa.ToLower().Contains(texto)));
             }
 
             if (idCategoria.HasValue)
@@ -95,6 +104,8 @@ namespace cantinaPadel.DAL.Repositories
             return ctx.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Marca)
+                .Include(p => p.Proveedor)
+                    .ThenInclude(p => p.Persona)
                 .FirstOrDefault(p => p.CodigoBarras == codigoBarras && p.Activo);
         }
 
@@ -104,6 +115,8 @@ namespace cantinaPadel.DAL.Repositories
             return ctx.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.Marca)
+                .Include(p => p.Proveedor)
+                    .ThenInclude(p => p.Persona)
                 .FirstOrDefault(p => p.IdProducto == idProducto);
         }
 
@@ -111,9 +124,14 @@ namespace cantinaPadel.DAL.Repositories
         public bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null)
         {
             using var ctx = new AppDbContext();
+
+            if (!idProductoExcluir.HasValue)
+                return ctx.Productos.Any(p => p.CodigoBarras == codigoBarras);
+
+            int idExcluir = idProductoExcluir.Value;
             return ctx.Productos.Any(p =>
                 p.CodigoBarras == codigoBarras &&
-                p.IdProducto != (idProductoExcluir ?? 0));
+                p.IdProducto != idExcluir);
         }
 
         public void Agregar(Producto producto)
@@ -130,14 +148,14 @@ namespace cantinaPadel.DAL.Repositories
             ctx.SaveChanges();
         }
 
-        // Baja lógica: no se borra un producto, se desactiva.
+        // Baja/alta lógica: no se borra un producto, se alterna su estado.
         public void BajaLogica(int idProducto)
         {
             using var ctx = new AppDbContext();
             var producto = ctx.Productos.Find(idProducto);
             if (producto == null) return;
 
-            producto.Activo = false;
+            producto.Activo = !producto.Activo;
             ctx.SaveChanges();
         }
     }

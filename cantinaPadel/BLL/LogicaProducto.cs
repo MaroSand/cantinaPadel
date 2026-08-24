@@ -29,10 +29,10 @@ namespace cantinaPadel.BLL
             _repo = new ProductoRepository();
         }
 
-        public List<Producto> ObtenerTodos() => _repo.ObtenerTodos();
+        public List<Producto> ObtenerTodos(bool? activo = true) => _repo.ObtenerTodos(activo);
 
-        public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca)
-            => _repo.Buscar(texto, idCategoria, idMarca);
+        public List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca, bool? activo = true)
+            => _repo.Buscar(texto, idCategoria, idMarca, activo);
 
         public Producto? ObtenerPorId(int id) => _repo.ObtenerPorId(id);
 
@@ -40,23 +40,19 @@ namespace cantinaPadel.BLL
             => _repo.ObtenerPorCodigoBarras(codigo);
 
         // Alta
-        public (bool ok, string error) Agregar(Producto producto)
+        public void Agregar(Producto producto)
         {
-            var validacion = Validar(producto, esAlta: true);
-            if (!validacion.ok) return validacion;
+            Validar(producto, esAlta: true);
 
             _repo.Agregar(producto);
-            return (true, string.Empty);
         }
 
         // Modificación
-        public (bool ok, string error) Modificar(Producto producto)
+        public void Modificar(Producto producto)
         {
-            var validacion = Validar(producto, esAlta: false);
-            if (!validacion.ok) return validacion;
+            Validar(producto, esAlta: false);
 
             _repo.Modificar(producto);
-            return (true, string.Empty);
         }
 
         public void BajaLogica(int idProducto) => _repo.BajaLogica(idProducto);
@@ -113,6 +109,21 @@ namespace cantinaPadel.BLL
         public decimal CalcularPrecioConIva(decimal precioBase)
             => Math.Round(precioBase * 1.21m, 2);
 
+        public decimal CalcularPrecioVenta(decimal precioCosto, int idCategoria)
+        {
+            if (idCategoria <= 0 || precioCosto < 0)
+                return 0;
+
+            using var ctx = new DAL.AppDbContext();
+            decimal porcentajeGanancia = ctx.Categorias
+                .Where(c => c.IdCategoria == idCategoria)
+                .Select(c => c.PorcentajeGanancia)
+                .FirstOrDefault();
+
+            decimal factor = 1 + (porcentajeGanancia / 100m);
+            return Math.Round(precioCosto * factor, 2);
+        }
+
 
         // Helpers
         public List<Categoria> ObtenerCategoriasActivas()
@@ -138,32 +149,52 @@ namespace cantinaPadel.BLL
         }
 
         // Validaciones
-        private (bool ok, string error) Validar(Producto producto, bool esAlta)
+        private void Validar(Producto producto, bool esAlta)
         {
-            if (string.IsNullOrWhiteSpace(producto.Nombre))
-                return (false, "El nombre es obligatorio.");
+            if (producto == null)
+                throw new ArgumentException("Los datos del producto son obligatorios.");
 
-            // El código de barras NO es obligatorio. Si viene, validamos unicidad más abajo.
+            producto.Nombre = producto.Nombre?.Trim() ?? string.Empty;
+            producto.CodigoBarras = producto.CodigoBarras?.Trim();
+
+            if (string.IsNullOrWhiteSpace(producto.Nombre))
+                throw new ArgumentException("El nombre es obligatorio.");
+
+            if (string.IsNullOrWhiteSpace(producto.CodigoBarras))
+                producto.CodigoBarras = GenerarCodigoBarrasUnico();
 
             if (producto.IdCategoria <= 0)
-                return (false, "Debe seleccionar una categoría.");
+                throw new ArgumentException("Debe seleccionar una categoría.");
+
+            if (producto.PrecioCosto <= 0)
+                throw new ArgumentException("El precio de costo debe ser mayor a cero.");
+
+            producto.PrecioVenta = CalcularPrecioVenta(producto.PrecioCosto, producto.IdCategoria);
 
             if (producto.PrecioVenta <= 0)
-                return (false, "El precio de venta debe ser mayor a cero.");
-
-            if (producto.PrecioCosto < 0)
-                return (false, "El precio de costo no puede ser negativo.");
+                throw new ArgumentException("El precio de venta debe ser mayor a cero. Revise el costo y el porcentaje de ganancia de la categoría.");
 
             if (producto.StockMinimo < 0)
-                return (false, "El stock mínimo no puede ser negativo.");
+                throw new ArgumentException("El stock mínimo no puede ser negativo.");
 
             // Unicidad del código de barras. En modificación, excluimos
             // el propio producto para no chocar contra sí mismo.
             int? idExcluir = esAlta ? null : producto.IdProducto;
-            if (!string.IsNullOrWhiteSpace(producto.CodigoBarras) && _repo.ExisteCodigoBarras(producto.CodigoBarras!, idExcluir))
-                return (false, $"Ya existe un producto con el código de barras '{producto.CodigoBarras}'.");
+            if (_repo.ExisteCodigoBarras(producto.CodigoBarras!, idExcluir))
+                throw new ArgumentException($"Ya existe un producto con el código de barras '{producto.CodigoBarras}'.");
+        }
 
-            return (true, string.Empty);
+        private string GenerarCodigoBarrasUnico()
+        {
+            for (int intento = 0; intento < 10; intento++)
+            {
+                string codigo = $"20{DateTime.Now:yyMMddHHmmssfff}{Random.Shared.Next(100, 999)}";
+
+                if (!_repo.ExisteCodigoBarras(codigo))
+                    return codigo;
+            }
+
+            throw new InvalidOperationException("No se pudo generar un código de barras único. Intente guardar nuevamente.");
         }
     }
 

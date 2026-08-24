@@ -17,8 +17,8 @@ namespace cantinaPadel.Models
         [Column("activa")]
         public bool Activa { get; set; } = true;
 
-        // HASTA QUE FACU CREES EL MODELO PRODUCTO
-        // public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
+        [Column("porcentaje_ganancia")]
+        public decimal PorcentajeGanancia { get; set; } = 0;
 
         public void Normalizar()
         {
@@ -34,6 +34,9 @@ namespace cantinaPadel.Models
 
             if (Nombre.Length > 100)
                 throw new ArgumentException("El nombre de la categoría no puede superar los 100 caracteres.");
+
+            if (PorcentajeGanancia < 0)
+                throw new ArgumentException("El porcentaje de ganancia no puede ser negativo.");
         }
     }
 }
