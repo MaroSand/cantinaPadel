@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Drawing;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -7,72 +8,162 @@ namespace cantinaPadel.UI
 {
     public partial class FrmCRUDCliente : Form
     {
-        private readonly LogicaCliente _logica;
+        private readonly LogicaPersonaRoles _logicaPersonaRoles;
         private Cliente? _clienteEdicion;
+        private CheckBox chkEsProveedor = null!;
+        private CheckBox chkEsEmpleado = null!;
+        private Label lblNombreEmpresa = null!;
+        private TextBox txtNombreEmpresa = null!;
+        private Label lblUsuarioEmpleado = null!;
+        private TextBox txtUsuarioEmpleado = null!;
+        private Label lblContrasenaEmpleado = null!;
+        private TextBox txtContrasenaEmpleado = null!;
+        private Label lblRolEmpleado = null!;
+        private ComboBox cmbRolEmpleado = null!;
+
         public FrmCRUDCliente()
         {
             InitializeComponent();
-            _logica = new LogicaCliente();
+            ConfigurarControlesRoles();
+            _logicaPersonaRoles = new LogicaPersonaRoles();
             _clienteEdicion = null;
         }
 
         public FrmCRUDCliente(Cliente cliente) : this()
         {
             _clienteEdicion = cliente;
-            this.Text = "Modificar Cliente";
-
-            txtNombre.Text = cliente.Persona.Nombre;
-            txtApellido.Text = cliente.Persona.Apellido;
-            txtDni.Text = cliente.Persona.Dni;
-            txtTelefono.Text = cliente.Persona.Telefono;
-            txtEmail.Text = cliente.Email;
+            Text = "Modificar Cliente";
+            CargarDatosEnFormulario();
         }
+
+        private void ConfigurarControlesRoles()
+        {
+            ClientSize = new Size(1000, 650);
+            btnCancelar.Location = new Point(104, 535);
+            btnGuardar.Location = new Point(531, 535);
+
+            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(525, 82), AutoSize = true };
+            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(545, 122), AutoSize = true };
+            txtNombreEmpresa = new TextBox { Location = new Point(705, 118), Size = new Size(230, 27), MaxLength = 50 };
+
+            chkEsEmpleado = new CheckBox { Text = "También es empleado", Location = new Point(525, 178), AutoSize = true };
+            lblUsuarioEmpleado = new Label { Text = "Usuario: *", Location = new Point(545, 218), AutoSize = true };
+            txtUsuarioEmpleado = new TextBox { Location = new Point(705, 214), Size = new Size(230, 27), MaxLength = 50 };
+            lblContrasenaEmpleado = new Label { Text = "Contraseña: *", Location = new Point(545, 258), AutoSize = true };
+            txtContrasenaEmpleado = new TextBox { Location = new Point(705, 254), Size = new Size(230, 27), MaxLength = 9, UseSystemPasswordChar = true };
+            lblRolEmpleado = new Label { Text = "Rol: *", Location = new Point(545, 298), AutoSize = true };
+            cmbRolEmpleado = new ComboBox { Location = new Point(705, 294), Size = new Size(230, 28), DropDownStyle = ComboBoxStyle.DropDownList };
+            cmbRolEmpleado.Items.AddRange(new object[] { "Admin", "Empleado" });
+            cmbRolEmpleado.SelectedIndex = 1;
+
+            chkEsProveedor.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
+            chkEsEmpleado.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
+
+            panelDatos.Controls.AddRange(new Control[]
+            {
+                chkEsProveedor, lblNombreEmpresa, txtNombreEmpresa,
+                chkEsEmpleado, lblUsuarioEmpleado, txtUsuarioEmpleado,
+                lblContrasenaEmpleado, txtContrasenaEmpleado, lblRolEmpleado, cmbRolEmpleado
+            });
+
+            ActualizarVisibilidadRoles();
+        }
+
+        private void ActualizarVisibilidadRoles()
+        {
+            lblNombreEmpresa.Visible = txtNombreEmpresa.Visible = chkEsProveedor.Checked;
+            lblUsuarioEmpleado.Visible = txtUsuarioEmpleado.Visible = chkEsEmpleado.Checked;
+            lblContrasenaEmpleado.Visible = txtContrasenaEmpleado.Visible = chkEsEmpleado.Checked;
+            lblRolEmpleado.Visible = cmbRolEmpleado.Visible = chkEsEmpleado.Checked;
+        }
+
+        private void CargarDatosEnFormulario()
+        {
+            if (_clienteEdicion == null) return;
+
+            txtNombre.Text = _clienteEdicion.Persona.Nombre;
+            txtApellido.Text = _clienteEdicion.Persona.Apellido;
+            txtDni.Text = _clienteEdicion.Persona.Dni ?? string.Empty;
+            txtTelefono.Text = _clienteEdicion.Persona.Telefono ?? string.Empty;
+            txtEmail.Text = _clienteEdicion.Email;
+
+            CargarRolesExistentes();
+        }
+
+        private void CargarRolesExistentes()
+        {
+            if (_clienteEdicion == null) return;
+
+            var proveedor = _logicaPersonaRoles.ObtenerProveedorPorPersonaId(_clienteEdicion.IdPersona);
+            if (proveedor != null)
+            {
+                chkEsProveedor.Checked = true;
+                txtNombreEmpresa.Text = proveedor.NombreEmpresa;
+            }
+
+            var empleado = _logicaPersonaRoles.ObtenerEmpleadoPorPersonaId(_clienteEdicion.IdPersona);
+            if (empleado != null)
+            {
+                chkEsEmpleado.Checked = true;
+                txtUsuarioEmpleado.Text = empleado.NombreUsuario;
+                txtContrasenaEmpleado.Text = empleado.Contrasena;
+                cmbRolEmpleado.SelectedItem = empleado.Rol;
+            }
+        }
+
         private void btnGuardar_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNombre.Text) || string.IsNullOrWhiteSpace(txtApellido.Text))
-            {
-                MessageBox.Show("Nombre y Apellido son obligatorios.", "Aviso",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-            if (string.IsNullOrWhiteSpace(txtEmail.Text))
-            {
-                MessageBox.Show("El Email es obligatorio.", "Aviso",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
             try
             {
-                if (_clienteEdicion == null)
+                var persona = new Persona
                 {
-                    // Alta de cliente nuevo
-                    var persona = new Persona
-                    {
-                        Nombre = txtNombre.Text.Trim(),
-                        Apellido = txtApellido.Text.Trim(),
-                        Dni = string.IsNullOrWhiteSpace(txtDni.Text) ? null : txtDni.Text.Trim(),
-                        Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim()
-                    };
-                    var cliente = new Cliente
+                    Nombre = txtNombre.Text.Trim(),
+                    Apellido = txtApellido.Text.Trim(),
+                    Dni = string.IsNullOrWhiteSpace(txtDni.Text) ? null : txtDni.Text.Trim(),
+                    Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
+                    Cuit = _clienteEdicion?.Persona.Cuit,
+                    CondicionIva = _clienteEdicion?.Persona.CondicionIva,
+                    Direccion = _clienteEdicion?.Persona.Direccion,
+                    Activo = _clienteEdicion?.Persona.Activo ?? true,
+                    FechaAlta = _clienteEdicion?.Persona.FechaAlta ?? DateTime.Now
+                };
+
+                if (_clienteEdicion != null)
+                {
+                    persona.IdPersona = _clienteEdicion.IdPersona;
+                    persona.EsCliente = true;
+                }
+
+                var cliente = new Cliente
+                {
+                    IdCliente = _clienteEdicion?.IdCliente ?? 0,
+                    IdPersona = _clienteEdicion?.IdPersona ?? 0,
+                    Persona = persona,
+                    Email = txtEmail.Text.Trim(),
+                    SaldoCuentaCorriente = _clienteEdicion?.SaldoCuentaCorriente ?? 0
+                };
+
+                Proveedor? proveedor = chkEsProveedor.Checked
+                    ? new Proveedor { Persona = persona, NombreEmpresa = txtNombreEmpresa.Text.Trim() }
+                    : null;
+
+                Empleado? empleado = chkEsEmpleado.Checked
+                    ? new Empleado
                     {
                         Persona = persona,
-                        Email = txtEmail.Text.Trim()
-                    };
-                    _logica.Alta(cliente);
-                }
-                else
-                {
-                    // Modificación de cliente existente
-                    _clienteEdicion.Persona.Nombre = txtNombre.Text.Trim();
-                    _clienteEdicion.Persona.Apellido = txtApellido.Text.Trim();
-                    _clienteEdicion.Persona.Dni = string.IsNullOrWhiteSpace(txtDni.Text) ? null : txtDni.Text.Trim();
-                    _clienteEdicion.Persona.Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim();
-                    _clienteEdicion.Email = txtEmail.Text.Trim();
-                    _logica.Modificar(_clienteEdicion);
-                }
+                        NombreUsuario = txtUsuarioEmpleado.Text.Trim(),
+                        Contrasena = txtContrasenaEmpleado.Text.Trim(),
+                        Rol = cmbRolEmpleado.SelectedItem?.ToString() ?? string.Empty,
+                        Activo = true
+                    }
+                    : null;
+
+                _logicaPersonaRoles.GuardarRoles(persona, cliente, proveedor, empleado);
+
                 MessageBox.Show("Cliente guardado correctamente.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (ArgumentException ex)
             {
@@ -87,11 +178,9 @@ namespace cantinaPadel.UI
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
-        // Permite solo letras (incluye acentos/ñ), espacios y teclas de control (Backspace, etc.)
-        // Coincide con la regla de Persona.ValidarNombre / ValidarApellido.
         private void txtNombreApellido_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar))
@@ -101,7 +190,6 @@ namespace cantinaPadel.UI
                 e.Handled = true;
         }
 
-        // Permite solo dígitos y teclas de control. Coincide con Persona.ValidarDni (7-8 dígitos).
         private void txtDni_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar))
@@ -111,7 +199,6 @@ namespace cantinaPadel.UI
                 e.Handled = true;
         }
 
-        // Permite dígitos, espacio, guion y '+'. Coincide con Persona.ValidarTelefono.
         private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsControl(e.KeyChar))

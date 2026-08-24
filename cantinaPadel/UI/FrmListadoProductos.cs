@@ -27,6 +27,7 @@ namespace cantinaPadel.UI
             txtBuscar.KeyDown += txtBuscar_KeyDown;
             cmbCategoriaFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
             cmbMarcaFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
+            cmbEstadoFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
             btnNuevo.Click += btnNuevo_Click;
             btnModificar.Click += btnModificar_Click;
             btnBajaLogica.Click += btnBajaLogica_Click;
@@ -90,6 +91,8 @@ namespace cantinaPadel.UI
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
                 { Name = "Marca", DataPropertyName = "Marca", HeaderText = "Marca", Width = 100 });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
+                { Name = "Proveedor", DataPropertyName = "Proveedor", HeaderText = "Proveedor", Width = 130 });
+            dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "PrecioVenta",
                 DataPropertyName = "PrecioVenta",
@@ -115,6 +118,8 @@ namespace cantinaPadel.UI
                 Width = 70,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
             });
+            dgvProductos.Columns.Add(new DataGridViewCheckBoxColumn
+                { Name = "Activo", DataPropertyName = "Activo", HeaderText = "Activo", Width = 60 });
             dgvProductos.Columns.Add(new DataGridViewCheckBoxColumn
                 { Name = "StockBajo", DataPropertyName = "StockBajo", HeaderText = "Stock Bajo", Width = 80 });
         }
@@ -146,6 +151,11 @@ namespace cantinaPadel.UI
                 cmbMarcaFiltro.ValueMember = "Id";
                 cmbMarcaFiltro.DataSource = marcas;
                 cmbMarcaFiltro.SelectedIndex = 0;
+
+                cmbEstadoFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbEstadoFiltro.Items.Clear();
+                cmbEstadoFiltro.Items.AddRange(new object[] { "Activos", "Inactivos", "Todos" });
+                cmbEstadoFiltro.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -164,8 +174,14 @@ namespace cantinaPadel.UI
                 string? texto = string.IsNullOrWhiteSpace(txtBuscar.Text) ? null : txtBuscar.Text.Trim();
                 int? idCategoria = cmbCategoriaFiltro.SelectedValue as int?;
                 int? idMarca = cmbMarcaFiltro.SelectedValue as int?;
+                bool? activo = cmbEstadoFiltro.SelectedIndex switch
+                {
+                    1 => false,
+                    2 => null,
+                    _ => true
+                };
 
-                var productos = _logicaProducto.Buscar(texto, idCategoria, idMarca);
+                var productos = _logicaProducto.Buscar(texto, idCategoria, idMarca, activo);
 
                 dgvProductos.DataSource = productos.Select(p => new
                 {
@@ -174,9 +190,11 @@ namespace cantinaPadel.UI
                     p.CodigoBarras,
                     Categoria = p.Categoria.Nombre,
                     Marca = p.Marca?.Nombre ?? "S/M",
+                    Proveedor = p.Proveedor?.NombreEmpresa ?? "S/P",
                     p.PrecioVenta,
                     p.PrecioConIva,
                     p.StockActual,
+                    p.Activo,
                     p.StockBajo
                 }).ToList();
             }
@@ -263,7 +281,7 @@ namespace cantinaPadel.UI
             }
 
             var confirmacion = MessageBox.Show(
-                "¿Desea dar de baja al producto seleccionado? Dejará de aparecer en el listado.",
+                "¿Desea cambiar el estado del producto seleccionado?",
                 "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (confirmacion != DialogResult.Yes) return;

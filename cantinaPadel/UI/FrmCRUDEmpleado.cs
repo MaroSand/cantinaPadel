@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Drawing;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -7,25 +8,29 @@ namespace cantinaPadel.UI
 {
     public partial class FrmCRUDEmpleado : Form
     {
-        // Se declaran las variables globales
-        private readonly LogicaEmpleado _logicaEmpleado;
+        private readonly LogicaPersonaRoles _logicaPersonaRoles;
         private Empleado? _empleadoEdicion;
+        private CheckBox chkEsCliente = null!;
+        private CheckBox chkEsProveedor = null!;
+        private Label lblEmailCliente = null!;
+        private TextBox txtEmailCliente = null!;
+        private Label lblNombreEmpresa = null!;
+        private TextBox txtNombreEmpresa = null!;
 
         public FrmCRUDEmpleado()
         {
             InitializeComponent();
             CargarCondicionesIva();
-            // Se instancia la lógica para usarla en toda la pantalla
-            _logicaEmpleado = new LogicaEmpleado();
+            ConfigurarControlesRoles();
+            _logicaPersonaRoles = new LogicaPersonaRoles();
             _empleadoEdicion = null;
-            this.Text = "Nuevo Empleado";
+            Text = "Nuevo Empleado";
         }
 
         public FrmCRUDEmpleado(Empleado empleado) : this()
         {
-            // Se recibe el empleado desde el listado para el modo edición
             _empleadoEdicion = empleado;
-            this.Text = "Modificar Empleado";
+            Text = "Modificar Empleado";
         }
 
         private void CargarCondicionesIva()
@@ -36,143 +41,180 @@ namespace cantinaPadel.UI
             cmbCondicionIva.SelectedIndex = -1;
         }
 
+        private void ConfigurarControlesRoles()
+        {
+            ClientSize = new Size(ClientSize.Width, 860);
+            btnCancelar.Location = new Point(btnCancelar.Location.X, 720);
+            btnGuardar.Location = new Point(btnGuardar.Location.X, 720);
+
+            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(55, 570), AutoSize = true };
+            lblEmailCliente = new Label { Text = "Email cliente: *", Location = new Point(55, 620), AutoSize = true };
+            txtEmailCliente = new TextBox { Location = new Point(228, 614), Size = new Size(251, 39), MaxLength = 100 };
+
+            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(700, 570), AutoSize = true };
+            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(700, 620), AutoSize = true };
+            txtNombreEmpresa = new TextBox { Location = new Point(916, 614), Size = new Size(275, 39), MaxLength = 50 };
+
+            chkEsCliente.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
+            chkEsProveedor.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
+
+            Controls.AddRange(new Control[]
+            {
+                chkEsCliente, lblEmailCliente, txtEmailCliente,
+                chkEsProveedor, lblNombreEmpresa, txtNombreEmpresa
+            });
+
+            ActualizarVisibilidadRoles();
+        }
+
+        private void ActualizarVisibilidadRoles()
+        {
+            lblEmailCliente.Visible = txtEmailCliente.Visible = chkEsCliente.Checked;
+            lblNombreEmpresa.Visible = txtNombreEmpresa.Visible = chkEsProveedor.Checked;
+        }
+
         private void FrmCRUDEmpleado_Load(object sender, EventArgs e)
         {
-            // Se valida si es un alta nueva
             if (_empleadoEdicion == null)
             {
                 if (cmbRol.Items.Count > 0) cmbRol.SelectedIndex = 0;
                 return;
             }
 
-            // Se cargan los datos de la Persona en los controles
-            txtDni.Text = _empleadoEdicion.Persona.Dni;
+            txtDni.Text = _empleadoEdicion.Persona.Dni ?? string.Empty;
             txtApellido.Text = _empleadoEdicion.Persona.Apellido;
             txtNombre.Text = _empleadoEdicion.Persona.Nombre;
-            txtTelefono.Text = _empleadoEdicion.Persona.Telefono;
+            txtTelefono.Text = _empleadoEdicion.Persona.Telefono ?? string.Empty;
+            txtCuit.Text = _empleadoEdicion.Persona.Cuit ?? string.Empty;
 
             if (!string.IsNullOrEmpty(_empleadoEdicion.Persona.CondicionIva))
                 cmbCondicionIva.SelectedItem = _empleadoEdicion.Persona.CondicionIva;
 
-            // Se cargan los datos del Empleado en los controles
             txtUsuario.Text = _empleadoEdicion.NombreUsuario;
             txtContrasena.Text = _empleadoEdicion.Contrasena;
             cmbRol.SelectedItem = _empleadoEdicion.Rol;
-
-            // Se bloquea el DNI para que no pueda ser editado
             txtDni.ReadOnly = true;
+
+            CargarRolesExistentes();
+        }
+
+        private void CargarRolesExistentes()
+        {
+            if (_empleadoEdicion == null) return;
+
+            var cliente = _logicaPersonaRoles.ObtenerClientePorPersonaId(_empleadoEdicion.IdPersona);
+            if (cliente != null)
+            {
+                chkEsCliente.Checked = true;
+                txtEmailCliente.Text = cliente.Email;
+            }
+
+            var proveedor = _logicaPersonaRoles.ObtenerProveedorPorPersonaId(_empleadoEdicion.IdPersona);
+            if (proveedor != null)
+            {
+                chkEsProveedor.Checked = true;
+                txtNombreEmpresa.Text = proveedor.NombreEmpresa;
+            }
         }
 
         private void btnGuardar_Click(object sender, EventArgs e)
         {
             try
             {
-                if (_empleadoEdicion == null)
+                var persona = new Persona
                 {
-                    // Se crea una nueva instancia para el alta
-                    Empleado nuevoEmpleado = new Empleado
-                    {
-                        NombreUsuario = txtUsuario.Text,
-                        Contrasena = txtContrasena.Text,
-                        Rol = cmbRol.SelectedItem?.ToString() ?? "",
-                        Activo = true,
+                    Nombre = txtNombre.Text.Trim(),
+                    Apellido = txtApellido.Text.Trim(),
+                    Dni = txtDni.Text.Trim(),
+                    Cuit = string.IsNullOrWhiteSpace(txtCuit.Text) ? null : txtCuit.Text.Trim(),
+                    Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
+                    CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty,
+                    Direccion = _empleadoEdicion?.Persona.Direccion,
+                    Activo = _empleadoEdicion?.Persona.Activo ?? true,
+                    FechaAlta = _empleadoEdicion?.Persona.FechaAlta ?? DateTime.Now
+                };
 
-                        Persona = new Persona
-                        {
-                            Dni = txtDni.Text,
-                            Apellido = txtApellido.Text,
-                            Nombre = txtNombre.Text,
-                            Telefono = txtTelefono.Text,
-                            CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty
-                        }
-                    };
-
-                    // Se envía a la lógica (donde se aplican los Trims y validaciones)
-                    _logicaEmpleado.RegistrarOGuardar(nuevoEmpleado);
-                    MessageBox.Show("Empleado registrado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else
+                if (_empleadoEdicion != null)
                 {
-                    // Se cargan las modificaciones en el objeto existente
-                    _empleadoEdicion.Persona.Apellido = txtApellido.Text;
-                    _empleadoEdicion.Persona.Nombre = txtNombre.Text;
-                    _empleadoEdicion.Persona.Telefono = txtTelefono.Text;
-                    _empleadoEdicion.Persona.CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty;
-
-                    _empleadoEdicion.NombreUsuario = txtUsuario.Text;
-                    _empleadoEdicion.Contrasena = txtContrasena.Text;
-                    _empleadoEdicion.Rol = cmbRol.SelectedItem?.ToString() ?? "";
-
-                    // Se envía a la lógica
-                    _logicaEmpleado.RegistrarOGuardar(_empleadoEdicion);
-                    MessageBox.Show("Empleado modificado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    persona.IdPersona = _empleadoEdicion.IdPersona;
+                    persona.EsEmpleado = true;
                 }
 
-                // Se redirige al listado si la operación fue exitosa
+                var empleado = new Empleado
+                {
+                    IdEmpleado = _empleadoEdicion?.IdEmpleado ?? 0,
+                    IdPersona = _empleadoEdicion?.IdPersona ?? 0,
+                    Persona = persona,
+                    NombreUsuario = txtUsuario.Text.Trim(),
+                    Contrasena = txtContrasena.Text.Trim(),
+                    Rol = cmbRol.SelectedItem?.ToString() ?? string.Empty,
+                    Activo = _empleadoEdicion?.Activo ?? true
+                };
+
+                Cliente? cliente = chkEsCliente.Checked
+                    ? new Cliente { Persona = persona, Email = txtEmailCliente.Text.Trim() }
+                    : null;
+
+                Proveedor? proveedor = chkEsProveedor.Checked
+                    ? new Proveedor { Persona = persona, NombreEmpresa = txtNombreEmpresa.Text.Trim() }
+                    : null;
+
+                _logicaPersonaRoles.GuardarRoles(persona, cliente, proveedor, empleado);
+
+                MessageBox.Show("Empleado guardado correctamente.", "Éxito",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
                 RegresarAlListado();
             }
             catch (ArgumentException ex)
             {
-                // Se muestran las excepciones de negocio de forma clara y limpia al usuario
                 MessageBox.Show(ex.Message, "Validación de Datos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
-                // Se capturan errores inesperados de la base de datos o del sistema
                 MessageBox.Show($"Error interno al procesar la solicitud: {ex.Message}", "Error General", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            // Se vuelve al listado sin realizar cambios
             RegresarAlListado();
         }
 
         private void RegresarAlListado()
         {
-            // Se busca la instancia del formulario principal MDI/Contenedor
-            if (this.ParentForm is FrmMain mainForm)
+            if (ParentForm is FrmMain mainForm)
             {
-                // Se vuelve a instanciar el listado para recargar la grilla desde la base de datos
                 FrmListadoEmpleados listado = new FrmListadoEmpleados();
                 mainForm.AbrirEnPanel(listado);
+                return;
             }
+
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         private void txtDni_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Se permite únicamente números y la tecla de borrar (BackSpace)
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
-            {
-                e.Handled = true; // Se cancela la pulsación de la tecla
-            }
+                e.Handled = true;
         }
 
         private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Se permite únicamente números y la tecla de borrar (BackSpace)
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
-            {
-                e.Handled = true; // Se cancela la pulsación de la tecla
-            }
+                e.Handled = true;
         }
 
         private void txtApellido_KeyPress(object sender, KeyPressEventArgs e)
         {
-            // Se permite únicamente letras, espacios y teclas de control como borrar
             if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
-            {
-                e.Handled = true; // Se cancela la pulsación si es un número o símbolo
-            }
+                e.Handled = true;
         }
 
         private void txtNombre_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
-            {
                 e.Handled = true;
-            }
         }
     }
 }
