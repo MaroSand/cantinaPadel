@@ -43,6 +43,8 @@
             txtPrecioCosto = new TextBox();
             lblMarca = new Label();
             cmbMarca = new ComboBox();
+            lblProveedor = new Label();
+            cmbProveedor = new ComboBox();
             lblCategoria = new Label();
             cmbCategoria = new ComboBox();
             lblCodigoBarras = new Label();
@@ -92,9 +94,10 @@
             panelCuerpo.Controls.Add(txtPrecioVenta);
             panelCuerpo.Controls.Add(lblPrecioCosto);
             panelCuerpo.Controls.Add(txtPrecioCosto);
-             // Se eliminaron campos Proveedor y Tipo por mejora de UX
             panelCuerpo.Controls.Add(lblMarca);
             panelCuerpo.Controls.Add(cmbMarca);
+            panelCuerpo.Controls.Add(lblProveedor);
+            panelCuerpo.Controls.Add(cmbProveedor);
             panelCuerpo.Controls.Add(lblCategoria);
             panelCuerpo.Controls.Add(cmbCategoria);
             panelCuerpo.Controls.Add(lblCodigoBarras);
@@ -135,7 +138,7 @@
             lblCodigoBarras.Name = "lblCodigoBarras";
             lblCodigoBarras.Size = new Size(163, 20);
             lblCodigoBarras.TabIndex = 1;
-            lblCodigoBarras.Text = "Código de Barras: ";
+            lblCodigoBarras.Text = "Código de Barras:";
             // 
             // txtCodigoBarras
             // 
@@ -184,7 +187,25 @@
             cmbMarca.Size = new Size(220, 28);
             cmbMarca.TabIndex = 3;
             // 
-            // Campos Proveedor y Tipo eliminados para simplificar formulario
+            // lblProveedor
+            // 
+            lblProveedor.AutoSize = true;
+            lblProveedor.Location = new Point(27, 284);
+            lblProveedor.Margin = new Padding(2, 0, 2, 0);
+            lblProveedor.Name = "lblProveedor";
+            lblProveedor.Size = new Size(80, 20);
+            lblProveedor.TabIndex = 4;
+            lblProveedor.Text = "Proveedor:";
+            // 
+            // cmbProveedor
+            // 
+            cmbProveedor.FormattingEnabled = true;
+            cmbProveedor.Location = new Point(230, 281);
+            cmbProveedor.Margin = new Padding(2);
+            cmbProveedor.Name = "cmbProveedor";
+            cmbProveedor.Size = new Size(220, 28);
+            cmbProveedor.TabIndex = 4;
+            // 
             // 
             // lblPrecioCosto
             // 
@@ -213,7 +234,7 @@
             lblPrecioVenta.Name = "lblPrecioVenta";
             lblPrecioVenta.Size = new Size(175, 20);
             lblPrecioVenta.TabIndex = 7;
-            lblPrecioVenta.Text = "Precio Venta (s/IVA): *";
+            lblPrecioVenta.Text = "Precio Venta (s/IVA):";
             // 
             // txtPrecioVenta
             // 
@@ -362,7 +383,8 @@
         private ComboBox cmbCategoria;
         private Label    lblMarca;
         private ComboBox cmbMarca;
-        // campos Proveedor y Tipo eliminados
+        private Label    lblProveedor;
+        private ComboBox cmbProveedor;
         private Label    lblPrecioCosto;
         private TextBox  txtPrecioCosto;
         private Label    lblPrecioVenta;

@@ -16,6 +16,9 @@ namespace cantinaPadel.Models
         [Column("id_marca")]
         public int? IdMarca { get; set; }
 
+        [Column("id_proveedor")]
+        public int? IdProveedor { get; set; }
+
         [Column("nombre")]
         public string Nombre { get; set; } = string.Empty;
         
@@ -43,6 +46,9 @@ namespace cantinaPadel.Models
 
         [ForeignKey("IdMarca")]
         public Marca? Marca { get; set; }
+
+        [ForeignKey("IdProveedor")]
+        public Proveedor? Proveedor { get; set; }
         
         [NotMapped]
         public decimal PrecioConIva => Math.Round(PrecioVenta * 1.21m, 2);

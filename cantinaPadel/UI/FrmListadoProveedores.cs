@@ -82,6 +82,8 @@ namespace cantinaPadel.UI
                 bool coincideTexto = string.IsNullOrEmpty(buscar) ||
                                      p.Persona.Nombre.ToLower().Contains(buscar) ||
                                      p.Persona.Apellido.ToLower().Contains(buscar) ||
+                                     $"{p.Persona.Nombre} {p.Persona.Apellido}".ToLower().Contains(buscar) ||
+                                     $"{p.Persona.Apellido} {p.Persona.Nombre}".ToLower().Contains(buscar) ||
                                      (p.NombreEmpresa != null && p.NombreEmpresa.ToLower().Contains(buscar)) ||
                                      (p.Persona.Cuit != null && p.Persona.Cuit.Contains(buscar));
 

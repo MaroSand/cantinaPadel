@@ -45,6 +45,11 @@ namespace cantinaPadel.DAL
                 .HasOne(p => p.Persona)
                 .WithOne(per => per.Proveedor)
                 .HasForeignKey<Proveedor>(p => p.IdPersona);
+
+            modelBuilder.Entity<Producto>()
+                .HasOne(p => p.Proveedor)
+                .WithMany()
+                .HasForeignKey(p => p.IdProveedor);
         }
     }
 }

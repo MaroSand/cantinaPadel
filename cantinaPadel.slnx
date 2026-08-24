@@ -1,4 +1,6 @@
 <Solution>
-  <Project Path="cantinaPadel.Tests/cantinaPadel.Tests.csproj" />
+  <Project Path="cantinaPadel.Tests/cantinaPadel.Tests.csproj">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="cantinaPadel/cantinaPadel.csproj" />
 </Solution>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
@@ -29,6 +30,7 @@ namespace cantinaPadel.UI
             cmbEstado.SelectedIndex = 0;
             ActualizarGrilla();
             LimpiarFormulario();
+            txtPorcentajeGanancia.KeyPress += TxtDecimal_KeyPress;
         }
 
         private void ActualizarGrilla()
@@ -71,6 +73,13 @@ namespace cantinaPadel.UI
 
                 var colActiva = dgvCategorias.Columns["Activa"];
                 if (colActiva != null) colActiva.HeaderText = "Activa";
+
+                var colPorcentaje = dgvCategorias.Columns["PorcentajeGanancia"];
+                if (colPorcentaje != null)
+                {
+                    colPorcentaje.HeaderText = "% Ganancia";
+                    colPorcentaje.DefaultCellStyle.Format = "N2";
+                }
             }
             catch (Exception ex)
             {
@@ -90,6 +99,7 @@ namespace cantinaPadel.UI
             {
                 _categoriaSeleccionada = cat;
                 txtNombre.Text = _categoriaSeleccionada.Nombre;
+                txtPorcentajeGanancia.Text = _categoriaSeleccionada.PorcentajeGanancia.ToString("0.##", CultureInfo.CurrentCulture);
             }
         }
 
@@ -100,6 +110,9 @@ namespace cantinaPadel.UI
                 // Se crea una categoría nueva o se edita la que ya estaba seleccionada
                 var cat = _categoriaSeleccionada ?? new Categoria();
                 cat.Nombre = txtNombre.Text;
+                decimal.TryParse(txtPorcentajeGanancia.Text, NumberStyles.Number, CultureInfo.CurrentCulture,
+                    out decimal porcentajeGanancia);
+                cat.PorcentajeGanancia = porcentajeGanancia;
 
                 // Se manda a la capa de negocio para validarla y guardarla
                 _logicaCategoria.Guardar(cat);
@@ -158,8 +171,19 @@ namespace cantinaPadel.UI
             // Se resetea la variable global, se vacía el texto, se desmarca la grilla y se hace foco
             _categoriaSeleccionada = null;
             txtNombre.Clear();
+            txtPorcentajeGanancia.Clear();
             if (dgvCategorias.CurrentRow != null) dgvCategorias.CurrentRow.Selected = false;
             txtNombre.Focus();
+        }
+
+        private void TxtDecimal_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            string separador = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
+
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar) && e.KeyChar.ToString() != separador)
+            {
+                e.Handled = true;
+            }
         }
     }
 }
