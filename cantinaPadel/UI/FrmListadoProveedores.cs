@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
@@ -33,6 +34,7 @@ namespace cantinaPadel.UI
             btnNuevo.Click += btnNuevo_Click;
             btnModificar.Click += btnModificar_Click;
             btnBajaLogica.Click += btnBajaLogica_Click;
+            dgvProveedores.SelectionChanged += dgvProveedores_SelectionChanged;
 
             // Combo: índice 0=Todos, 1=Activos, 2=Inactivos (sin items vacíos)
             cmbEstado.SelectedIndex = 1;
@@ -107,11 +109,9 @@ namespace cantinaPadel.UI
             dgvProveedores.DataSource = listaFiltrada;
         }
 
-        // ── Eventos filtros ────────────────────────────────────────────────────
         private void txtBuscarNombre_TextChanged(object sender, EventArgs e) => FiltrarYMostrarDatos();
         private void cmbEstado_SelectedIndexChanged(object sender, EventArgs e) => FiltrarYMostrarDatos();
 
-        // ── Botones de acción ──────────────────────────────────────────────────
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             var frm = new FrmCRUDProveedor();
@@ -141,13 +141,13 @@ namespace cantinaPadel.UI
         {
             if (dgvProveedores.CurrentRow == null)
             {
-                MessageBox.Show("Seleccione un proveedor para dar de baja / alta.",
+                MessageBox.Show("Seleccione un proveedor para activar / desactivar.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
             bool estaActivo = (bool)dgvProveedores.CurrentRow.Cells["Activo"].Value;
-            string accion = estaActivo ? "dar de baja" : "dar de alta";
+            string accion = estaActivo ? "desactivar" : "activar";
 
             var confirmacion = MessageBox.Show(
                 $"¿Desea {accion} al proveedor seleccionado?",
@@ -167,6 +167,27 @@ namespace cantinaPadel.UI
                 MessageBox.Show($"Error al cambiar estado: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        // Se modifica el texto del botón dinámicamente según el estado del proveedor seleccionado
+        private void dgvProveedores_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dgvProveedores.CurrentRow == null || _listaOriginal == null)
+            {
+                btnBajaLogica.Text = "Activar / Desactivar";
+                btnBajaLogica.ForeColor = SystemColors.ControlText;
+                return;
+            }
+
+            dynamic fila = dgvProveedores.CurrentRow.DataBoundItem;
+            if (fila == null) return;
+
+            int idProveedor = fila.IdProveedor;
+            var proveedor = _listaOriginal.FirstOrDefault(p => p.IdProveedor == idProveedor);
+            if (proveedor == null) return;
+
+            btnBajaLogica.Text = proveedor.Persona.Activo ? "Desactivar" : "Activar";
+            btnBajaLogica.ForeColor = proveedor.Persona.Activo ? Color.DarkRed : Color.DarkGreen;
         }
     }
 }

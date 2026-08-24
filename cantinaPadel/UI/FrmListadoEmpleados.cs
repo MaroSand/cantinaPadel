@@ -174,7 +174,7 @@ namespace cantinaPadel.UI
 
             if (empleado != null)
             {
-                string accion = empleado.Activo ? "dar de BAJA" : "dar de ALTA";
+                string accion = empleado.Activo ? "desactivar" : "activar";
                 var seguro = MessageBox.Show($"¿Está seguro que desea {accion} al empleado {empleado.Persona.Nombre} {empleado.Persona.Apellido}?",
                     "Confirmar Estado", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
@@ -219,7 +219,7 @@ namespace cantinaPadel.UI
                     if (empleado != null)
                     {
                         // Se modifica el texto del botón dinámicamente según el estado del empleado
-                        btnBajaLogica.Text = empleado.Activo ? "Dar de Baja" : "Dar de Alta";
+                        btnBajaLogica.Text = empleado.Activo ? "Desactivar" : "Activar";
 
                         // Se modifica el color del texto para dar una alerta visual (Rojo para baja, Verde para alta)
                         btnBajaLogica.ForeColor = empleado.Activo ? Color.DarkRed : Color.DarkGreen;

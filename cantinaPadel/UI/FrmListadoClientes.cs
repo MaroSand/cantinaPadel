@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -25,6 +26,7 @@ namespace cantinaPadel.UI
         private void FrmListadoClientes_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
+            dgvClientes.SelectionChanged += dgvClientes_SelectionChanged;
             CargarDatos();
         }
         // Configura las propiedades de la grilla de clientes
@@ -114,7 +116,7 @@ namespace cantinaPadel.UI
             var cliente = _logica.ObtenerPorId(id);
             if (cliente == null) return;
 
-            string accion = cliente.Persona.Activo ? "dar de baja" : "dar de alta";
+            string accion = cliente.Persona.Activo ? "desactivar" : "activar";
             var confirmacion = MessageBox.Show(
                 $"¿Querés {accion} a {cliente.Persona.Nombre} {cliente.Persona.Apellido}?",
                 "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -153,6 +155,27 @@ namespace cantinaPadel.UI
         private void cmbEstado_SelectedIndexChanged(object sender, EventArgs e)
         {
             FiltrarYMostrarDatos();
+        }
+
+        // Se modifica el texto del botón dinámicamente según el estado del cliente seleccionado
+        private void dgvClientes_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dgvClientes.CurrentRow == null || _listaOriginal == null)
+            {
+                btnBajaLogica.Text = "Activar / Desactivar";
+                btnBajaLogica.ForeColor = SystemColors.ControlText;
+                return;
+            }
+
+            dynamic fila = dgvClientes.CurrentRow.DataBoundItem;
+            if (fila == null) return;
+
+            int idCliente = fila.IdCliente;
+            var cliente = _listaOriginal.FirstOrDefault(c => c.IdCliente == idCliente);
+            if (cliente == null) return;
+
+            btnBajaLogica.Text = cliente.Persona.Activo ? "Desactivar" : "Activar";
+            btnBajaLogica.ForeColor = cliente.Persona.Activo ? Color.DarkRed : Color.DarkGreen;
         }
     }
 }
