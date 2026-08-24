@@ -88,7 +88,9 @@ namespace cantinaPadel.UI
                 // Se evalúa la coincidencia del texto controlando que Persona y sus propiedades no sean nulos
                 bool coincideTexto = string.IsNullOrEmpty(buscar) ||
                                      (e.Persona?.Nombre != null && e.Persona.Nombre.ToLower().Contains(buscar)) ||
-                                     (e.Persona?.Apellido != null && e.Persona.Apellido.ToLower().Contains(buscar));
+                                     (e.Persona?.Apellido != null && e.Persona.Apellido.ToLower().Contains(buscar)) ||
+                                     (e.Persona?.Nombre != null && e.Persona?.Apellido != null && $"{e.Persona.Nombre} {e.Persona.Apellido}".ToLower().Contains(buscar)) ||
+                                     (e.Persona?.Nombre != null && e.Persona?.Apellido != null && $"{e.Persona.Apellido} {e.Persona.Nombre}".ToLower().Contains(buscar));
 
                 // Se evalúa el estado lógico leyendo el texto del combobox de forma explícita
                 bool coincideEstado = false;

@@ -28,30 +28,30 @@ namespace cantinaPadel.UI
         private void ConfigurarGrilla()
         {
             // Se suscriben los eventos de controles
-            txtBuscarNombre.TextChanged    += txtBuscarNombre_TextChanged;
+            txtBuscarNombre.TextChanged += txtBuscarNombre_TextChanged;
             cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
-            btnNuevo.Click                 += btnNuevo_Click;
-            btnModificar.Click             += btnModificar_Click;
-            btnBajaLogica.Click            += btnBajaLogica_Click;
+            btnNuevo.Click += btnNuevo_Click;
+            btnModificar.Click += btnModificar_Click;
+            btnBajaLogica.Click += btnBajaLogica_Click;
 
             // Combo: índice 0=Todos, 1=Activos, 2=Inactivos (sin items vacíos)
             cmbEstado.SelectedIndex = 1;
 
             // Ajustes de la grilla
             dgvProveedores.AutoGenerateColumns = false;
-            dgvProveedores.SelectionMode       = DataGridViewSelectionMode.FullRowSelect;
-            dgvProveedores.ReadOnly            = true;
-            dgvProveedores.MultiSelect         = false;
+            dgvProveedores.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvProveedores.ReadOnly = true;
+            dgvProveedores.MultiSelect = false;
 
             // Columnas: Name es clave para Cells["..."], DataPropertyName bindea con el objeto anónimo
             dgvProveedores.Columns.Clear();
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "IdProveedor",  DataPropertyName = "IdProveedor",  Visible = false });
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "Empresa",       DataPropertyName = "NombreEmpresa", HeaderText = "Empresa",   Width = 180 });
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "Apellido",      DataPropertyName = "ApellidoClon",  HeaderText = "Apellido",  Width = 120 });
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "Nombre",        DataPropertyName = "NombreClon",    HeaderText = "Nombre",    Width = 120 });
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "CUIT",          DataPropertyName = "CuitClon",      HeaderText = "CUIT",      Width = 130 });
-            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn  { Name = "Telefono",      DataPropertyName = "TelefonoClon",  HeaderText = "Teléfono",  Width = 110 });
-            dgvProveedores.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Activo",        DataPropertyName = "Activo",        HeaderText = "Activo",    Width = 60  });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdProveedor", DataPropertyName = "IdProveedor", Visible = false });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "Empresa", DataPropertyName = "NombreEmpresa", HeaderText = "Empresa", Width = 180 });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "Apellido", DataPropertyName = "ApellidoClon", HeaderText = "Apellido", Width = 120 });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "Nombre", DataPropertyName = "NombreClon", HeaderText = "Nombre", Width = 120 });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "CUIT", DataPropertyName = "CuitClon", HeaderText = "CUIT", Width = 130 });
+            dgvProveedores.Columns.Add(new DataGridViewTextBoxColumn { Name = "Telefono", DataPropertyName = "TelefonoClon", HeaderText = "Teléfono", Width = 110 });
+            dgvProveedores.Columns.Add(new DataGridViewCheckBoxColumn { Name = "Activo", DataPropertyName = "Activo", HeaderText = "Activo", Width = 60 });
         }
 
         private void CargarDatosDesdeBase()
@@ -72,16 +72,18 @@ namespace cantinaPadel.UI
         {
             if (_listaOriginal == null) return;
 
-            string buscar      = txtBuscarNombre.Text.Trim().ToLower();
-            int    filtroEstado = cmbEstado.SelectedIndex; // 0=Todos, 1=Activos, 2=Inactivos
+            string buscar = txtBuscarNombre.Text.Trim().ToLower();
+            int filtroEstado = cmbEstado.SelectedIndex; // 0=Todos, 1=Activos, 2=Inactivos
 
             var listaFiltrada = _listaOriginal.Where(p =>
             {
                 bool coincideTexto = string.IsNullOrEmpty(buscar) ||
-                                     p.Persona.Nombre.ToLower().Contains(buscar)   ||
+                                     p.Persona.Nombre.ToLower().Contains(buscar) ||
                                      p.Persona.Apellido.ToLower().Contains(buscar) ||
+                                     $"{p.Persona.Nombre} {p.Persona.Apellido}".ToLower().Contains(buscar) ||
+                                     $"{p.Persona.Apellido} {p.Persona.Nombre}".ToLower().Contains(buscar) ||
                                      (p.NombreEmpresa != null && p.NombreEmpresa.ToLower().Contains(buscar)) ||
-                                     (p.Persona.Cuit  != null && p.Persona.Cuit.Contains(buscar));
+                                     (p.Persona.Cuit != null && p.Persona.Cuit.Contains(buscar));
 
                 bool coincideEstado = filtroEstado switch
                 {
@@ -96,10 +98,10 @@ namespace cantinaPadel.UI
                 p.IdProveedor,
                 p.NombreEmpresa,
                 ApellidoClon = p.Persona.Apellido,
-                NombreClon   = p.Persona.Nombre,
-                CuitClon     = p.Persona.Cuit,
+                NombreClon = p.Persona.Nombre,
+                CuitClon = p.Persona.Cuit,
                 TelefonoClon = p.Persona.Telefono,
-                Activo       = p.Persona.Activo
+                Activo = p.Persona.Activo
             }).ToList();
 
             dgvProveedores.DataSource = listaFiltrada;
@@ -126,7 +128,7 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            int idProveedor   = (int)dgvProveedores.CurrentRow.Cells["IdProveedor"].Value;
+            int idProveedor = (int)dgvProveedores.CurrentRow.Cells["IdProveedor"].Value;
             Proveedor? proveedor = _logicaProveedor.ObtenerPorId(idProveedor);
             if (proveedor == null) return;
 
@@ -144,8 +146,8 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            bool   estaActivo = (bool)dgvProveedores.CurrentRow.Cells["Activo"].Value;
-            string accion     = estaActivo ? "dar de baja" : "dar de alta";
+            bool estaActivo = (bool)dgvProveedores.CurrentRow.Cells["Activo"].Value;
+            string accion = estaActivo ? "dar de baja" : "dar de alta";
 
             var confirmacion = MessageBox.Show(
                 $"¿Desea {accion} al proveedor seleccionado?",
