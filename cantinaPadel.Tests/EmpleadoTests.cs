@@ -2,16 +2,11 @@
 
 namespace cantinaPadel.Tests
 {
-    // ------------------------------------------------------------------
-    // Modelo: Empleado - ValidarFormato valida los campos propios del
-    // empleado (usuario, contraseña, rol) y delega en Persona lo que es
-    // de Persona (nombre, apellido, dni, etc).
-    // ------------------------------------------------------------------
+    // Modelo: Empleado - ValidarFormato valida los campos propios del empleado (usuario, contraseña, rol) y delega en Persona lo que es
+    // de Persona (nombre, apellido, dni, etc)
     [TestClass]
     public class EmpleadoModelTests
     {
-        // Arma un Empleado con datos válidos para no repetir el mismo
-        // bloque en cada test; cada test pisa solo el campo que le interesa.
         private static Empleado CrearEmpleadoValido()
         {
             return new Empleado
@@ -23,7 +18,8 @@ namespace cantinaPadel.Tests
                 {
                     Nombre = "Juan",
                     Apellido = "Gomez",
-                    Dni = "30111222"
+                    Dni = "30111222",
+                    Cuit = "20-30111222-0"
                 }
             };
         }
@@ -32,7 +28,7 @@ namespace cantinaPadel.Tests
         public void ValidarFormato_PersonaNula_LanzaArgumentException()
         {
             var empleado = CrearEmpleadoValido();
-            empleado.Persona = null!; // null! = "sé que Persona no admite null, lo hago a propósito para este test"
+            empleado.Persona = null!;
 
             Assert.ThrowsExactly<ArgumentException>(() => empleado.ValidarFormato());
         }
@@ -94,8 +90,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ValidarFormato_DniObligatorioYFaltante_LanzaArgumentException()
         {
-            // A diferencia de Cliente/Proveedor, el alta de Empleado exige DNI:
-            // se llama con dniObligatorio: true, así que sin DNI debe fallar.
+            // El alta de Empleado exige DNI: se llama con dniObligatorio: true, así que sin DNI debe fallar
             var empleado = CrearEmpleadoValido();
             empleado.Persona.Dni = null;
 
@@ -120,8 +115,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ValidarFormato_TodoValido_NoLanzaExcepcion()
         {
-            // Caso "feliz": usuario, contraseña, rol y datos de persona
-            // (incluido el dni obligatorio) pasan juntos la validación.
+            // Caso "feliz": usuario, contraseña, rol y datos de persona pasan juntos la validación
             var empleado = CrearEmpleadoValido();
 
             empleado.ValidarFormato(dniObligatorio: true);
