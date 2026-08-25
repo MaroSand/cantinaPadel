@@ -16,10 +16,8 @@ namespace cantinaPadel.Models
 
         [Column("activa")]
         public bool Activa { get; set; } = true;
-
-        // HASTA QUE FACU CREES EL MODELO PRODUCTO
-        // public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
-
+  
+     
         public void Normalizar()
         {
             Nombre = Nombre?.Trim() ?? string.Empty;
@@ -32,8 +30,8 @@ namespace cantinaPadel.Models
             if (string.IsNullOrWhiteSpace(Nombre))
                 throw new ArgumentException("El nombre de la marca es obligatorio.");
 
-            if (Nombre.Length > 100)
-                throw new ArgumentException("El nombre de la marca no puede superar los 100 caracteres.");
+            if (Nombre.Length > 25)
+                throw new ArgumentException("El nombre de la marca no puede superar los 25 caracteres.");
         }
     }
 }

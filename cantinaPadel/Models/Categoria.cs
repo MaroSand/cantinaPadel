@@ -33,8 +33,8 @@ namespace cantinaPadel.Models
             if (string.IsNullOrWhiteSpace(Nombre))
                 throw new ArgumentException("El nombre de la categoría es obligatorio.");
 
-            if (Nombre.Length > 100)
-                throw new ArgumentException("El nombre de la categoría no puede superar los 100 caracteres.");
+            if (Nombre.Length > 25)
+                throw new ArgumentException("El nombre de la categoría no puede superar los 25 caracteres.");
 
             if (Nombre.Any(char.IsDigit))
                 throw new ArgumentException("El nombre de la categoría no puede contener números.");
