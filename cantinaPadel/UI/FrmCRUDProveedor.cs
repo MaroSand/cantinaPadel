@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -26,22 +28,31 @@ namespace cantinaPadel.UI
             InitializeComponent();
             CargarCondicionesIva();
             ConfigurarControlesRoles();
+            ConfigurarFormatoCuit();
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _proveedorEdicion = null;
-            this.Text         = "Nuevo Proveedor";
+            this.Text = "Nuevo Proveedor";
         }
 
         // Constructor para modificar proveedor existente
         public FrmCRUDProveedor(Proveedor proveedor) : this()
         {
             _proveedorEdicion = proveedor;
-            this.Text         = "Modificar Proveedor";
+            this.Text = "Modificar Proveedor";
+        }
+
+        private void ConfigurarFormatoCuit()
+        {
+            // Se limita la longitud máxima para soportar los 11 dígitos y los 2 guiones de separación
+            txtCuit.MaxLength = 13;
+            txtCuit.KeyPress += txtCuit_KeyPress;
+            txtCuit.TextChanged += txtCuit_TextChanged;
         }
 
         private void FrmCRUDProveedor_Load(object sender, EventArgs e)
         {
             // Se suscriben los eventos de botones
-            btnGuardar.Click  += btnGuardar_Click;
+            btnGuardar.Click += btnGuardar_Click;
             btnCancelar.Click += btnCancelar_Click;
 
             if (_proveedorEdicion != null)
@@ -50,66 +61,67 @@ namespace cantinaPadel.UI
 
         private void ConfigurarControlesRoles()
         {
-            ClientSize = new System.Drawing.Size(1040, 690);
-            panelHeader.Size = new System.Drawing.Size(1040, panelHeader.Height);
+            ClientSize = new Size(1040, 690);
+            panelHeader.Size = new Size(1040, panelHeader.Height);
             panelCuerpo.AutoScroll = true;
 
             int labelIzq = 35;
             int inputIzq = 255;
             int labelDer = 515;
             int inputDer = 745;
-            var inputSize = new System.Drawing.Size(230, 39);
+            var inputSize = new Size(230, 39);
 
-            lblNombreEmpresa.Location = new System.Drawing.Point(labelIzq, 35);
-            txtNombreEmpresa.Location = new System.Drawing.Point(inputIzq, 28);
+            lblNombreEmpresa.Location = new Point(labelIzq, 35);
+            txtNombreEmpresa.Location = new Point(inputIzq, 28);
             txtNombreEmpresa.Size = inputSize;
 
-            lblCuit.Location = new System.Drawing.Point(labelDer, 35);
-            txtCuit.Location = new System.Drawing.Point(inputDer, 28);
+            lblCuit.Location = new Point(labelDer, 35);
+            txtCuit.Location = new Point(inputDer, 28);
             txtCuit.Size = inputSize;
 
-            lblApellido.Location = new System.Drawing.Point(labelIzq, 100);
-            txtApellido.Location = new System.Drawing.Point(inputIzq, 93);
+            lblApellido.Location = new Point(labelIzq, 100);
+            txtApellido.Location = new Point(inputIzq, 93);
             txtApellido.Size = inputSize;
 
-            lblCondicionIva.Location = new System.Drawing.Point(labelDer, 100);
-            cmbCondicionIva.Location = new System.Drawing.Point(inputDer, 93);
-            cmbCondicionIva.Size = new System.Drawing.Size(inputSize.Width, 40);
+            lblCondicionIva.Location = new Point(labelDer, 100);
+            cmbCondicionIva.Location = new Point(inputDer, 93);
+            cmbCondicionIva.Size = new Size(inputSize.Width, 40);
 
-            lblNombre.Location = new System.Drawing.Point(labelIzq, 165);
-            txtNombre.Location = new System.Drawing.Point(inputIzq, 158);
+            lblNombre.Location = new Point(labelIzq, 165);
+            txtNombre.Location = new Point(inputIzq, 158);
             txtNombre.Size = inputSize;
 
-            lblTelefono.Location = new System.Drawing.Point(labelDer, 165);
-            txtTelefono.Location = new System.Drawing.Point(inputDer, 158);
+            lblTelefono.Location = new Point(labelDer, 165);
+            txtTelefono.Location = new Point(inputDer, 158);
             txtTelefono.Size = inputSize;
 
-            lblDni.Location = new System.Drawing.Point(labelIzq, 230);
-            txtDni.Location = new System.Drawing.Point(inputIzq, 223);
+            lblDni.Location = new Point(labelIzq, 230);
+            txtDni.Location = new Point(inputIzq, 223);
             txtDni.Size = inputSize;
 
-            lblDireccion.Location = new System.Drawing.Point(labelDer, 230);
-            txtDireccion.Location = new System.Drawing.Point(inputDer, 223);
+            lblDireccion.Location = new Point(labelDer, 230);
+            txtDireccion.Location = new Point(inputDer, 223);
             txtDireccion.Size = inputSize;
 
-            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new System.Drawing.Point(labelIzq, 305), AutoSize = true };
-            lblEmailCliente = new Label { Text = "Email cliente:", Location = new System.Drawing.Point(labelIzq, 355), AutoSize = true };
-            txtEmailCliente = new TextBox { Location = new System.Drawing.Point(inputIzq, 348), Size = inputSize, MaxLength = 100 };
+            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(labelIzq, 305), AutoSize = true };
+            lblEmailCliente = new Label { Text = "Email cliente:", Location = new Point(labelIzq, 355), AutoSize = true };
+            txtEmailCliente = new TextBox { Location = new Point(inputIzq, 348), Size = inputSize, MaxLength = 100 };
 
-            chkEsEmpleado = new CheckBox { Text = "También es empleado", Location = new System.Drawing.Point(labelDer, 305), AutoSize = true };
-            lblUsuarioEmpleado = new Label { Text = "Usuario:", Location = new System.Drawing.Point(labelDer, 355), AutoSize = true };
-            txtUsuarioEmpleado = new TextBox { Location = new System.Drawing.Point(inputDer, 348), Size = inputSize, MaxLength = 50 };
-            lblContrasenaEmpleado = new Label { Text = "Contraseña:", Location = new System.Drawing.Point(labelDer, 410), AutoSize = true };
-            txtContrasenaEmpleado = new TextBox { Location = new System.Drawing.Point(inputDer, 403), Size = inputSize, MaxLength = 9, UseSystemPasswordChar = true };
-            lblRolEmpleado = new Label { Text = "Rol:", Location = new System.Drawing.Point(labelDer, 465), AutoSize = true };
-            cmbRolEmpleado = new ComboBox { Location = new System.Drawing.Point(inputDer, 458), Size = new System.Drawing.Size(inputSize.Width, 40), DropDownStyle = ComboBoxStyle.DropDownList };
+            chkEsEmpleado = new CheckBox { Text = "También es empleado", Location = new Point(labelDer, 305), AutoSize = true };
+            lblUsuarioEmpleado = new Label { Text = "Usuario:", Location = new Point(labelDer, 355), AutoSize = true };
+            txtUsuarioEmpleado = new TextBox { Location = new Point(inputDer, 348), Size = inputSize, MaxLength = 50 };
+            lblContrasenaEmpleado = new Label { Text = "Contraseña:", Location = new Point(labelDer, 410), AutoSize = true };
+            txtContrasenaEmpleado = new TextBox
+            {Location = new Point(inputDer, 403),Size = inputSize, MaxLength = 8, UseSystemPasswordChar = true};
+            lblRolEmpleado = new Label { Text = "Rol:", Location = new Point(labelDer, 465), AutoSize = true };
+            cmbRolEmpleado = new ComboBox { Location = new Point(inputDer, 458), Size = new Size(inputSize.Width, 40), DropDownStyle = ComboBoxStyle.DropDownList };
             cmbRolEmpleado.Items.AddRange(new object[] { "Admin", "Empleado" });
             cmbRolEmpleado.SelectedIndex = 1;
 
-            btnCancelar.Location = new System.Drawing.Point(100, 535);
-            btnCancelar.Size = new System.Drawing.Size(380, 58);
-            btnGuardar.Location = new System.Drawing.Point(555, 535);
-            btnGuardar.Size = new System.Drawing.Size(380, 58);
+            btnCancelar.Location = new Point(100, 535);
+            btnCancelar.Size = new Size(380, 58);
+            btnGuardar.Location = new Point(555, 535);
+            btnGuardar.Size = new Size(380, 58);
 
             chkEsCliente.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
             chkEsEmpleado.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
@@ -143,13 +155,13 @@ namespace cantinaPadel.UI
         // Rellena los campos cuando es una modificación
         private void CargarDatosEnFormulario()
         {
-            txtNombre.Text        = _proveedorEdicion!.Persona.Nombre;
-            txtApellido.Text      = _proveedorEdicion.Persona.Apellido;
-            txtDni.Text           = _proveedorEdicion.Persona.Dni       ?? string.Empty;
-            txtCuit.Text          = _proveedorEdicion.Persona.Cuit      ?? string.Empty;
-            txtTelefono.Text      = _proveedorEdicion.Persona.Telefono  ?? string.Empty;
-            txtDireccion.Text     = _proveedorEdicion.Persona.Direccion ?? string.Empty;
-            txtNombreEmpresa.Text = _proveedorEdicion.NombreEmpresa     ?? string.Empty;
+            txtNombre.Text = _proveedorEdicion!.Persona.Nombre;
+            txtApellido.Text = _proveedorEdicion.Persona.Apellido;
+            txtDni.Text = _proveedorEdicion.Persona.Dni ?? string.Empty;
+            txtCuit.Text = _proveedorEdicion.Persona.Cuit ?? string.Empty;
+            txtTelefono.Text = _proveedorEdicion.Persona.Telefono ?? string.Empty;
+            txtDireccion.Text = _proveedorEdicion.Persona.Direccion ?? string.Empty;
+            txtNombreEmpresa.Text = _proveedorEdicion.NombreEmpresa ?? string.Empty;
 
             if (!string.IsNullOrEmpty(_proveedorEdicion.Persona.CondicionIva))
                 cmbCondicionIva.SelectedItem = _proveedorEdicion.Persona.CondicionIva;
@@ -183,12 +195,13 @@ namespace cantinaPadel.UI
             // Arma los objetos con los datos del formulario
             var persona = new Persona
             {
-                Nombre       = txtNombre.Text.Trim(),
-                Apellido     = txtApellido.Text.Trim(),
-                Dni          = txtDni.Text.Trim(),
-                Cuit         = txtCuit.Text.Trim(),
-                Telefono     = txtTelefono.Text.Trim(),
-                Direccion    = txtDireccion.Text.Trim(),
+                Nombre = txtNombre.Text.Trim(),
+                Apellido = txtApellido.Text.Trim(),
+                Dni = txtDni.Text.Trim(),
+                // Se asigna la cadena limpia sin espacios, delegando la obligatoriedad y el formato a la lógica del modelo
+                Cuit = txtCuit.Text.Trim(),
+                Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
+                Direccion = string.IsNullOrWhiteSpace(txtDireccion.Text) ? null : txtDireccion.Text.Trim(),
                 CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty
             };
 
@@ -217,12 +230,12 @@ namespace cantinaPadel.UI
                 if (_proveedorEdicion != null)
                 {
                     // Modificación: conserva los IDs originales
-                    persona.IdPersona     = _proveedorEdicion.IdPersona;
-                    persona.EsProveedor   = true;
-                    persona.FechaAlta     = _proveedorEdicion.Persona.FechaAlta;
-                    persona.Activo        = _proveedorEdicion.Persona.Activo;
+                    persona.IdPersona = _proveedorEdicion.IdPersona;
+                    persona.EsProveedor = true;
+                    persona.FechaAlta = _proveedorEdicion.Persona.FechaAlta;
+                    persona.Activo = _proveedorEdicion.Persona.Activo;
                     proveedor.IdProveedor = _proveedorEdicion.IdProveedor;
-                    proveedor.IdPersona   = _proveedorEdicion.IdPersona;
+                    proveedor.IdPersona = _proveedorEdicion.IdPersona;
                 }
 
                 _logicaPersonaRoles.GuardarRoles(persona, cliente, proveedor, empleado);
@@ -248,6 +261,54 @@ namespace cantinaPadel.UI
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        private void txtCuit_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Se descarta cualquier entrada que no corresponda a un número o a teclas de control
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+                e.Handled = true;
+        }
+
+        private void txtCuit_TextChanged(object sender, EventArgs e)
+        {
+            // Se desvincula temporalmente el evento para evitar recursividad al modificar el contenido del control
+            txtCuit.TextChanged -= txtCuit_TextChanged;
+
+            // Se filtran únicamente los caracteres numéricos
+            string numeros = new string(txtCuit.Text.Where(char.IsDigit).ToArray());
+
+            if (numeros.Length > 11)
+            {
+                numeros = numeros.Substring(0, 11);
+            }
+
+            string cuitFormateado = "";
+
+            if (numeros.Length > 0)
+            {
+                // Se incorporan los dos primeros dígitos
+                cuitFormateado += numeros.Substring(0, Math.Min(2, numeros.Length));
+
+                if (numeros.Length > 2)
+                {
+                    // Se inserta el primer guion seguido del bloque central de ocho dígitos
+                    cuitFormateado += "-" + numeros.Substring(2, Math.Min(8, numeros.Length - 2));
+
+                    if (numeros.Length > 10)
+                    {
+                        // Se agrega el segundo guion junto al dígito verificador final
+                        cuitFormateado += "-" + numeros.Substring(10, 1);
+                    }
+                }
+            }
+
+            txtCuit.Text = cuitFormateado;
+            // Se ubica la posición del cursor al final de la cadena generada
+            txtCuit.SelectionStart = txtCuit.Text.Length;
+
+            // Se reactiva la escucha del evento de cambio de texto
+            txtCuit.TextChanged += txtCuit_TextChanged;
         }
     }
 }

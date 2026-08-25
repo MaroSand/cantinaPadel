@@ -148,6 +148,13 @@ namespace cantinaPadel.BLL
         {
             var empleadoDb = ctx.Empleados.FirstOrDefault(e => e.IdPersona == personaDb.IdPersona);
 
+            // Si la persona localizada por DNI ya tiene un registro de empleado que no es el que se está guardando (alta con IdEmpleado == 0,
+            // o edición que cambió el DNI al de otro empleado), es un DNI duplicado
+            if (empleadoDb != null && empleadoDb.IdEmpleado != empleado.IdEmpleado)
+            {
+                throw new ArgumentException("El DNI ingresado ya pertenece a otra persona registrada.");
+            }
+
             bool usuarioDuplicado = ctx.Empleados.Any(e =>
                 e.NombreUsuario == empleado.NombreUsuario &&
                 e.IdEmpleado != (empleadoDb == null ? empleado.IdEmpleado : empleadoDb.IdEmpleado));

@@ -133,8 +133,41 @@ namespace cantinaPadel.Models
 
         public static void ValidarCuit(string? cuit)
         {
-            if (!string.IsNullOrWhiteSpace(cuit) && !Regex.IsMatch(cuit, @"^\d{2}-\d{8}-\d{1}$"))
-                throw new ArgumentException("El CUIT debe tener el formato XX-XXXXXXXX-X. Debe ser numérico y contener 11 dígitos en total.");
+            // Control de campo obligatorio
+            if (string.IsNullOrWhiteSpace(cuit))
+                throw new ArgumentException("El campo CUIT/CUIL es obligatorio.");
+
+            // Extraer solo dígitos numéricos
+            string cuitLimpio = cuit.Replace("-", "").Replace(" ", "").Trim();
+
+            if (cuitLimpio.Length != 11 || !long.TryParse(cuitLimpio, out _))
+                throw new ArgumentException("El CUIT debe contener 11 dígitos numéricos completos (formato XX-XXXXXXXX-X).");
+
+            // Validación de prefijo válido de AFIP
+            string prefijo = cuitLimpio.Substring(0, 2);
+            string[] prefijosValidos = { "20", "23", "24", "27", "30", "33", "34" };
+            if (!prefijosValidos.Contains(prefijo))
+                throw new ArgumentException("El CUIT ingresado no posee un prefijo válido.");
+
+            // Algoritmo Módulo 11 (Dígito verificador)
+            int[] factores = { 5, 4, 3, 2, 7, 6, 5, 4, 3, 2 };
+            int suma = 0;
+
+            for (int i = 0; i < 10; i++)
+            {
+                suma += (cuitLimpio[i] - '0') * factores[i];
+            }
+
+            int resto = suma % 11;
+            int digitoVerificadorCalculado = 11 - resto;
+
+            if (digitoVerificadorCalculado == 11) digitoVerificadorCalculado = 0;
+            if (digitoVerificadorCalculado == 10) digitoVerificadorCalculado = 9;
+
+            int digitoVerificadorIngresado = cuitLimpio[10] - '0';
+
+            if (digitoVerificadorCalculado != digitoVerificadorIngresado)
+                throw new ArgumentException("El CUIT ingresado no es válido (falló el dígito verificador de AFIP).");
         }
 
         public static void ValidarTelefono(string? telefono)
