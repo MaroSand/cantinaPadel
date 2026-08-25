@@ -100,6 +100,7 @@ namespace cantinaPadel.UI
                 _categoriaSeleccionada = cat;
                 txtNombre.Text = _categoriaSeleccionada.Nombre;
                 txtPorcentajeGanancia.Text = _categoriaSeleccionada.PorcentajeGanancia.ToString("0.##", CultureInfo.CurrentCulture);
+                ActualizarBotonEstado();
             }
         }
 
@@ -178,7 +179,21 @@ namespace cantinaPadel.UI
             dgvCategorias.ClearSelection();
             dgvCategorias.CurrentCell = null;
 
+            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            btnBajaAlta.Text = "Activar/ Desactivar";
+            btnBajaAlta.ForeColor = SystemColors.ControlText;
+
             txtNombre.Focus();
+        }
+
+        // Muestra en el botón la acción que realmente se va a ejecutar
+        // (Rojo = "Desactivar" porque está activa, Verde = "Activar" porque está inactiva)
+        private void ActualizarBotonEstado()
+        {
+            if (_categoriaSeleccionada == null) return;
+
+            btnBajaAlta.Text = _categoriaSeleccionada.Activa ? "Desactivar" : "Activar";
+            btnBajaAlta.ForeColor = _categoriaSeleccionada.Activa ? Color.DarkRed : Color.DarkGreen;
         }
 
         private void TxtDecimal_KeyPress(object? sender, KeyPressEventArgs e)

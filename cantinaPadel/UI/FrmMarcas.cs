@@ -89,6 +89,7 @@ namespace cantinaPadel.UI
             {
                 _marcaSeleccionada = (Marca)dgvMarcas.CurrentRow.DataBoundItem;
                 txtNombre.Text = _marcaSeleccionada.Nombre;
+                ActualizarBotonEstado();
             }
         }
 
@@ -162,7 +163,21 @@ namespace cantinaPadel.UI
             dgvMarcas.ClearSelection();
             dgvMarcas.CurrentCell = null;
 
+            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            btnBajaAlta.Text = "Activar/ Desactivar";
+            btnBajaAlta.ForeColor = SystemColors.ControlText;
+
             txtNombre.Focus();
+        }
+
+        // Muestra en el botón la acción que realmente se va a ejecutar
+        // (Rojo = "Desactivar" porque está activa, Verde = "Activar" porque está inactiva)
+        private void ActualizarBotonEstado()
+        {
+            if (_marcaSeleccionada == null) return;
+
+            btnBajaAlta.Text = _marcaSeleccionada.Activa ? "Desactivar" : "Activar";
+            btnBajaAlta.ForeColor = _marcaSeleccionada.Activa ? Color.DarkRed : Color.DarkGreen;
         }
     }
 }
