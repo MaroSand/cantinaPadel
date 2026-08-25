@@ -21,7 +21,8 @@ namespace cantinaPadel.UI
 
         private void FrmCanchas_Load(object sender, EventArgs e)
         {
-            cmbEstado.SelectedIndex = 0;
+            // Se preselecciona "Activos" en el combo para mostrar solo las canchas activas al entrar
+            cmbEstado.SelectedIndex = 1;
             ActualizarGrilla();
             LimpiarFormulario();
             txtPrecioHora.KeyPress += TxtDecimal_KeyPress;
@@ -57,6 +58,9 @@ namespace cantinaPadel.UI
                     c.Activa
                 }).ToList();
 
+                // Solo lectura: evita que se pueda tildar/destildar "Activa" directo desde la grilla
+                dgvCanchas.ReadOnly = true;
+
                 if (dgvCanchas.Columns["IdCancha"] is DataGridViewColumn colId)
                     colId.Visible = false;
 
@@ -86,8 +90,7 @@ namespace cantinaPadel.UI
         {
             if (dgvCanchas.CurrentRow == null) return;
 
-            // La grilla se bindea a un tipo anónimo (para no exponer el Producto
-            // completo), así que se vuelve a pedir la cancha real por Id.
+            // La grilla se bindea a un tipo anónimo (para no exponer el Producto completo), así que se vuelve a pedir la cancha real por Id.
             int id = (int)dgvCanchas.CurrentRow.Cells["IdCancha"].Value;
             _canchaSeleccionada = _logicaCancha.ObtenerPorId(id);
 
@@ -95,6 +98,7 @@ namespace cantinaPadel.UI
             {
                 txtNombre.Text = _canchaSeleccionada.Nombre;
                 txtPrecioHora.Text = _canchaSeleccionada.PrecioHora.ToString("0.##", CultureInfo.CurrentCulture);
+                ActualizarBotonEstado();
             }
         }
 
@@ -171,7 +175,19 @@ namespace cantinaPadel.UI
             dgvCanchas.ClearSelection();
             dgvCanchas.CurrentCell = null;
 
+            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            btnBajaAlta.Text = "Activar/ Desactivar";
+            btnBajaAlta.ForeColor = SystemColors.ControlText;
+
             txtNombre.Focus();
+        }
+
+        private void ActualizarBotonEstado()
+        {
+            if (_canchaSeleccionada == null) return;
+
+            btnBajaAlta.Text = _canchaSeleccionada.Activa ? "Desactivar" : "Activar";
+            btnBajaAlta.ForeColor = _canchaSeleccionada.Activa ? Color.DarkRed : Color.DarkGreen;
         }
 
         private void TxtDecimal_KeyPress(object? sender, KeyPressEventArgs e)

@@ -26,8 +26,8 @@ namespace cantinaPadel.UI
 
         private void FrmCategorias_Load(object sender, EventArgs e)
         {
-            // Se preselecciona "Todos" en el combo, se llena la grilla y se limpia la pantalla
-            cmbEstado.SelectedIndex = 0;
+            // Se preselecciona "Activos" en el combo, se llena la grilla y se limpia la pantalla
+            cmbEstado.SelectedIndex = 1;
             ActualizarGrilla();
             LimpiarFormulario();
             txtPorcentajeGanancia.KeyPress += TxtDecimal_KeyPress;
@@ -60,6 +60,9 @@ namespace cantinaPadel.UI
                 // Se refrescan los datos de la grilla
                 dgvCategorias.DataSource = null;
                 dgvCategorias.DataSource = lista;
+
+                // Solo lectura: evita que se pueda tildar/destildar "Activa" directo desde la grilla
+                dgvCategorias.ReadOnly = true;
 
                 // Ocultar is de forma segura contra nulls
                 if (dgvCategorias.Columns["IdCategoria"] is DataGridViewColumn colId)
@@ -174,8 +177,7 @@ namespace cantinaPadel.UI
             txtNombre.Clear();
             txtPorcentajeGanancia.Clear();
 
-            // ClearSelection() + CurrentCell = null son necesarios juntos: ClearSelection()
-            // saca el resaltado de fila, pero mientras CurrentCell siga apuntando a una celda
+            // ClearSelection() + CurrentCell = null son necesarios juntos: ClearSelection() saca el resaltado de fila, pero mientras CurrentCell siga apuntando a una celda
             dgvCategorias.ClearSelection();
             dgvCategorias.CurrentCell = null;
 
@@ -186,8 +188,6 @@ namespace cantinaPadel.UI
             txtNombre.Focus();
         }
 
-        // Muestra en el botón la acción que realmente se va a ejecutar
-        // (Rojo = "Desactivar" porque está activa, Verde = "Activar" porque está inactiva)
         private void ActualizarBotonEstado()
         {
             if (_categoriaSeleccionada == null) return;
