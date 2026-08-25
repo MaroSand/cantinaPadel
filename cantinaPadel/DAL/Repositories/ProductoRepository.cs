@@ -1,4 +1,4 @@
-﻿using cantinaPadel.Models;
+using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.DAL.Repositories
@@ -118,6 +118,16 @@ namespace cantinaPadel.DAL.Repositories
                 .Include(p => p.Proveedor)
                     .ThenInclude(p => p.Persona)
                 .FirstOrDefault(p => p.IdProducto == idProducto);
+        }
+
+
+        public decimal ObtenerPorcentajeGananciaCategoria(int idCategoria)
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Categorias
+                .Where(c => c.IdCategoria == idCategoria)
+                .Select(c => c.PorcentajeGanancia)
+                .FirstOrDefault();
         }
 
         // Valida unicidad del código de barras antes de guardar.

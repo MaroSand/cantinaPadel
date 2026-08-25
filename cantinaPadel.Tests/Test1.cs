@@ -27,11 +27,7 @@ namespace cantinaPadel.Tests
             Assert.AreEqual("Repuestos Padel SA", proveedor.NombreEmpresa);
         }
     }
-
-    // ------------------------------------------------------------------
-    // Modelo: Persona - validaciones de campos obligatorios usadas
-    // por el alta/modificación de Proveedor
-    // ------------------------------------------------------------------
+    
     [TestClass]
     public class PersonaValidationTests
     {

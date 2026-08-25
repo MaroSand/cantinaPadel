@@ -41,6 +41,7 @@ namespace cantinaPadel.UI
             txtStockActual.KeyPress += TxtEntero_KeyPress;
             txtStockMinimo.KeyPress += TxtEntero_KeyPress;
             txtPrecioVenta.ReadOnly = true;
+            btnGenerarCodigoBarras.Click += btnGenerarCodigoBarras_Click;
 
             CargarCombos();
 
@@ -207,6 +208,9 @@ namespace cantinaPadel.UI
 
         private void btnGuardar_Click(object sender, EventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtCodigoBarras.Text))
+                GenerarCodigoBarrasEnFormulario();
+
             decimal.TryParse(txtPrecioCosto.Text, NumberStyles.Number, CultureInfo.CurrentCulture,
                 out decimal precioCosto);
             decimal.TryParse(txtPrecioVenta.Text, NumberStyles.Number, CultureInfo.CurrentCulture,
@@ -266,6 +270,16 @@ namespace cantinaPadel.UI
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        private void btnGenerarCodigoBarras_Click(object? sender, EventArgs e)
+        {
+            GenerarCodigoBarrasEnFormulario();
+        }
+
+        private void GenerarCodigoBarrasEnFormulario()
+        {
+            txtCodigoBarras.Text = _logicaProducto.GenerarCodigoBarrasUnico();
         }
 
         // Soporte para lector de código de barras (HID): el lector "tipea" el código

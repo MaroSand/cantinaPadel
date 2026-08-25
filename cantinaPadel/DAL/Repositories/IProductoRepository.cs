@@ -1,4 +1,4 @@
-﻿using cantinaPadel.Models;
+using cantinaPadel.Models;
 
 namespace cantinaPadel.DAL.Repositories
 {
@@ -12,6 +12,7 @@ namespace cantinaPadel.DAL.Repositories
 
         Producto? ObtenerPorCodigoBarras(string codigoBarras);
         Producto? ObtenerPorId(int idProducto);
+        decimal ObtenerPorcentajeGananciaCategoria(int idCategoria);
         bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null);
         void Agregar(Producto producto);
         void Modificar(Producto producto);
