@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
@@ -31,6 +32,7 @@ namespace cantinaPadel.UI
             btnNuevo.Click += btnNuevo_Click;
             btnModificar.Click += btnModificar_Click;
             btnBajaLogica.Click += btnBajaLogica_Click;
+            dgvProductos.SelectionChanged += dgvProductos_SelectionChanged;
             // Manejo de pestañas: cargar formularios de Marcas / Categorías cuando se seleccione la pestaña
             tabControlMain.SelectedIndexChanged += TabControlMain_SelectedIndexChanged;
 
@@ -79,19 +81,22 @@ namespace cantinaPadel.UI
             // Columnas: Name es clave para Cells["..."], DataPropertyName bindea con el objeto anónimo
             dgvProductos.Columns.Clear();
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
-                { Name = "IdProducto", DataPropertyName = "IdProducto", Visible = false });
+            { Name = "IdProducto", DataPropertyName = "IdProducto", Visible = false });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
-                { Name = "Nombre", DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 180 });
+            { Name = "Nombre", DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 180 });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             {
-                Name = "CodigoBarras", DataPropertyName = "CodigoBarras", HeaderText = "Código de Barras", Width = 130
+                Name = "CodigoBarras",
+                DataPropertyName = "CodigoBarras",
+                HeaderText = "Código de Barras",
+                Width = 130
             });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
-                { Name = "Categoria", DataPropertyName = "Categoria", HeaderText = "Categoría", Width = 110 });
+            { Name = "Categoria", DataPropertyName = "Categoria", HeaderText = "Categoría", Width = 110 });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
-                { Name = "Marca", DataPropertyName = "Marca", HeaderText = "Marca", Width = 100 });
+            { Name = "Marca", DataPropertyName = "Marca", HeaderText = "Marca", Width = 100 });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
-                { Name = "Proveedor", DataPropertyName = "Proveedor", HeaderText = "Proveedor", Width = 130 });
+            { Name = "Proveedor", DataPropertyName = "Proveedor", HeaderText = "Proveedor", Width = 130 });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "PrecioVenta",
@@ -99,7 +104,7 @@ namespace cantinaPadel.UI
                 HeaderText = "Precio",
                 Width = 90,
                 DefaultCellStyle = new DataGridViewCellStyle
-                    { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
+                { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -108,7 +113,7 @@ namespace cantinaPadel.UI
                 HeaderText = "Precio c/IVA",
                 Width = 100,
                 DefaultCellStyle = new DataGridViewCellStyle
-                    { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
+                { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -119,9 +124,9 @@ namespace cantinaPadel.UI
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvProductos.Columns.Add(new DataGridViewCheckBoxColumn
-                { Name = "Activo", DataPropertyName = "Activo", HeaderText = "Activo", Width = 60 });
+            { Name = "Activo", DataPropertyName = "Activo", HeaderText = "Activo", Width = 60 });
             dgvProductos.Columns.Add(new DataGridViewCheckBoxColumn
-                { Name = "StockBajo", DataPropertyName = "StockBajo", HeaderText = "Stock Bajo", Width = 80 });
+            { Name = "StockBajo", DataPropertyName = "StockBajo", HeaderText = "Stock Bajo", Width = 80 });
         }
 
         // Carga los combos de filtro con las categorías y marcas activas, agregando
@@ -205,7 +210,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // ── Eventos filtros ────────────────────────────────────────────────────
+        // Eventos filtros
         private void txtBuscar_TextChanged(object sender, EventArgs e) => ActualizarListado();
         private void Filtro_SelectedIndexChanged(object sender, EventArgs e) => ActualizarListado();
 
@@ -225,7 +230,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // ── Botones de acción ──────────────────────────────────────────────────
+        // Botones de acción
         private void btnNuevo_Click(object sender, EventArgs e)
         {
             var frm = new FrmCRUDProducto();
@@ -280,12 +285,6 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            var confirmacion = MessageBox.Show(
-                "¿Desea cambiar el estado del producto seleccionado?",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (confirmacion != DialogResult.Yes) return;
-
             var cell2 = dgvProductos.CurrentRow.Cells["IdProducto"];
             if (cell2 == null || cell2.Value == null)
             {
@@ -299,6 +298,17 @@ namespace cantinaPadel.UI
                 return;
             }
 
+            // Se lee el estado y nombre actuales de la fila para armar el mensaje de confirmación
+            bool estaActivo = dgvProductos.CurrentRow.Cells["Activo"]?.Value is bool b && b;
+            string nombreProducto = dgvProductos.CurrentRow.Cells["Nombre"]?.Value?.ToString() ?? "el producto seleccionado";
+            string accion = estaActivo ? "desactivar" : "activar";
+
+            var confirmacion = MessageBox.Show(
+                $"¿Desea {accion} el producto '{nombreProducto}'?",
+                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (confirmacion != DialogResult.Yes) return;
+
             try
             {
                 _logicaProducto.BajaLogica(idProducto);
@@ -309,6 +319,22 @@ namespace cantinaPadel.UI
                 MessageBox.Show($"Error al dar de baja: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void dgvProductos_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dgvProductos.CurrentRow == null)
+            {
+                btnBajaLogica.Text = "Activar / Desactivar";
+                btnBajaLogica.ForeColor = SystemColors.ControlText;
+                return;
+            }
+
+            var celdaActivo = dgvProductos.CurrentRow.Cells["Activo"];
+            if (celdaActivo == null || celdaActivo.Value is not bool activo) return;
+
+            btnBajaLogica.Text = activo ? "Desactivar" : "Activar";
+            btnBajaLogica.ForeColor = activo ? Color.DarkRed : Color.DarkGreen;
         }
     }
 }

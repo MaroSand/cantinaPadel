@@ -33,10 +33,10 @@ namespace cantinaPadel.UI
             ConfigurarGrilla();
             CargarDatosDesdeBase();
 
-            // Se fuerza a que el combo arranque seleccionado en "Todos" (Índice 0) para ver el listado completo al inicio
+            // Se fuerza a que el combo arranque seleccionado en "Activos" (Índice 1) para ver solo los activos al inicio
             if (cmbEstado.Items.Count > 0)
             {
-                cmbEstado.SelectedIndex = 0;
+                cmbEstado.SelectedIndex = 1;
             }
         }
 
