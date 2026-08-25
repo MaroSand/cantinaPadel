@@ -1,4 +1,4 @@
-﻿using cantinaPadel.DAL.Repositories;
+using cantinaPadel.DAL.Repositories;
 using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,8 +25,13 @@ namespace cantinaPadel.BLL
         private readonly IProductoRepository _repo;
 
         public LogicaProducto()
+            : this(new ProductoRepository())
         {
-            _repo = new ProductoRepository();
+        }
+
+        public LogicaProducto(IProductoRepository repo)
+        {
+            _repo = repo;
         }
 
         public List<Producto> ObtenerTodos(bool? activo = true) => _repo.ObtenerTodos(activo);
@@ -117,12 +122,7 @@ namespace cantinaPadel.BLL
             if (idCategoria <= 0 || precioCosto < 0)
                 return 0;
 
-            using var ctx = new DAL.AppDbContext();
-            decimal porcentajeGanancia = ctx.Categorias
-                .Where(c => c.IdCategoria == idCategoria)
-                .Select(c => c.PorcentajeGanancia)
-                .FirstOrDefault();
-
+            decimal porcentajeGanancia = _repo.ObtenerPorcentajeGananciaCategoria(idCategoria);
             decimal factor = 1 + (porcentajeGanancia / 100m);
             return Math.Round(precioCosto * factor, 2);
         }
@@ -187,7 +187,7 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException($"Ya existe un producto con el código de barras '{producto.CodigoBarras}'.");
         }
 
-        private string GenerarCodigoBarrasUnico()
+        public string GenerarCodigoBarrasUnico()
         {
             for (int intento = 0; intento < 10; intento++)
             {

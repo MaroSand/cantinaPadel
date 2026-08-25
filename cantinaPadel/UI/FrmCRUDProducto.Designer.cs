@@ -48,6 +48,7 @@
             lblCategoria = new Label();
             cmbCategoria = new ComboBox();
             lblCodigoBarras = new Label();
+            btnGenerarCodigoBarras = new Button();
             txtCodigoBarras = new TextBox();
             lblNombre = new Label();
             txtNombre = new TextBox();
@@ -101,6 +102,7 @@
             panelCuerpo.Controls.Add(lblCategoria);
             panelCuerpo.Controls.Add(cmbCategoria);
             panelCuerpo.Controls.Add(lblCodigoBarras);
+            panelCuerpo.Controls.Add(btnGenerarCodigoBarras);
             panelCuerpo.Controls.Add(txtCodigoBarras);
             panelCuerpo.Controls.Add(lblNombre);
             panelCuerpo.Controls.Add(txtNombre);
@@ -140,13 +142,24 @@
             lblCodigoBarras.TabIndex = 1;
             lblCodigoBarras.Text = "Código de Barras:";
             // 
+            // btnGenerarCodigoBarras
+            // 
+            btnGenerarCodigoBarras.Location = new Point(200, 97);
+            btnGenerarCodigoBarras.Margin = new Padding(2);
+            btnGenerarCodigoBarras.Name = "btnGenerarCodigoBarras";
+            btnGenerarCodigoBarras.Size = new Size(64, 29);
+            btnGenerarCodigoBarras.TabIndex = 2;
+            btnGenerarCodigoBarras.TabStop = false;
+            btnGenerarCodigoBarras.Text = "Gen.";
+            btnGenerarCodigoBarras.UseVisualStyleBackColor = true;
+            // 
             // txtCodigoBarras
             // 
-            txtCodigoBarras.Location = new Point(230, 98);
+            txtCodigoBarras.Location = new Point(272, 98);
             txtCodigoBarras.Margin = new Padding(2);
             txtCodigoBarras.MaxLength = 50;
             txtCodigoBarras.Name = "txtCodigoBarras";
-            txtCodigoBarras.Size = new Size(220, 27);
+            txtCodigoBarras.Size = new Size(178, 27);
             txtCodigoBarras.TabIndex = 1;
             // 
             // lblCategoria
@@ -378,6 +391,7 @@
         private Label    lblNombre;
         private TextBox  txtNombre;
         private Label    lblCodigoBarras;
+        private Button   btnGenerarCodigoBarras;
         private TextBox  txtCodigoBarras;
         private Label    lblCategoria;
         private ComboBox cmbCategoria;
