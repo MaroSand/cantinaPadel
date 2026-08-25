@@ -35,6 +35,7 @@
             txtBuscar = new TextBox();
             label1 = new Label();
             panelDatos = new Panel();
+            label4 = new Label();
             txtPorcentajeGanancia = new TextBox();
             lblPorcentajeGanancia = new Label();
             txtNombre = new TextBox();
@@ -45,7 +46,6 @@
             dgvCategorias = new DataGridView();
             panel1 = new Panel();
             contextMenuStrip1 = new ContextMenuStrip(components);
-            label4 = new Label();
             panelFiltros.SuspendLayout();
             panelDatos.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCategorias).BeginInit();
@@ -61,48 +61,44 @@
             panelFiltros.Controls.Add(label1);
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
-            panelFiltros.Margin = new Padding(5);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(1433, 104);
+            panelFiltros.Size = new Size(882, 65);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
             cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-            cmbEstado.Location = new Point(889, 32);
-            cmbEstado.Margin = new Padding(5);
+            cmbEstado.Location = new Point(547, 20);
             cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new Size(243, 40);
+            cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
             cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(769, 37);
-            label2.Margin = new Padding(5, 0, 5, 0);
+            label2.Location = new Point(473, 23);
             label2.Name = "label2";
-            label2.Size = new Size(89, 32);
+            label2.Size = new Size(57, 20);
             label2.TabIndex = 2;
             label2.Text = "Estado:";
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new Point(176, 32);
-            txtBuscar.Margin = new Padding(5);
+            txtBuscar.Location = new Point(108, 20);
+            txtBuscar.MaxLength = 25;
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(311, 39);
+            txtBuscar.Size = new Size(193, 27);
             txtBuscar.TabIndex = 1;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(76, 37);
-            label1.Margin = new Padding(5, 0, 5, 0);
+            label1.Location = new Point(47, 23);
             label1.Name = "label1";
-            label1.Size = new Size(88, 32);
+            label1.Size = new Size(55, 20);
             label1.TabIndex = 0;
             label1.Text = "Buscar:";
             // 
@@ -116,48 +112,56 @@
             panelDatos.Controls.Add(btnGuardar);
             panelDatos.Controls.Add(label3);
             panelDatos.Dock = DockStyle.Right;
-            panelDatos.Location = new Point(1134, 104);
-            panelDatos.Margin = new Padding(5);
+            panelDatos.Location = new Point(698, 65);
             panelDatos.Name = "panelDatos";
-            panelDatos.Size = new Size(299, 621);
+            panelDatos.Size = new Size(184, 388);
             panelDatos.TabIndex = 1;
             // 
-            // txtNombre
+            // label4
             // 
-            txtNombre.Location = new Point(47, 275);
-            txtNombre.Margin = new Padding(5);
-            txtNombre.Name = "txtNombre";
-            txtNombre.Size = new Size(201, 39);
-            txtNombre.TabIndex = 1;
+            label4.AutoEllipsis = true;
+            label4.ForeColor = SystemColors.ControlDarkDark;
+            label4.Location = new Point(22, 48);
+            label4.Margin = new Padding(2, 0, 2, 0);
+            label4.Name = "label4";
+            label4.Size = new Size(155, 58);
+            label4.TabIndex = 2;
+            label4.Text = "Selecciona una categoría para editar.";
+            // 
+            // txtPorcentajeGanancia
+            // 
+            txtPorcentajeGanancia.Location = new Point(29, 238);
+            txtPorcentajeGanancia.MaxLength = 4;
+            txtPorcentajeGanancia.Name = "txtPorcentajeGanancia";
+            txtPorcentajeGanancia.Size = new Size(125, 27);
+            txtPorcentajeGanancia.TabIndex = 2;
             // 
             // lblPorcentajeGanancia
             // 
             lblPorcentajeGanancia.AutoSize = true;
             lblPorcentajeGanancia.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblPorcentajeGanancia.Location = new Point(24, 334);
-            lblPorcentajeGanancia.Margin = new Padding(5, 0, 5, 0);
+            lblPorcentajeGanancia.Location = new Point(15, 209);
             lblPorcentajeGanancia.Name = "lblPorcentajeGanancia";
-            lblPorcentajeGanancia.Size = new Size(221, 32);
+            lblPorcentajeGanancia.Size = new Size(94, 20);
             lblPorcentajeGanancia.TabIndex = 3;
             lblPorcentajeGanancia.Text = "% Ganancia:";
             // 
-            // txtPorcentajeGanancia
+            // txtNombre
             // 
-            txtPorcentajeGanancia.Location = new Point(47, 381);
-            txtPorcentajeGanancia.Margin = new Padding(5);
-            txtPorcentajeGanancia.Name = "txtPorcentajeGanancia";
-            txtPorcentajeGanancia.Size = new Size(201, 39);
-            txtPorcentajeGanancia.TabIndex = 2;
+            txtNombre.Location = new Point(29, 172);
+            txtNombre.MaxLength = 25;
+            txtNombre.Name = "txtNombre";
+            txtNombre.Size = new Size(125, 27);
+            txtNombre.TabIndex = 1;
             // 
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.White;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnGuardar.Location = new Point(73, 478);
-            btnGuardar.Margin = new Padding(5);
+            btnGuardar.Location = new Point(45, 299);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(153, 46);
+            btnGuardar.Size = new Size(94, 29);
             btnGuardar.TabIndex = 1;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -167,10 +171,9 @@
             // 
             label3.AutoSize = true;
             label3.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label3.Location = new Point(24, 221);
-            label3.Margin = new Padding(5, 0, 5, 0);
+            label3.Location = new Point(15, 138);
             label3.Name = "label3";
-            label3.Size = new Size(267, 32);
+            label3.Size = new Size(163, 20);
             label3.TabIndex = 0;
             label3.Text = "Nombre de Categoría:";
             // 
@@ -179,10 +182,9 @@
             btnBajaAlta.BackColor = Color.White;
             btnBajaAlta.FlatStyle = FlatStyle.Flat;
             btnBajaAlta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnBajaAlta.Location = new Point(705, 28);
-            btnBajaAlta.Margin = new Padding(5);
+            btnBajaAlta.Location = new Point(434, 18);
             btnBajaAlta.Name = "btnBajaAlta";
-            btnBajaAlta.Size = new Size(262, 46);
+            btnBajaAlta.Size = new Size(161, 29);
             btnBajaAlta.TabIndex = 2;
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.UseVisualStyleBackColor = false;
@@ -193,10 +195,9 @@
             btnNuevo.BackColor = Color.White;
             btnNuevo.FlatStyle = FlatStyle.Flat;
             btnNuevo.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnNuevo.Location = new Point(334, 28);
-            btnNuevo.Margin = new Padding(5);
+            btnNuevo.Location = new Point(206, 18);
             btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(153, 46);
+            btnNuevo.Size = new Size(94, 29);
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo";
             btnNuevo.UseVisualStyleBackColor = false;
@@ -207,11 +208,10 @@
             dgvCategorias.BackgroundColor = Color.White;
             dgvCategorias.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCategorias.Dock = DockStyle.Fill;
-            dgvCategorias.Location = new Point(0, 104);
-            dgvCategorias.Margin = new Padding(5);
+            dgvCategorias.Location = new Point(0, 65);
             dgvCategorias.Name = "dgvCategorias";
             dgvCategorias.RowHeadersWidth = 51;
-            dgvCategorias.Size = new Size(1134, 524);
+            dgvCategorias.Size = new Size(698, 327);
             dgvCategorias.TabIndex = 3;
             dgvCategorias.SelectionChanged += dgvCategorias_SelectionChanged;
             // 
@@ -221,9 +221,10 @@
             panel1.Controls.Add(btnBajaAlta);
             panel1.Controls.Add(btnNuevo);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(0, 628);
+            panel1.Location = new Point(0, 392);
+            panel1.Margin = new Padding(2, 2, 2, 2);
             panel1.Name = "panel1";
-            panel1.Size = new Size(1134, 97);
+            panel1.Size = new Size(698, 61);
             panel1.TabIndex = 3;
             // 
             // contextMenuStrip1
@@ -232,27 +233,16 @@
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new Size(61, 4);
             // 
-            // label4
-            // 
-            label4.AutoEllipsis = true;
-            label4.ForeColor = SystemColors.ControlDarkDark;
-            label4.Location = new Point(35, 76);
-            label4.Name = "label4";
-            label4.Size = new Size(252, 92);
-            label4.TabIndex = 2;
-            label4.Text = "Selecciona una categoría para editar.";
-            // 
             // FrmCategorias
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(1433, 725);
+            ClientSize = new Size(882, 453);
             Controls.Add(dgvCategorias);
             Controls.Add(panel1);
             Controls.Add(panelDatos);
             Controls.Add(panelFiltros);
-            Margin = new Padding(5);
             Name = "FrmCategorias";
             Text = "Gestión de Categorías";
             Load += FrmCategorias_Load;
