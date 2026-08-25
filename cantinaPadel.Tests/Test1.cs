@@ -27,7 +27,7 @@ namespace cantinaPadel.Tests
             Assert.AreEqual("Repuestos Padel SA", proveedor.NombreEmpresa);
         }
     }
-    
+
     [TestClass]
     public class PersonaValidationTests
     {
@@ -60,7 +60,7 @@ namespace cantinaPadel.Tests
             {
                 Nombre = "Carlos",
                 Apellido = "Gomez",
-                Cuit = "20-30111222-5",
+                Cuit = "20-30111222-0",
                 Telefono = "3624123456"
             };
 
@@ -109,7 +109,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void Validar_TodoValido_NoLanzaExcepcion()
         {
-            var persona = new Persona { Nombre = "Ana", Apellido = "Suarez", Cuit = "20-12345678-9" };
+            var persona = new Persona { Nombre = "Ana", Apellido = "Suarez", Cuit = "20-12345678-6" };
             var proveedor = new Proveedor { NombreEmpresa = "Empresa X" };
 
             _logica.Validar(persona, proveedor);
