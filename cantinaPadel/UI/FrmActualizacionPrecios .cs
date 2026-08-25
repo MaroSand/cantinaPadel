@@ -48,16 +48,20 @@ namespace cantinaPadel.UI
             // Asignar eventos a los controles
             _debounceTexto.Tick += (s, e2) => { _debounceTexto.Stop(); ActualizarListado(); };
             txtProductoFiltro.TextChanged += (s, e2) => { _debounceTexto.Stop(); _debounceTexto.Start(); };
-            // Cuando cambian los combos de categoría o marca, se actualiza el listado
+            // Cuando cambian los combos de categoría, marca o proveedor, se actualiza el listado
             cmbCategoriaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             cmbMarcaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
+            cmbProveedorFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             nudPorcentaje.ValueChanged += (s, e2) => RecalcularPreciosPorPorcentaje();
             dgvPreview.CellContentClick += dgvPreview_CellContentClick;
-            dgvPreview.CellEndEdit += dgvPreview_CellEndEdit;
-            dgvPreview.DataError += dgvPreview_DataError;
 
+            rbPorcentaje.CheckedChanged += (s, e2) => AlternarModo();
+            rbManual.CheckedChanged += (s, e2) => AlternarModo();
+
+            btnAplicarPrecioManual.Click += btnAplicarPrecioManual_Click;
             btnConfirmar.Click += btnConfirmar_Click;
 
+            AlternarModo();
             ActualizarListado();
         }
         // Configura la grilla de vista previa de productos y precios, con columnas específicas
@@ -67,7 +71,7 @@ namespace cantinaPadel.UI
             dgvPreview.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvPreview.ReadOnly = false;
             dgvPreview.MultiSelect = false;
-            dgvPreview.AllowUserToAddRows = false;  
+            dgvPreview.AllowUserToAddRows = false;
             dgvPreview.DataSource = _bindingSource;
             // Configura las columnas de la grilla
             dgvPreview.Columns.Clear();
@@ -97,9 +101,11 @@ namespace cantinaPadel.UI
                 Width = 130,
                 ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle
-                { Format = "C2",
+                {
+                    Format = "C2",
                     FormatProvider = _culturaPesos,
-                    Alignment = DataGridViewContentAlignment.MiddleRight }
+                    Alignment = DataGridViewContentAlignment.MiddleRight
+                }
             });
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -107,20 +113,24 @@ namespace cantinaPadel.UI
                 DataPropertyName = "PrecioNuevo",
                 HeaderText = "Precio Nuevo",
                 Width = 130,
-                // Editable: click y tipeás. Sirve para aumentos que no son
-                // por porcentaje (ej. sumar $5 fijo a un producto puntual).
-                ReadOnly = false,
+                // Ya no se edita directo en la grilla: se calcula por
+                // porcentaje o se asigna con el campo "Precio manual".
+                ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle
                 {
                     Format = "C2",
                     FormatProvider = _culturaPesos,
                     Alignment = DataGridViewContentAlignment.MiddleRight,
-                    BackColor = Color.LightYellow
+                    BackColor = Color.WhiteSmoke
                 }
             });
         }
 
-        // Carga los combos de categoría y marca con opciones activas, incluyendo "Todas"
+        // Carga los combos de categoría, marca y proveedor con opciones activas.
+        // Categoría y marca NO tienen opción "Todas": el usuario siempre tiene
+        // que elegir una puntual, así se evita traer/actualizar el catálogo
+        // entero por error. Proveedor sí mantiene "Todos" porque es un filtro
+        // opcional adicional.
         private void CargarCombos()
         {
             try
@@ -128,7 +138,6 @@ namespace cantinaPadel.UI
                 var categorias = _logicaProducto.ObtenerCategoriasActivas()
                     .Select(c => new { Id = (int?)c.IdCategoria, Nombre = c.Nombre })
                     .ToList();
-                categorias.Insert(0, new { Id = (int?)null, Nombre = "Todas las categorías" });
                 cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbCategoriaFiltro.DisplayMember = "Nombre";
                 cmbCategoriaFiltro.ValueMember = "Id";
@@ -137,11 +146,19 @@ namespace cantinaPadel.UI
                 var marcas = _logicaProducto.ObtenerMarcasActivas()
                     .Select(m => new { Id = (int?)m.IdMarca, Nombre = m.Nombre })
                     .ToList();
-                marcas.Insert(0, new { Id = (int?)null, Nombre = "Todas las marcas" });
                 cmbMarcaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbMarcaFiltro.DisplayMember = "Nombre";
                 cmbMarcaFiltro.ValueMember = "Id";
                 cmbMarcaFiltro.DataSource = marcas;
+
+                var proveedores = _logicaProducto.ObtenerProveedoresActivos()
+                    .Select(p => new { Id = (int?)p.IdProveedor, Nombre = p.NombreEmpresa })
+                    .ToList();
+                proveedores.Insert(0, new { Id = (int?)null, Nombre = "Todos los proveedores" });
+                cmbProveedorFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbProveedorFiltro.DisplayMember = "Nombre";
+                cmbProveedorFiltro.ValueMember = "Id";
+                cmbProveedorFiltro.DataSource = proveedores;
             }
             catch (Exception ex)
             {
@@ -158,6 +175,7 @@ namespace cantinaPadel.UI
                 string? texto = string.IsNullOrWhiteSpace(txtProductoFiltro.Text) ? null : txtProductoFiltro.Text.Trim();
                 int? idCategoria = cmbCategoriaFiltro.SelectedValue as int?;
                 int? idMarca = cmbMarcaFiltro.SelectedValue as int?;
+                int? idProveedor = cmbProveedorFiltro.SelectedValue as int?;
                 decimal porcentaje = nudPorcentaje.Value;
 
                 // Guardamos los precios editados manualmente antes de recargar el listado
@@ -166,7 +184,7 @@ namespace cantinaPadel.UI
                     .ToDictionary(p => p.IdProducto, p => p.PrecioNuevo);
 
                 // Buscamos los productos según los filtros y el porcentaje
-                _listado = _logicaProducto.BuscarParaActualizacion(texto, idCategoria, idMarca, porcentaje);
+                _listado = _logicaProducto.BuscarParaActualizacion(texto, idCategoria, idMarca, idProveedor, porcentaje);
 
                 // Restauramos los precios editados manualmente en el nuevo listado
                 foreach (var item in _listado)
@@ -216,38 +234,64 @@ namespace cantinaPadel.UI
         }
 
 
-        // El usuario terminó de editar la celda "PrecioNuevo": validamos que no sea negativo y marcamos como editado manualmente
-        private void dgvPreview_CellEndEdit(object? sender, DataGridViewCellEventArgs e)
+        // Alterna entre modo "Por porcentaje" y modo "Precio manual": habilita
+        // los controles del modo activo, deshabilita los del otro, y descarta
+        // los precios calculados/cargados en el modo anterior para no mezclarlos.
+        private void AlternarModo()
         {
-            if (_refrescandoGrilla) return;
-            if (e.RowIndex < 0) return;
-            if (dgvPreview.Columns[e.ColumnIndex].Name != "PrecioNuevo") return;
-            if (e.RowIndex >= _listado.Count) return;
+            bool porPorcentaje = rbPorcentaje.Checked;
 
-            var item = _listado[e.RowIndex];
+            nudPorcentaje.Enabled = porPorcentaje;
+            nudPrecioManual.Enabled = !porPorcentaje;
+            btnAplicarPrecioManual.Enabled = !porPorcentaje;
 
-            if (item.PrecioNuevo < 0)
+            foreach (var item in _listado)
             {
+                item.EditadoManualmente = false;
                 item.PrecioNuevo = item.PrecioActual;
-                MessageBox.Show("El precio no puede ser negativo.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                _refrescandoGrilla = true;
-                _bindingSource.ResetBindings(false);
-                _refrescandoGrilla = false;
+            }
+
+            if (porPorcentaje)
+                RecalcularPreciosPorPorcentaje();
+
+            _refrescandoGrilla = true;
+            _bindingSource.ResetBindings(false);
+            _refrescandoGrilla = false;
+        }
+
+        // El usuario cargó un precio en el campo "Precio manual" y hace click en "Aplicar a tildados":
+        // pisa el PrecioNuevo de los productos tildados en la columna "Aplicar" y los marca como editados a mano
+        // (para que el recálculo automático por porcentaje no los sobrescriba).
+        private void btnAplicarPrecioManual_Click(object? sender, EventArgs e)
+        {
+            var seleccionados = _listado.Where(p => p.Aplicar).ToList();
+
+            if (seleccionados.Count == 0)
+            {
+                MessageBox.Show("Tildá al menos un producto en la columna \"Aplicar\" para asignarle el precio manual.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
-            item.EditadoManualmente = true;
-        }
+            decimal precioManual = nudPrecioManual.Value;
 
+            // No se permite $0 ni negativos: el precio manual tiene que ser mayor a $0.
+            if (precioManual <= 0)
+            {
+                MessageBox.Show("El precio debe ser mayor a $0.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        // Maneja errores de datos en la grilla, mostrando un mensaje si el valor ingresado no es numérico
-        private void dgvPreview_DataError(object? sender, DataGridViewDataErrorEventArgs e)
-        {
-            MessageBox.Show("Ingresá un valor numérico válido para el precio.",
-                "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            e.ThrowException = false;
-            e.Cancel = true;
+            foreach (var item in seleccionados)
+            {
+                item.PrecioNuevo = precioManual;
+                item.EditadoManualmente = true;
+            }
+
+            _refrescandoGrilla = true;
+            _bindingSource.ResetBindings(false);
+            _refrescandoGrilla = false;
         }
 
         // El usuario hizo click en el botón "Confirmar": valida y confirma la actualización de precios
