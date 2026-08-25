@@ -58,12 +58,12 @@ namespace cantinaPadel.BLL
         public void BajaLogica(int idProducto) => _repo.BajaLogica(idProducto);
 
         // Búsqueda única para FrmActualizacionPrecios: combina texto libre
-        // (nombre, código, categoría o marca) con los combos de categoría y
-        // marca, todo en simultáneo (AND). Reemplaza a los antiguos
+        // (nombre, código, categoría o marca) con los combos de categoría,
+        // marca y proveedor, todo en simultáneo (AND). Reemplaza a los antiguos
         // PrevisualizarActualizacion / PrevisualizarPorTexto: ya no hace
         // falta elegir un "criterio" único, se usa lo que el usuario haya
         // completado de cada filtro.
-        public List<ProductoPrecioPreview> BuscarParaActualizacion(string? texto, int? idCategoria, int? idMarca, decimal porcentaje)
+        public List<ProductoPrecioPreview> BuscarParaActualizacion(string? texto, int? idCategoria, int? idMarca, int? idProveedor, decimal porcentaje)
         {
             using var ctx = new DAL.AppDbContext();
 
@@ -87,6 +87,9 @@ namespace cantinaPadel.BLL
 
             if (idMarca.HasValue)
                 query = query.Where(p => p.IdMarca == idMarca.Value);
+
+            if (idProveedor.HasValue)
+                query = query.Where(p => p.IdProveedor == idProveedor.Value);
 
             var productos = query.OrderBy(p => p.Nombre).ToList();
             decimal factor = 1 + (porcentaje / 100m);
