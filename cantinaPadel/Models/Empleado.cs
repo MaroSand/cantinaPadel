@@ -38,6 +38,7 @@ namespace cantinaPadel.Models
             if (Persona == null)
                 throw new ArgumentException("Los datos personales del empleado no pueden estar vacíos.");
 
+            // Al llamar a ValidarDatosComunes, se ejecutará Persona.ValidarCuit(Persona.Cuit)
             Persona.ValidarDatosComunes(dniObligatorio);
 
             NombreUsuario = NombreUsuario?.Trim() ?? string.Empty;
@@ -53,8 +54,8 @@ namespace cantinaPadel.Models
             if (string.IsNullOrWhiteSpace(Contrasena))
                 throw new ArgumentException("El campo Contraseña es obligatorio.");
 
-            if (Contrasena.Length > 9)
-                throw new ArgumentException("La Contraseña no puede exceder los 9 caracteres.");
+            if (Contrasena.Length < 7 || Contrasena.Length  > 8)
+                throw new ArgumentException("La Contraseña no puede ser menor a 7 caracteres.");
 
             if (string.IsNullOrWhiteSpace(Rol))
                 throw new ArgumentException("Debe seleccionar un Rol válido para el empleado.");

@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -22,6 +23,7 @@ namespace cantinaPadel.UI
             InitializeComponent();
             CargarCondicionesIva();
             ConfigurarControlesRoles();
+            ConfigurarFormatoCuit();
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _empleadoEdicion = null;
             Text = "Nuevo Empleado";
@@ -31,6 +33,14 @@ namespace cantinaPadel.UI
         {
             _empleadoEdicion = empleado;
             Text = "Modificar Empleado";
+        }
+
+        private void ConfigurarFormatoCuit()
+        {
+            // Se limita la longitud máxima para soportar los 11 dígitos y los 2 guiones de separación
+            txtCuit.MaxLength = 13;
+            txtCuit.KeyPress += txtCuit_KeyPress;
+            txtCuit.TextChanged += txtCuit_TextChanged;
         }
 
         private void CargarCondicionesIva()
@@ -126,7 +136,8 @@ namespace cantinaPadel.UI
                     Nombre = txtNombre.Text.Trim(),
                     Apellido = txtApellido.Text.Trim(),
                     Dni = txtDni.Text.Trim(),
-                    Cuit = string.IsNullOrWhiteSpace(txtCuit.Text) ? null : txtCuit.Text.Trim(),
+                    // Se asigna el CUIT obligatoriamente ingresado por el usuario
+                    Cuit = txtCuit.Text.Trim(),
                     Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
                     CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty,
                     Direccion = _empleadoEdicion?.Persona.Direccion,
@@ -191,6 +202,54 @@ namespace cantinaPadel.UI
 
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        private void txtCuit_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            // Se descarta cualquier entrada que no corresponda a un número o a teclas de control
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+                e.Handled = true;
+        }
+
+        private void txtCuit_TextChanged(object sender, EventArgs e)
+        {
+            // Se desvincula temporalmente el evento para evitar recursividad al modificar el contenido del control
+            txtCuit.TextChanged -= txtCuit_TextChanged;
+
+            // Se filtran únicamente los caracteres numéricos
+            string numeros = new string(txtCuit.Text.Where(char.IsDigit).ToArray());
+
+            if (numeros.Length > 11)
+            {
+                numeros = numeros.Substring(0, 11);
+            }
+
+            string cuitFormateado = "";
+
+            if (numeros.Length > 0)
+            {
+                // Se incorporan los dos primeros dígitos
+                cuitFormateado += numeros.Substring(0, Math.Min(2, numeros.Length));
+
+                if (numeros.Length > 2)
+                {
+                    // Se inserta el primer guion seguido del bloque central de ocho dígitos
+                    cuitFormateado += "-" + numeros.Substring(2, Math.Min(8, numeros.Length - 2));
+
+                    if (numeros.Length > 10)
+                    {
+                        // Se agrega el segundo guion junto al dígito verificador final
+                        cuitFormateado += "-" + numeros.Substring(10, 1);
+                    }
+                }
+            }
+
+            txtCuit.Text = cuitFormateado;
+            // Se ubica la posición del cursor al final de la cadena generada
+            txtCuit.SelectionStart = txtCuit.Text.Length;
+
+            // Se reactiva la escucha del evento de cambio de texto
+            txtCuit.TextChanged += txtCuit_TextChanged;
         }
 
         private void txtDni_KeyPress(object sender, KeyPressEventArgs e)
