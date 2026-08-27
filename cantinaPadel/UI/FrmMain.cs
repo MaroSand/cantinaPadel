@@ -102,7 +102,12 @@ namespace cantinaPadel
             AbrirEnPanel(frm);
         }
         private void btnCompras_Click(object sender, EventArgs e) => Navegar("Compras");
-        private void btnTurnos_Click(object sender, EventArgs e) => Navegar("Turnos");
+        private void btnTurnos_Click(object sender, EventArgs e)
+        {
+            Navegar("Alquiler por Dia");
+            cantinaPadel.UI.FrmAlquilerDia frm = new cantinaPadel.UI.FrmAlquilerDia();
+            AbrirEnPanel(frm);
+        }
         private void btnCanchas_Click(object sender, EventArgs e)
         {
             Navegar("Canchas");

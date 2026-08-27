@@ -28,25 +28,25 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelFiltros = new Panel();
-            cmbEstadoFiltro = new ComboBox();
-            lblEstado = new Label();
-            cmbMarcaFiltro = new ComboBox();
-            lblMarca = new Label();
-            cmbCategoriaFiltro = new ComboBox();
-            lblCategoria = new Label();
-            txtBuscar = new TextBox();
-            lblBuscar = new Label();
-            tabControlMain = new TabControl();
-            tabPageProductos = new TabPage();
-            dgvProductos = new DataGridView();
-            panelAcciones = new Panel();
-            btnBajaLogica = new Button();
-            btnModificar = new Button();
-            btnNuevo = new Button();
-            tabPageMarcas = new TabPage();
-            tabPageCategorias = new TabPage();
-            tabPageActualizacionPrecios = new TabPage();
+            panelFiltros = new System.Windows.Forms.Panel();
+            cmbEstadoFiltro = new System.Windows.Forms.ComboBox();
+            lblEstado = new System.Windows.Forms.Label();
+            cmbMarcaFiltro = new System.Windows.Forms.ComboBox();
+            lblMarca = new System.Windows.Forms.Label();
+            cmbCategoriaFiltro = new System.Windows.Forms.ComboBox();
+            lblCategoria = new System.Windows.Forms.Label();
+            txtBuscar = new System.Windows.Forms.TextBox();
+            lblBuscar = new System.Windows.Forms.Label();
+            tabControlMain = new System.Windows.Forms.TabControl();
+            tabPageProductos = new System.Windows.Forms.TabPage();
+            dgvProductos = new System.Windows.Forms.DataGridView();
+            panelAcciones = new System.Windows.Forms.Panel();
+            btnBajaLogica = new System.Windows.Forms.Button();
+            btnModificar = new System.Windows.Forms.Button();
+            btnNuevo = new System.Windows.Forms.Button();
+            tabPageMarcas = new System.Windows.Forms.TabPage();
+            tabPageCategorias = new System.Windows.Forms.TabPage();
+            tabPageActualizacionPrecios = new System.Windows.Forms.TabPage();
             panelFiltros.SuspendLayout();
             tabControlMain.SuspendLayout();
             tabPageProductos.SuspendLayout();
@@ -56,7 +56,7 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = Color.Gold;
+            panelFiltros.BackColor = System.Drawing.Color.Gold;
             panelFiltros.Controls.Add(cmbEstadoFiltro);
             panelFiltros.Controls.Add(lblEstado);
             panelFiltros.Controls.Add(cmbMarcaFiltro);
@@ -65,87 +65,87 @@
             panelFiltros.Controls.Add(lblCategoria);
             panelFiltros.Controls.Add(txtBuscar);
             panelFiltros.Controls.Add(lblBuscar);
-            panelFiltros.Dock = DockStyle.Top;
-            panelFiltros.Location = new Point(0, 0);
-            panelFiltros.Margin = new Padding(5, 5, 5, 5);
+            panelFiltros.Dock = System.Windows.Forms.DockStyle.Top;
+            panelFiltros.Location = new System.Drawing.Point(0, 0);
+            panelFiltros.Margin = new System.Windows.Forms.Padding(5);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(1706, 96);
+            panelFiltros.Size = new System.Drawing.Size(1706, 96);
             panelFiltros.TabIndex = 0;
+            // 
+            // cmbEstadoFiltro
+            // 
+            cmbEstadoFiltro.FormattingEnabled = true;
+            cmbEstadoFiltro.Location = new System.Drawing.Point(1560, 26);
+            cmbEstadoFiltro.Margin = new System.Windows.Forms.Padding(5);
+            cmbEstadoFiltro.Name = "cmbEstadoFiltro";
+            cmbEstadoFiltro.Size = new System.Drawing.Size(135, 40);
+            cmbEstadoFiltro.TabIndex = 7;
+            // 
+            // lblEstado
+            // 
+            lblEstado.AutoSize = true;
+            lblEstado.Location = new System.Drawing.Point(1460, 30);
+            lblEstado.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lblEstado.Name = "lblEstado";
+            lblEstado.Size = new System.Drawing.Size(89, 32);
+            lblEstado.TabIndex = 6;
+            lblEstado.Text = "Estado:";
             // 
             // cmbMarcaFiltro
             // 
             cmbMarcaFiltro.FormattingEnabled = true;
-            cmbMarcaFiltro.Location = new Point(1215, 26);
-            cmbMarcaFiltro.Margin = new Padding(5, 5, 5, 5);
+            cmbMarcaFiltro.Location = new System.Drawing.Point(1215, 26);
+            cmbMarcaFiltro.Margin = new System.Windows.Forms.Padding(5);
             cmbMarcaFiltro.Name = "cmbMarcaFiltro";
-            cmbMarcaFiltro.Size = new Size(220, 40);
+            cmbMarcaFiltro.Size = new System.Drawing.Size(220, 40);
             cmbMarcaFiltro.TabIndex = 5;
             // 
             // lblMarca
             // 
             lblMarca.AutoSize = true;
-            lblMarca.Location = new Point(1130, 30);
-            lblMarca.Margin = new Padding(5, 0, 5, 0);
+            lblMarca.Location = new System.Drawing.Point(1130, 30);
+            lblMarca.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblMarca.Name = "lblMarca";
-            lblMarca.Size = new Size(84, 32);
+            lblMarca.Size = new System.Drawing.Size(84, 32);
             lblMarca.TabIndex = 4;
             lblMarca.Text = "Marca:";
-            //
+            // 
             // cmbCategoriaFiltro
             // 
             cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new Point(865, 26);
-            cmbCategoriaFiltro.Margin = new Padding(5, 5, 5, 5);
+            cmbCategoriaFiltro.Location = new System.Drawing.Point(865, 26);
+            cmbCategoriaFiltro.Margin = new System.Windows.Forms.Padding(5);
             cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new Size(240, 40);
+            cmbCategoriaFiltro.Size = new System.Drawing.Size(240, 40);
             cmbCategoriaFiltro.TabIndex = 3;
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new Point(735, 30);
-            lblCategoria.Margin = new Padding(5, 0, 5, 0);
+            lblCategoria.Location = new System.Drawing.Point(735, 30);
+            lblCategoria.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblCategoria.Name = "lblCategoria";
-            lblCategoria.Size = new Size(121, 32);
+            lblCategoria.Size = new System.Drawing.Size(121, 32);
             lblCategoria.TabIndex = 2;
             lblCategoria.Text = "Categoría:";
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new Point(390, 26);
-            txtBuscar.Margin = new Padding(5, 5, 5, 5);
+            txtBuscar.Location = new System.Drawing.Point(390, 26);
+            txtBuscar.Margin = new System.Windows.Forms.Padding(5);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new Size(315, 39);
+            txtBuscar.Size = new System.Drawing.Size(315, 39);
             txtBuscar.TabIndex = 1;
             // 
             // lblBuscar
             // 
             lblBuscar.AutoSize = true;
-            lblBuscar.Location = new Point(34, 30);
-            lblBuscar.Margin = new Padding(5, 0, 5, 0);
+            lblBuscar.Location = new System.Drawing.Point(34, 30);
+            lblBuscar.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblBuscar.Name = "lblBuscar";
-            lblBuscar.Size = new Size(294, 32);
+            lblBuscar.Size = new System.Drawing.Size(294, 32);
             lblBuscar.TabIndex = 0;
             lblBuscar.Text = "Buscar (nombre o código):";
-            // 
-            // lblEstado
-            // 
-            lblEstado.AutoSize = true;
-            lblEstado.Location = new Point(1460, 30);
-            lblEstado.Margin = new Padding(5, 0, 5, 0);
-            lblEstado.Name = "lblEstado";
-            lblEstado.Size = new Size(89, 32);
-            lblEstado.TabIndex = 6;
-            lblEstado.Text = "Estado:";
-            // 
-            // cmbEstadoFiltro
-            // 
-            cmbEstadoFiltro.FormattingEnabled = true;
-            cmbEstadoFiltro.Location = new Point(1560, 26);
-            cmbEstadoFiltro.Margin = new Padding(5);
-            cmbEstadoFiltro.Name = "cmbEstadoFiltro";
-            cmbEstadoFiltro.Size = new Size(135, 40);
-            cmbEstadoFiltro.TabIndex = 7;
             // 
             // tabControlMain
             // 
@@ -153,127 +153,127 @@
             tabControlMain.Controls.Add(tabPageMarcas);
             tabControlMain.Controls.Add(tabPageCategorias);
             tabControlMain.Controls.Add(tabPageActualizacionPrecios);
-            tabControlMain.Dock = DockStyle.Fill;
-            tabControlMain.Location = new Point(0, 0);
-            tabControlMain.Margin = new Padding(5, 5, 5, 5);
+            tabControlMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            tabControlMain.Location = new System.Drawing.Point(0, 0);
+            tabControlMain.Margin = new System.Windows.Forms.Padding(5);
             tabControlMain.Name = "tabControlMain";
             tabControlMain.SelectedIndex = 0;
-            tabControlMain.Size = new Size(1722, 768);
+            tabControlMain.Size = new System.Drawing.Size(1722, 768);
             tabControlMain.TabIndex = 3;
             // 
             // tabPageProductos
             // 
-            tabPageProductos.BackColor = SystemColors.Info;
+            tabPageProductos.BackColor = System.Drawing.SystemColors.Info;
             tabPageProductos.Controls.Add(dgvProductos);
             tabPageProductos.Controls.Add(panelAcciones);
             tabPageProductos.Controls.Add(panelFiltros);
-            tabPageProductos.Location = new Point(8, 46);
-            tabPageProductos.Margin = new Padding(5, 5, 5, 5);
+            tabPageProductos.Location = new System.Drawing.Point(8, 46);
+            tabPageProductos.Margin = new System.Windows.Forms.Padding(5);
             tabPageProductos.Name = "tabPageProductos";
-            tabPageProductos.Size = new Size(1706, 714);
+            tabPageProductos.Size = new System.Drawing.Size(1706, 714);
             tabPageProductos.TabIndex = 0;
             tabPageProductos.Text = "Productos";
             // 
             // dgvProductos
             // 
-            dgvProductos.BackgroundColor = Color.White;
-            dgvProductos.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvProductos.Dock = DockStyle.Fill;
-            dgvProductos.GridColor = SystemColors.Menu;
-            dgvProductos.Location = new Point(0, 96);
-            dgvProductos.Margin = new Padding(5, 5, 5, 5);
+            dgvProductos.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            dgvProductos.BackgroundColor = System.Drawing.Color.White;
+            dgvProductos.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvProductos.Dock = System.Windows.Forms.DockStyle.Fill;
+            dgvProductos.GridColor = System.Drawing.SystemColors.Menu;
+            dgvProductos.Location = new System.Drawing.Point(0, 96);
+            dgvProductos.Margin = new System.Windows.Forms.Padding(5);
             dgvProductos.Name = "dgvProductos";
             dgvProductos.RowHeadersWidth = 51;
-            dgvProductos.Size = new Size(1706, 538);
+            dgvProductos.Size = new System.Drawing.Size(1706, 538);
             dgvProductos.TabIndex = 2;
             // 
             // panelAcciones
             // 
-            panelAcciones.BackColor = SystemColors.Info;
+            panelAcciones.BackColor = System.Drawing.SystemColors.Info;
             panelAcciones.Controls.Add(btnBajaLogica);
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
-            panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 634);
-            panelAcciones.Margin = new Padding(5, 5, 5, 5);
+            panelAcciones.Dock = System.Windows.Forms.DockStyle.Bottom;
+            panelAcciones.Location = new System.Drawing.Point(0, 634);
+            panelAcciones.Margin = new System.Windows.Forms.Padding(5);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(1706, 80);
+            panelAcciones.Size = new System.Drawing.Size(1706, 80);
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
             // 
-            btnBajaLogica.BackColor = Color.White;
-            btnBajaLogica.FlatStyle = FlatStyle.Flat;
-            btnBajaLogica.Location = new Point(975, 14);
-            btnBajaLogica.Margin = new Padding(5, 5, 5, 5);
+            btnBajaLogica.BackColor = System.Drawing.Color.White;
+            btnBajaLogica.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnBajaLogica.Location = new System.Drawing.Point(975, 14);
+            btnBajaLogica.Margin = new System.Windows.Forms.Padding(5);
             btnBajaLogica.Name = "btnBajaLogica";
-            btnBajaLogica.Size = new Size(244, 46);
+            btnBajaLogica.Size = new System.Drawing.Size(244, 46);
             btnBajaLogica.TabIndex = 2;
             btnBajaLogica.Text = "Activar / Desactivar";
             btnBajaLogica.UseVisualStyleBackColor = false;
             // 
             // btnModificar
             // 
-            btnModificar.BackColor = Color.White;
-            btnModificar.FlatStyle = FlatStyle.Flat;
-            btnModificar.Location = new Point(682, 14);
-            btnModificar.Margin = new Padding(5, 5, 5, 5);
+            btnModificar.BackColor = System.Drawing.Color.White;
+            btnModificar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnModificar.Location = new System.Drawing.Point(682, 14);
+            btnModificar.Margin = new System.Windows.Forms.Padding(5);
             btnModificar.Name = "btnModificar";
-            btnModificar.Size = new Size(211, 46);
+            btnModificar.Size = new System.Drawing.Size(211, 46);
             btnModificar.TabIndex = 1;
             btnModificar.Text = "Modificar";
             btnModificar.UseVisualStyleBackColor = false;
             // 
             // btnNuevo
             // 
-            btnNuevo.BackColor = Color.White;
-            btnNuevo.FlatStyle = FlatStyle.Flat;
-            btnNuevo.Location = new Point(325, 14);
-            btnNuevo.Margin = new Padding(5, 5, 5, 5);
+            btnNuevo.BackColor = System.Drawing.Color.White;
+            btnNuevo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnNuevo.Location = new System.Drawing.Point(325, 14);
+            btnNuevo.Margin = new System.Windows.Forms.Padding(5);
             btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(276, 46);
+            btnNuevo.Size = new System.Drawing.Size(276, 46);
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo Producto";
             btnNuevo.UseVisualStyleBackColor = false;
             // 
             // tabPageMarcas
             // 
-            tabPageMarcas.Location = new Point(8, 46);
-            tabPageMarcas.Margin = new Padding(5, 5, 5, 5);
+            tabPageMarcas.Location = new System.Drawing.Point(8, 46);
+            tabPageMarcas.Margin = new System.Windows.Forms.Padding(5);
             tabPageMarcas.Name = "tabPageMarcas";
-            tabPageMarcas.Size = new Size(1706, 714);
+            tabPageMarcas.Size = new System.Drawing.Size(1706, 714);
             tabPageMarcas.TabIndex = 1;
             tabPageMarcas.Text = "Marcas";
             tabPageMarcas.UseVisualStyleBackColor = true;
             // 
             // tabPageCategorias
             // 
-            tabPageCategorias.Location = new Point(8, 46);
-            tabPageCategorias.Margin = new Padding(5, 5, 5, 5);
+            tabPageCategorias.Location = new System.Drawing.Point(8, 46);
+            tabPageCategorias.Margin = new System.Windows.Forms.Padding(5);
             tabPageCategorias.Name = "tabPageCategorias";
-            tabPageCategorias.Size = new Size(1706, 714);
+            tabPageCategorias.Size = new System.Drawing.Size(1706, 714);
             tabPageCategorias.TabIndex = 2;
             tabPageCategorias.Text = "Categorías";
             tabPageCategorias.UseVisualStyleBackColor = true;
             // 
             // tabPageActualizacionPrecios
             // 
-            tabPageActualizacionPrecios.Location = new Point(8, 46);
-            tabPageActualizacionPrecios.Margin = new Padding(5, 5, 5, 5);
+            tabPageActualizacionPrecios.Location = new System.Drawing.Point(8, 46);
+            tabPageActualizacionPrecios.Margin = new System.Windows.Forms.Padding(5);
             tabPageActualizacionPrecios.Name = "tabPageActualizacionPrecios";
-            tabPageActualizacionPrecios.Size = new Size(1706, 714);
+            tabPageActualizacionPrecios.Size = new System.Drawing.Size(1706, 714);
             tabPageActualizacionPrecios.TabIndex = 3;
             tabPageActualizacionPrecios.Text = "Actualización de Precios";
             tabPageActualizacionPrecios.UseVisualStyleBackColor = true;
             // 
             // FrmListadoProductos
             // 
-            AutoScaleDimensions = new SizeF(13F, 32F);
-            AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1722, 768);
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(1722, 768);
             Controls.Add(tabControlMain);
-            Margin = new Padding(5, 5, 5, 5);
-            Name = "FrmListadoProductos";
+            Margin = new System.Windows.Forms.Padding(5);
             Text = "Listado de Productos";
             Load += FrmListadoProductos_Load;
             panelFiltros.ResumeLayout(false);
@@ -304,7 +304,7 @@
         private Button btnBajaLogica;
         private Button btnModificar;
         private Button btnNuevo;
-        private DataGridView dgvProductos;
+        private System.Windows.Forms.DataGridView dgvProductos;
         private TabPage tabPageActualizacionPrecios;
 
     }
