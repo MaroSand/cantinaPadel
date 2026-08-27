@@ -86,6 +86,17 @@ namespace cantinaPadel.UI
 
                 if (dgvHorarios.Columns["IdHorario"] is DataGridViewColumn colId)
                     colId.Visible = false;
+
+                if (dgvHorarios.Columns["Cancha"] != null)
+                    dgvHorarios.Columns["Cancha"].HeaderText = "Cancha";
+                if (dgvHorarios.Columns["DiaSemana"] != null)
+                    dgvHorarios.Columns["DiaSemana"].HeaderText = "Día";
+                if (dgvHorarios.Columns["HoraInicio"] != null)
+                    dgvHorarios.Columns["HoraInicio"].HeaderText = "Hora inicio";
+                if (dgvHorarios.Columns["HoraFin"] != null)
+                    dgvHorarios.Columns["HoraFin"].HeaderText = "Hora fin";
+                if (dgvHorarios.Columns["Activo"] != null)
+                    dgvHorarios.Columns["Activo"].HeaderText = "Activo";
             }
             catch (Exception ex)
             {

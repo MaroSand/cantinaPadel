@@ -136,6 +136,13 @@ namespace cantinaPadel.UI
 
         private void btnNuevo_Click(object sender, EventArgs e) => LimpiarFormulario();
 
+        private void btnHorarios_Click(object sender, EventArgs e)
+        {
+            using var frmHorarios = new FrmHorarios();
+            frmHorarios.ShowDialog(this);
+            ActualizarGrilla();
+        }
+
         private void btnBajaAlta_Click(object sender, EventArgs e)
         {
             if (_canchaSeleccionada == null)
