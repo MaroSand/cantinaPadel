@@ -21,22 +21,23 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelFiltros = new System.Windows.Forms.Panel();
-            cmbEstado = new System.Windows.Forms.ComboBox();
-            label2 = new System.Windows.Forms.Label();
-            txtBuscar = new System.Windows.Forms.TextBox();
-            label1 = new System.Windows.Forms.Label();
-            panelDatos = new System.Windows.Forms.Panel();
-            label4 = new System.Windows.Forms.Label();
-            txtPrecioHora = new System.Windows.Forms.TextBox();
-            label5 = new System.Windows.Forms.Label();
-            txtNombre = new System.Windows.Forms.TextBox();
-            btnGuardar = new System.Windows.Forms.Button();
-            label3 = new System.Windows.Forms.Label();
-            panelAcciones = new System.Windows.Forms.Panel();
-            btnBajaAlta = new System.Windows.Forms.Button();
-            btnNuevo = new System.Windows.Forms.Button();
-            dgvCanchas = new System.Windows.Forms.DataGridView();
+            panelFiltros = new Panel();
+            cmbEstado = new ComboBox();
+            label2 = new Label();
+            txtBuscar = new TextBox();
+            label1 = new Label();
+            panelDatos = new Panel();
+            label4 = new Label();
+            txtPrecioHora = new TextBox();
+            label5 = new Label();
+            txtNombre = new TextBox();
+            btnGuardar = new Button();
+            label3 = new Label();
+            panelAcciones = new Panel();
+            btnBajaAlta = new Button();
+            btnHorarios = new Button();
+            btnNuevo = new Button();
+            dgvCanchas = new DataGridView();
             panelFiltros.SuspendLayout();
             panelDatos.SuspendLayout();
             panelAcciones.SuspendLayout();
@@ -45,114 +46,124 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = System.Drawing.Color.Gold;
+            panelFiltros.BackColor = Color.Gold;
             panelFiltros.Controls.Add(cmbEstado);
             panelFiltros.Controls.Add(label2);
             panelFiltros.Controls.Add(txtBuscar);
             panelFiltros.Controls.Add(label1);
-            panelFiltros.Dock = System.Windows.Forms.DockStyle.Top;
-            panelFiltros.Location = new System.Drawing.Point(0, 0);
+            panelFiltros.Dock = DockStyle.Top;
+            panelFiltros.Location = new Point(0, 0);
+            panelFiltros.Margin = new Padding(2);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new System.Drawing.Size(882, 65);
+            panelFiltros.Size = new Size(858, 61);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
             cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-            cmbEstado.Location = new System.Drawing.Point(507, 22);
+            cmbEstado.Location = new Point(572, 20);
+            cmbEstado.Margin = new Padding(2);
             cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new System.Drawing.Size(151, 40);
+            cmbEstado.Size = new Size(120, 28);
             cmbEstado.TabIndex = 3;
             cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(444, 25);
+            label2.Location = new Point(511, 24);
+            label2.Margin = new Padding(2, 0, 2, 0);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(89, 32);
+            label2.Size = new Size(57, 20);
             label2.TabIndex = 2;
             label2.Text = "Estado:";
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new System.Drawing.Point(115, 23);
+            txtBuscar.Location = new Point(130, 21);
+            txtBuscar.Margin = new Padding(2);
             txtBuscar.MaxLength = 100;
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new System.Drawing.Size(187, 39);
+            txtBuscar.Size = new Size(120, 27);
             txtBuscar.TabIndex = 1;
             txtBuscar.TextChanged += txtBuscar_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(54, 25);
+            label1.Location = new Point(71, 24);
+            label1.Margin = new Padding(2, 0, 2, 0);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(88, 32);
+            label1.Size = new Size(55, 20);
             label1.TabIndex = 0;
             label1.Text = "Buscar:";
             // 
             // panelDatos
             // 
-            panelDatos.BackColor = System.Drawing.SystemColors.Info;
+            panelDatos.BackColor = SystemColors.Info;
             panelDatos.Controls.Add(label4);
             panelDatos.Controls.Add(txtPrecioHora);
             panelDatos.Controls.Add(label5);
             panelDatos.Controls.Add(txtNombre);
             panelDatos.Controls.Add(btnGuardar);
             panelDatos.Controls.Add(label3);
-            panelDatos.Dock = System.Windows.Forms.DockStyle.Right;
-            panelDatos.Location = new System.Drawing.Point(682, 65);
+            panelDatos.Dock = DockStyle.Right;
+            panelDatos.Location = new Point(692, 61);
+            panelDatos.Margin = new Padding(2);
             panelDatos.Name = "panelDatos";
-            panelDatos.Size = new System.Drawing.Size(200, 388);
+            panelDatos.Size = new Size(166, 435);
             panelDatos.TabIndex = 1;
             // 
             // label4
             // 
             label4.AutoEllipsis = true;
-            label4.ForeColor = System.Drawing.SystemColors.ControlDarkDark;
-            label4.Location = new System.Drawing.Point(22, 30);
-            label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            label4.ForeColor = SystemColors.ControlDarkDark;
+            label4.Location = new Point(13, 20);
+            label4.Margin = new Padding(1, 0, 1, 0);
             label4.Name = "label4";
-            label4.Size = new System.Drawing.Size(145, 46);
+            label4.Size = new Size(142, 57);
             label4.TabIndex = 4;
             label4.Text = "Selecciona una cancha para editar.";
             // 
             // txtPrecioHora
             // 
-            txtPrecioHora.Location = new System.Drawing.Point(21, 222);
+            txtPrecioHora.Location = new Point(36, 208);
+            txtPrecioHora.Margin = new Padding(2);
             txtPrecioHora.MaxLength = 12;
             txtPrecioHora.Name = "txtPrecioHora";
-            txtPrecioHora.Size = new System.Drawing.Size(137, 39);
+            txtPrecioHora.Size = new Size(86, 27);
             txtPrecioHora.TabIndex = 2;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
-            label5.Location = new System.Drawing.Point(22, 189);
+            label5.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label5.Location = new Point(17, 176);
+            label5.Margin = new Padding(2, 0, 2, 0);
             label5.Name = "label5";
-            label5.Size = new System.Drawing.Size(203, 32);
+            label5.Size = new Size(122, 20);
             label5.TabIndex = 3;
             label5.Text = "Precio por Hora:";
             // 
             // txtNombre
             // 
-            txtNombre.Location = new System.Drawing.Point(21, 133);
+            txtNombre.Location = new Point(20, 126);
+            txtNombre.Margin = new Padding(2);
             txtNombre.MaxLength = 40;
             txtNombre.Name = "txtNombre";
-            txtNombre.Size = new System.Drawing.Size(137, 39);
+            txtNombre.Size = new Size(119, 27);
             txtNombre.TabIndex = 1;
             // 
             // btnGuardar
             // 
-            btnGuardar.BackColor = System.Drawing.Color.White;
-            btnGuardar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnGuardar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
-            btnGuardar.Location = new System.Drawing.Point(45, 279);
+            btnGuardar.BackColor = Color.White;
+            btnGuardar.FlatStyle = FlatStyle.Flat;
+            btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnGuardar.Location = new Point(20, 260);
+            btnGuardar.Margin = new Padding(2);
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new System.Drawing.Size(89, 29);
+            btnGuardar.Size = new Size(119, 52);
             btnGuardar.TabIndex = 5;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -161,45 +172,67 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
-            label3.Location = new System.Drawing.Point(21, 101);
+            label3.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label3.Location = new Point(9, 94);
+            label3.Margin = new Padding(2, 0, 2, 0);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(239, 32);
+            label3.Size = new Size(146, 20);
             label3.TabIndex = 0;
             label3.Text = "Nombre de Cancha:";
             // 
             // panelAcciones
             // 
-            panelAcciones.BackColor = System.Drawing.SystemColors.Info;
+            panelAcciones.BackColor = SystemColors.Info;
             panelAcciones.Controls.Add(btnBajaAlta);
+            panelAcciones.Controls.Add(btnHorarios);
             panelAcciones.Controls.Add(btnNuevo);
-            panelAcciones.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panelAcciones.Location = new System.Drawing.Point(0, 396);
+            panelAcciones.Dock = DockStyle.Bottom;
+            panelAcciones.Location = new Point(0, 423);
+            panelAcciones.Margin = new Padding(2);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new System.Drawing.Size(682, 57);
+            panelAcciones.Size = new Size(692, 73);
             panelAcciones.TabIndex = 2;
             // 
             // btnBajaAlta
             // 
-            btnBajaAlta.BackColor = System.Drawing.Color.White;
-            btnBajaAlta.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnBajaAlta.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
-            btnBajaAlta.Location = new System.Drawing.Point(429, 16);
+            btnBajaAlta.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnBajaAlta.BackColor = Color.White;
+            btnBajaAlta.FlatStyle = FlatStyle.Flat;
+            btnBajaAlta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnBajaAlta.Location = new Point(454, 10);
+            btnBajaAlta.Margin = new Padding(2);
             btnBajaAlta.Name = "btnBajaAlta";
-            btnBajaAlta.Size = new System.Drawing.Size(173, 29);
+            btnBajaAlta.Size = new Size(161, 39);
             btnBajaAlta.TabIndex = 2;
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.UseVisualStyleBackColor = false;
             btnBajaAlta.Click += btnBajaAlta_Click;
             // 
+            // btnHorarios
+            // 
+            btnHorarios.Anchor = AnchorStyles.Top | AnchorStyles.Bottom;
+            btnHorarios.BackColor = Color.White;
+            btnHorarios.FlatStyle = FlatStyle.Flat;
+            btnHorarios.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnHorarios.Location = new Point(261, 10);
+            btnHorarios.Margin = new Padding(2);
+            btnHorarios.Name = "btnHorarios";
+            btnHorarios.Size = new Size(161, 39);
+            btnHorarios.TabIndex = 1;
+            btnHorarios.Text = "Horarios";
+            btnHorarios.UseVisualStyleBackColor = false;
+            btnHorarios.Click += btnHorarios_Click;
+            // 
             // btnNuevo
             // 
-            btnNuevo.BackColor = System.Drawing.Color.White;
-            btnNuevo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnNuevo.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
-            btnNuevo.Location = new System.Drawing.Point(181, 16);
+            btnNuevo.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnNuevo.BackColor = Color.White;
+            btnNuevo.FlatStyle = FlatStyle.Flat;
+            btnNuevo.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnNuevo.Location = new Point(71, 10);
+            btnNuevo.Margin = new Padding(2);
             btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new System.Drawing.Size(94, 29);
+            btnNuevo.Size = new Size(161, 39);
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo";
             btnNuevo.UseVisualStyleBackColor = false;
@@ -207,27 +240,28 @@
             // 
             // dgvCanchas
             // 
-            dgvCanchas.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            dgvCanchas.BackgroundColor = System.Drawing.Color.White;
-            dgvCanchas.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvCanchas.Dock = System.Windows.Forms.DockStyle.Fill;
-            dgvCanchas.Location = new System.Drawing.Point(0, 65);
+            dgvCanchas.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvCanchas.BackgroundColor = Color.White;
+            dgvCanchas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvCanchas.Dock = DockStyle.Fill;
+            dgvCanchas.Location = new Point(0, 61);
+            dgvCanchas.Margin = new Padding(2);
             dgvCanchas.Name = "dgvCanchas";
             dgvCanchas.RowHeadersWidth = 51;
-            dgvCanchas.Size = new System.Drawing.Size(682, 331);
+            dgvCanchas.Size = new Size(692, 362);
             dgvCanchas.TabIndex = 3;
             dgvCanchas.SelectionChanged += dgvCanchas_SelectionChanged;
             // 
             // FrmCanchas
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(882, 453);
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(858, 496);
             Controls.Add(dgvCanchas);
             Controls.Add(panelAcciones);
             Controls.Add(panelDatos);
             Controls.Add(panelFiltros);
-            Margin = new System.Windows.Forms.Padding(5);
+            Name = "FrmCanchas";
             Text = "Gestión de Canchas";
             Load += FrmCanchas_Load;
             panelFiltros.ResumeLayout(false);
@@ -254,6 +288,7 @@
         private System.Windows.Forms.Panel panelAcciones;
         private Button btnBajaAlta;
         private Button btnGuardar;
+        private Button btnHorarios;
         private Button btnNuevo;
         private System.Windows.Forms.DataGridView dgvCanchas;
         private Label label4;

@@ -28,16 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelFiltros = new System.Windows.Forms.Panel();
-            cmbEstado = new System.Windows.Forms.ComboBox();
-            label2 = new System.Windows.Forms.Label();
-            txtBuscarNombre = new System.Windows.Forms.TextBox();
-            label1 = new System.Windows.Forms.Label();
-            panelAcciones = new System.Windows.Forms.Panel();
-            btnBajaLogica = new System.Windows.Forms.Button();
-            btnModificar = new System.Windows.Forms.Button();
-            btnNuevo = new System.Windows.Forms.Button();
-            dgvEmpleados = new System.Windows.Forms.DataGridView();
+            panelFiltros = new Panel();
+            cmbEstado = new ComboBox();
+            label2 = new Label();
+            txtBuscarNombre = new TextBox();
+            label1 = new Label();
+            panelAcciones = new Panel();
+            btnBajaLogica = new Button();
+            btnModificar = new Button();
+            btnNuevo = new Button();
+            dgvEmpleados = new DataGridView();
             panelFiltros.SuspendLayout();
             panelAcciones.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvEmpleados).BeginInit();
@@ -45,81 +45,75 @@
             // 
             // panelFiltros
             // 
-            panelFiltros.BackColor = System.Drawing.Color.Gold;
+            panelFiltros.BackColor = Color.Gold;
             panelFiltros.Controls.Add(cmbEstado);
             panelFiltros.Controls.Add(label2);
             panelFiltros.Controls.Add(txtBuscarNombre);
             panelFiltros.Controls.Add(label1);
-            panelFiltros.Dock = System.Windows.Forms.DockStyle.Top;
-            panelFiltros.Location = new System.Drawing.Point(0, 0);
-            panelFiltros.Margin = new System.Windows.Forms.Padding(5);
+            panelFiltros.Dock = DockStyle.Top;
+            panelFiltros.Location = new Point(0, 0);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new System.Drawing.Size(1433, 96);
+            panelFiltros.Size = new Size(882, 60);
             panelFiltros.TabIndex = 0;
             // 
             // cmbEstado
             // 
             cmbEstado.FormattingEnabled = true;
             cmbEstado.Items.AddRange(new object[] { "Todos", "Activos", "Inactivos" });
-            cmbEstado.Location = new System.Drawing.Point(988, 30);
-            cmbEstado.Margin = new System.Windows.Forms.Padding(5);
+            cmbEstado.Location = new Point(608, 19);
             cmbEstado.Name = "cmbEstado";
-            cmbEstado.Size = new System.Drawing.Size(243, 40);
+            cmbEstado.Size = new Size(151, 28);
             cmbEstado.TabIndex = 3;
             cmbEstado.SelectedIndexChanged += cmbEstado_SelectedIndexChanged;
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new System.Drawing.Point(848, 30);
-            label2.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label2.Location = new Point(522, 19);
             label2.Name = "label2";
-            label2.Size = new System.Drawing.Size(89, 32);
+            label2.Size = new Size(57, 20);
             label2.TabIndex = 2;
             label2.Text = "Estado:";
             // 
             // txtBuscarNombre
             // 
-            txtBuscarNombre.Location = new System.Drawing.Point(375, 26);
-            txtBuscarNombre.Margin = new System.Windows.Forms.Padding(5);
+            txtBuscarNombre.Location = new Point(231, 16);
             txtBuscarNombre.MaxLength = 30;
             txtBuscarNombre.Name = "txtBuscarNombre";
-            txtBuscarNombre.Size = new System.Drawing.Size(384, 39);
+            txtBuscarNombre.Size = new Size(238, 27);
             txtBuscarNombre.TabIndex = 1;
             txtBuscarNombre.TextChanged += txtBuscarNombre_TextChanged;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new System.Drawing.Point(34, 30);
-            label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            label1.Location = new Point(21, 19);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(323, 32);
+            label1.Size = new Size(204, 20);
             label1.TabIndex = 0;
             label1.Text = "Buscar por Nombre/Apellido:";
             // 
             // panelAcciones
             // 
-            panelAcciones.BackColor = System.Drawing.SystemColors.Info;
+            panelAcciones.BackColor = SystemColors.Info;
+            panelAcciones.BorderStyle = BorderStyle.FixedSingle;
             panelAcciones.Controls.Add(btnBajaLogica);
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
-            panelAcciones.Dock = System.Windows.Forms.DockStyle.Bottom;
-            panelAcciones.Location = new System.Drawing.Point(0, 645);
-            panelAcciones.Margin = new System.Windows.Forms.Padding(5);
+            panelAcciones.Dock = DockStyle.Bottom;
+            panelAcciones.Location = new Point(0, 403);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new System.Drawing.Size(1433, 80);
+            panelAcciones.Size = new Size(882, 50);
             panelAcciones.TabIndex = 1;
             // 
             // btnBajaLogica
             // 
-            btnBajaLogica.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right));
-            btnBajaLogica.BackColor = System.Drawing.Color.White;
-            btnBajaLogica.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnBajaLogica.Location = new System.Drawing.Point(1008, 14);
-            btnBajaLogica.Margin = new System.Windows.Forms.Padding(5);
+            btnBajaLogica.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnBajaLogica.BackColor = Color.White;
+            btnBajaLogica.FlatStyle = FlatStyle.Flat;
+            btnBajaLogica.Location = new Point(618, 7);
             btnBajaLogica.Name = "btnBajaLogica";
-            btnBajaLogica.Size = new System.Drawing.Size(226, 46);
+            btnBajaLogica.Size = new Size(158, 29);
             btnBajaLogica.TabIndex = 2;
             btnBajaLogica.Text = "Activar/ Desactivar";
             btnBajaLogica.UseVisualStyleBackColor = false;
@@ -127,13 +121,12 @@
             // 
             // btnModificar
             // 
-            btnModificar.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right));
-            btnModificar.BackColor = System.Drawing.Color.White;
-            btnModificar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnModificar.Location = new System.Drawing.Point(655, 14);
-            btnModificar.Margin = new System.Windows.Forms.Padding(5);
+            btnModificar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnModificar.BackColor = Color.White;
+            btnModificar.FlatStyle = FlatStyle.Flat;
+            btnModificar.Location = new Point(401, 7);
             btnModificar.Name = "btnModificar";
-            btnModificar.Size = new System.Drawing.Size(180, 46);
+            btnModificar.Size = new Size(111, 29);
             btnModificar.TabIndex = 1;
             btnModificar.Text = "Modificar";
             btnModificar.UseVisualStyleBackColor = false;
@@ -141,13 +134,12 @@
             // 
             // btnNuevo
             // 
-            btnNuevo.Anchor = ((System.Windows.Forms.AnchorStyles)(System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right));
-            btnNuevo.BackColor = System.Drawing.Color.White;
-            btnNuevo.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnNuevo.Location = new System.Drawing.Point(270, 14);
-            btnNuevo.Margin = new System.Windows.Forms.Padding(5);
+            btnNuevo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnNuevo.BackColor = Color.White;
+            btnNuevo.FlatStyle = FlatStyle.Flat;
+            btnNuevo.Location = new Point(164, 7);
             btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new System.Drawing.Size(224, 46);
+            btnNuevo.Size = new Size(138, 29);
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo Empleado";
             btnNuevo.UseVisualStyleBackColor = false;
@@ -155,31 +147,30 @@
             // 
             // dgvEmpleados
             // 
-            dgvEmpleados.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right));
-            dgvEmpleados.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            dgvEmpleados.BackgroundColor = System.Drawing.Color.White;
-            dgvEmpleados.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            dgvEmpleados.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleHorizontal;
-            dgvEmpleados.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvEmpleados.GridColor = System.Drawing.SystemColors.Menu;
-            dgvEmpleados.Location = new System.Drawing.Point(0, 96);
-            dgvEmpleados.Margin = new System.Windows.Forms.Padding(5);
+            dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvEmpleados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvEmpleados.BackgroundColor = Color.White;
+            dgvEmpleados.BorderStyle = BorderStyle.None;
+            dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvEmpleados.GridColor = SystemColors.Menu;
+            dgvEmpleados.Location = new Point(0, 60);
             dgvEmpleados.Name = "dgvEmpleados";
             dgvEmpleados.RowHeadersVisible = false;
             dgvEmpleados.RowHeadersWidth = 51;
-            dgvEmpleados.Size = new System.Drawing.Size(1433, 549);
+            dgvEmpleados.Size = new Size(882, 343);
             dgvEmpleados.TabIndex = 2;
             dgvEmpleados.SelectionChanged += dgvEmpleados_SelectionChanged;
             // 
             // FrmListadoEmpleados
             // 
-            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            ClientSize = new System.Drawing.Size(1433, 725);
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(882, 453);
             Controls.Add(dgvEmpleados);
             Controls.Add(panelAcciones);
             Controls.Add(panelFiltros);
-            Margin = new System.Windows.Forms.Padding(5);
+            Name = "FrmListadoEmpleados";
             Text = "Empleados";
             Load += FrmListadoEmpleados_Load;
             panelFiltros.ResumeLayout(false);
