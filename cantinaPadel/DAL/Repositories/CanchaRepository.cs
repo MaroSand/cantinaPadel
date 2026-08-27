@@ -23,6 +23,16 @@ namespace cantinaPadel.DAL.Repositories
                 .Include(c => c.Producto)
                 .FirstOrDefault(c => c.IdCancha == idCancha);
         }
+        
+        public List<Cancha> ObtenerActivas()
+        {
+            using var ctx = new AppDbContext();
+            return ctx.Canchas
+                .Include(c => c.Producto)
+                .Where(c => c.Activa)
+                .OrderBy(c => c.Nombre)
+                .ToList();
+        }
 
         public bool ExisteNombre(string nombre, int? idCanchaExcluir = null)
         {

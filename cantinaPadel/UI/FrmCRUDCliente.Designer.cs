@@ -35,6 +35,8 @@
             label5 = new Label();
             txtTelefono = new TextBox();
             label4 = new Label();
+            txtCuit = new TextBox();
+            label7 = new Label();
             txtDni = new TextBox();
             label3 = new Label();
             label2 = new Label();
@@ -57,6 +59,8 @@
             panelDatos.Controls.Add(label5);
             panelDatos.Controls.Add(txtTelefono);
             panelDatos.Controls.Add(label4);
+            panelDatos.Controls.Add(txtCuit);
+            panelDatos.Controls.Add(label7);
             panelDatos.Controls.Add(txtDni);
             panelDatos.Controls.Add(label3);
             panelDatos.Controls.Add(label2);
@@ -76,7 +80,7 @@
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(104, 333);
+            btnCancelar.Location = new Point(104, 376);
             btnCancelar.Margin = new Padding(3, 4, 3, 4);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(322, 41);
@@ -91,7 +95,7 @@
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(479, 333);
+            btnGuardar.Location = new Point(479, 376);
             btnGuardar.Margin = new Padding(3, 4, 3, 4);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(322, 41);
@@ -102,17 +106,17 @@
             // 
             // txtEmail
             // 
-            txtEmail.Location = new Point(137, 267);
+            txtEmail.Location = new Point(137, 310);
             txtEmail.Margin = new Padding(3, 4, 3, 4);
             txtEmail.MaxLength = 100;
             txtEmail.Name = "txtEmail";
             txtEmail.Size = new Size(342, 27);
-            txtEmail.TabIndex = 9;
+            txtEmail.TabIndex = 10;
             // 
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(31, 267);
+            label5.Location = new Point(31, 310);
             label5.Name = "label5";
             label5.Size = new Size(59, 20);
             label5.TabIndex = 8;
@@ -120,22 +124,40 @@
             // 
             // txtTelefono
             // 
-            txtTelefono.Location = new Point(137, 215);
+            txtTelefono.Location = new Point(137, 258);
             txtTelefono.Margin = new Padding(3, 4, 3, 4);
             txtTelefono.MaxLength = 20;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new Size(342, 27);
-            txtTelefono.TabIndex = 7;
+            txtTelefono.TabIndex = 9;
             txtTelefono.KeyPress += txtTelefono_KeyPress;
             // 
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(31, 222);
+            label4.Location = new Point(31, 265);
             label4.Name = "label4";
             label4.Size = new Size(70, 20);
             label4.TabIndex = 6;
             label4.Text = "Teléfono:";
+            // 
+            // txtCuit
+            // 
+            txtCuit.Location = new Point(137, 215);
+            txtCuit.Margin = new Padding(3, 4, 3, 4);
+            txtCuit.MaxLength = 13;
+            txtCuit.Name = "txtCuit";
+            txtCuit.Size = new Size(342, 27);
+            txtCuit.TabIndex = 7;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(31, 222);
+            label7.Name = "label7";
+            label7.Size = new Size(60, 20);
+            label7.TabIndex = 13;
+            label7.Text = "CUIT: *";
             // 
             // txtDni
             // 
@@ -242,6 +264,8 @@
         private Label label4;
         private Label label5;
         private TextBox txtTelefono;
+        private TextBox txtCuit;
+        private Label label7;
         private Button btnCancelar;
         private Button btnGuardar;
         private TextBox txtEmail;

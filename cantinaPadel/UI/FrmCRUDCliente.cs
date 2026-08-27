@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -25,6 +26,7 @@ namespace cantinaPadel.UI
         {
             InitializeComponent();
             ConfigurarControlesRoles();
+            ConfigurarFormatoCuit();
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _clienteEdicion = null;
         }
@@ -69,6 +71,13 @@ namespace cantinaPadel.UI
             ActualizarVisibilidadRoles();
         }
 
+        private void ConfigurarFormatoCuit()
+        {
+            txtCuit.MaxLength = 13;
+            txtCuit.KeyPress += txtCuit_KeyPress;
+            txtCuit.TextChanged += txtCuit_TextChanged;
+        }
+
         private void ActualizarVisibilidadRoles()
         {
             lblNombreEmpresa.Visible = txtNombreEmpresa.Visible = chkEsProveedor.Checked;
@@ -84,6 +93,7 @@ namespace cantinaPadel.UI
             txtNombre.Text = _clienteEdicion.Persona.Nombre;
             txtApellido.Text = _clienteEdicion.Persona.Apellido;
             txtDni.Text = _clienteEdicion.Persona.Dni ?? string.Empty;
+            txtCuit.Text = _clienteEdicion.Persona.Cuit ?? string.Empty;
             txtTelefono.Text = _clienteEdicion.Persona.Telefono ?? string.Empty;
             txtEmail.Text = _clienteEdicion.Email;
 
@@ -120,8 +130,8 @@ namespace cantinaPadel.UI
                     Nombre = txtNombre.Text.Trim(),
                     Apellido = txtApellido.Text.Trim(),
                     Dni = string.IsNullOrWhiteSpace(txtDni.Text) ? null : txtDni.Text.Trim(),
+                    Cuit = txtCuit.Text.Trim(),
                     Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
-                    Cuit = _clienteEdicion?.Persona.Cuit,
                     CondicionIva = _clienteEdicion?.Persona.CondicionIva,
                     Direccion = _clienteEdicion?.Persona.Direccion,
                     Activo = _clienteEdicion?.Persona.Activo ?? true,
@@ -197,6 +207,42 @@ namespace cantinaPadel.UI
 
             if (!char.IsDigit(e.KeyChar))
                 e.Handled = true;
+        }
+
+        private void txtCuit_KeyPress(object? sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+                e.Handled = true;
+        }
+
+        private void txtCuit_TextChanged(object? sender, EventArgs e)
+        {
+            txtCuit.TextChanged -= txtCuit_TextChanged;
+
+            string numeros = new string(txtCuit.Text.Where(char.IsDigit).ToArray());
+
+            if (numeros.Length > 11)
+                numeros = numeros.Substring(0, 11);
+
+            string cuitFormateado = string.Empty;
+
+            if (numeros.Length > 0)
+            {
+                cuitFormateado += numeros.Substring(0, Math.Min(2, numeros.Length));
+
+                if (numeros.Length > 2)
+                {
+                    cuitFormateado += "-" + numeros.Substring(2, Math.Min(8, numeros.Length - 2));
+
+                    if (numeros.Length > 10)
+                        cuitFormateado += "-" + numeros.Substring(10, 1);
+                }
+            }
+
+            txtCuit.Text = cuitFormateado;
+            txtCuit.SelectionStart = txtCuit.Text.Length;
+
+            txtCuit.TextChanged += txtCuit_TextChanged;
         }
 
         private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)

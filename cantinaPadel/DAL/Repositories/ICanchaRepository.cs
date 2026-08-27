@@ -6,6 +6,7 @@ namespace cantinaPadel.DAL.Repositories
     {
         List<Cancha> ObtenerTodas(bool? activa = true);
         Cancha? ObtenerPorId(int idCancha);
+        List<Cancha> ObtenerActivas();
         bool ExisteNombre(string nombre, int? idCanchaExcluir = null);
 
         // Devuelve el id de la categoría "Hora Padel" (sembrada por el script SQL), usada para crear el producto asociado a una cancha nueva

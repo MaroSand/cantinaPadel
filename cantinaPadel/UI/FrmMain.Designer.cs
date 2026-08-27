@@ -68,14 +68,14 @@
             pnlSidebar.Location = new Point(0, 0);
             pnlSidebar.Margin = new Padding(5, 6, 5, 6);
             pnlSidebar.Name = "pnlSidebar";
-            pnlSidebar.Size = new Size(372, 1286);
+            pnlSidebar.Size = new Size(372, 1229);
             pnlSidebar.TabIndex = 0;
             // 
             // pnlSidebarFooter
             // 
             pnlSidebarFooter.Controls.Add(btnCerrarSesion);
             pnlSidebarFooter.Dock = DockStyle.Bottom;
-            pnlSidebarFooter.Location = new Point(0, 1179);
+            pnlSidebarFooter.Location = new Point(0, 1122);
             pnlSidebarFooter.Margin = new Padding(5, 6, 5, 6);
             pnlSidebarFooter.Name = "pnlSidebarFooter";
             pnlSidebarFooter.Size = new Size(372, 107);
@@ -116,7 +116,7 @@
             pnlNav.Location = new Point(0, 149);
             pnlNav.Margin = new Padding(5, 6, 5, 6);
             pnlNav.Name = "pnlNav";
-            pnlNav.Size = new Size(372, 1137);
+            pnlNav.Size = new Size(372, 1080);
             pnlNav.TabIndex = 1;
             // 
             // btnReportes
@@ -349,7 +349,7 @@
             pnlContenido.Location = new Point(372, 0);
             pnlContenido.Margin = new Padding(5, 6, 5, 6);
             pnlContenido.Name = "pnlContenido";
-            pnlContenido.Size = new Size(1638, 1286);
+            pnlContenido.Size = new Size(602, 1229);
             pnlContenido.TabIndex = 1;
             // 
             // pnlTopbar
@@ -361,7 +361,7 @@
             pnlTopbar.Location = new Point(0, 0);
             pnlTopbar.Margin = new Padding(5, 6, 5, 6);
             pnlTopbar.Name = "pnlTopbar";
-            pnlTopbar.Size = new Size(1638, 107);
+            pnlTopbar.Size = new Size(602, 107);
             pnlTopbar.TabIndex = 0;
             // 
             // lblUsuario
@@ -392,11 +392,11 @@
             // 
             AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(2010, 1286);
+            ClientSize = new Size(974, 1229);
             Controls.Add(pnlContenido);
             Controls.Add(pnlSidebar);
             Margin = new Padding(5, 6, 5, 6);
-            MinimumSize = new Size(2023, 1319);
+            MinimumSize = new Size(1000, 1300);
             Name = "FrmMain";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Cantina y Pádel";
@@ -414,15 +414,15 @@
 
         #endregion
 
-        private Panel pnlSidebar;
-        private Panel pnlContenido;
-        private Panel pnlTopbar;
+        private System.Windows.Forms.Panel pnlSidebar;
+        private System.Windows.Forms.Panel pnlContenido;
+        private System.Windows.Forms.Panel pnlTopbar;
         private Label lblTituloModulo;
         private Label lblUsuario;
         private Panel pnlSidebarHeader;
         private Label lblRolUsuario;
         private Label lblSistema;
-        private Panel pnlNav;
+        private System.Windows.Forms.Panel pnlNav;
         private Button btnInicio;
         private Button btnProveedores;
         private Button btnCaja;
@@ -432,7 +432,7 @@
         private Button btnStock;
         private Button btnPuntoVenta;
         private Button btnClientes;
-        private Panel pnlSidebarFooter;
+        private System.Windows.Forms.Panel pnlSidebarFooter;
         private Button btnCerrarSesion;
         private Button btnReportes;
         private Button btnEmpleados;

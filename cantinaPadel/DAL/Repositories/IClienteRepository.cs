@@ -9,6 +9,7 @@ namespace cantinaPadel.DAL.Repositories
     {
         List<Cliente> ObtenerTodos();
          Cliente? ObtenerPorId(int id);
+         List<Cliente> Buscar(string texto);
          void Agregar(Cliente cliente);
          void Modificar(Cliente cliente);
          void Bajalogica(int id);
