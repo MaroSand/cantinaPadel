@@ -53,25 +53,23 @@ namespace cantinaPadel.UI
 
         private void ConfigurarControlesRoles()
         {
-            ClientSize = new Size(ClientSize.Width, 860);
-            btnCancelar.Location = new Point(btnCancelar.Location.X, 720);
-            btnGuardar.Location = new Point(btnGuardar.Location.X, 720);
-
-            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(55, 570), AutoSize = true };
-            lblEmailCliente = new Label { Text = "Email cliente: *", Location = new Point(55, 620), AutoSize = true };
-            txtEmailCliente = new TextBox { Location = new Point(228, 614), Size = new Size(251, 39), MaxLength = 100 };
-
-            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(700, 570), AutoSize = true };
-            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(700, 620), AutoSize = true };
-            txtNombreEmpresa = new TextBox { Location = new Point(916, 614), Size = new Size(275, 39), MaxLength = 50 };
+            ClientSize = new Size(ClientSize.Width, 540);
+            btnCancelar.Location = new Point(btnCancelar.Location.X, 460);
+            btnGuardar.Location = new Point(btnGuardar.Location.X, 460);
+            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(34, 360), AutoSize = true };
+            lblEmailCliente = new Label { Text = "Email cliente: *", Location = new Point(34, 400), AutoSize = true };
+            txtEmailCliente = new TextBox { Location = new Point(200, 393), Size = new Size(200, 27), MaxLength = 100 };
+            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(431, 360), AutoSize = true };
+            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(431, 400), AutoSize = true };
+            txtNombreEmpresa = new TextBox { Location = new Point(601, 393), Size = new Size(250, 27), MaxLength = 50 };
 
             chkEsCliente.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
             chkEsProveedor.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
 
             Controls.AddRange(new Control[]
             {
-                chkEsCliente, lblEmailCliente, txtEmailCliente,
-                chkEsProveedor, lblNombreEmpresa, txtNombreEmpresa
+        chkEsCliente, lblEmailCliente, txtEmailCliente,
+        chkEsProveedor, lblNombreEmpresa, txtNombreEmpresa
             });
 
             ActualizarVisibilidadRoles();
