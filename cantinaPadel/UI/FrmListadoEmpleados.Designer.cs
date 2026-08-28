@@ -150,7 +150,6 @@
             dgvEmpleados.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvEmpleados.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvEmpleados.BackgroundColor = Color.White;
-            dgvEmpleados.BorderStyle = BorderStyle.None;
             dgvEmpleados.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dgvEmpleados.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvEmpleados.GridColor = SystemColors.Menu;

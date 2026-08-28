@@ -234,6 +234,7 @@
             // panel1
             // 
             panel1.BackColor = Color.Gold;
+            panel1.BorderStyle = BorderStyle.FixedSingle;
             panel1.Controls.Add(label10);
             panel1.Dock = DockStyle.Top;
             panel1.Location = new Point(0, 0);
@@ -256,7 +257,7 @@
             // 
             cmbCondicionIva.FormattingEnabled = true;
             cmbCondicionIva.Location = new Point(564, 281);
-            cmbCondicionIva.Margin = new Padding(2, 2, 2, 2);
+            cmbCondicionIva.Margin = new Padding(2);
             cmbCondicionIva.Name = "cmbCondicionIva";
             cmbCondicionIva.Size = new Size(171, 28);
             cmbCondicionIva.TabIndex = 11;
@@ -265,6 +266,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoScroll = true;
             BackColor = SystemColors.Info;
             ClientSize = new Size(882, 453);
             Controls.Add(cmbCondicionIva);
@@ -288,6 +290,7 @@
             Controls.Add(label1);
             Controls.Add(btnCancelar);
             Controls.Add(btnGuardar);
+            FormBorderStyle = FormBorderStyle.FixedSingle;
             Name = "FrmCRUDEmpleado";
             Text = "Empleado";
             Load += FrmCRUDEmpleado_Load;

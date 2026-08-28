@@ -101,6 +101,7 @@
             // 
             // pnlNav
             // 
+            pnlNav.AutoScroll = true;
             pnlNav.Controls.Add(btnReportes);
             pnlNav.Controls.Add(btnCaja);
             pnlNav.Controls.Add(btnCanchas);
@@ -113,10 +114,10 @@
             pnlNav.Controls.Add(btnClientes);
             pnlNav.Controls.Add(btnInicio);
             pnlNav.Dock = DockStyle.Fill;
-            pnlNav.Location = new Point(0, 93);
+            pnlNav.Location = new Point(0, 85);
             pnlNav.Margin = new Padding(3, 4, 3, 4);
             pnlNav.Name = "pnlNav";
-            pnlNav.Size = new Size(229, 860);
+            pnlNav.Size = new Size(229, 868);
             pnlNav.TabIndex = 1;
             // 
             // btnReportes
@@ -315,7 +316,7 @@
             pnlSidebarHeader.Location = new Point(0, 0);
             pnlSidebarHeader.Margin = new Padding(3, 4, 3, 4);
             pnlSidebarHeader.Name = "pnlSidebarHeader";
-            pnlSidebarHeader.Size = new Size(229, 93);
+            pnlSidebarHeader.Size = new Size(229, 85);
             pnlSidebarHeader.TabIndex = 0;
             // 
             // lblRolUsuario
@@ -388,6 +389,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoScroll = true;
             ClientSize = new Size(1282, 953);
             Controls.Add(pnlContenido);
             Controls.Add(pnlSidebar);
