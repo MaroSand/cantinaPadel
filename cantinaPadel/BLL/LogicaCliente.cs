@@ -6,6 +6,7 @@ using cantinaPadel.DAL.Repositories;
 
 namespace cantinaPadel.BLL
 {
+    //TODO VER SI ELIMINAR MÉTODOS QUE NO SE USAN MÁS POR REFACTOR LogicaPersonaRoles
     public class LogicaCliente
     {
 
@@ -44,43 +45,6 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("Los datos del cliente son obligatorios.");
 
             cliente.Validar();
-        }
-
-
-        // Método para modificar un cliente existente
-        public void Modificar(Cliente cliente)
-        {
-            Validar(cliente);
-
-            _clienteRepository.Modificar(cliente);
-        }
-
-        // Método para dar de alta un nuevo cliente
-
-        public void Alta(Cliente cliente)
-        {
-
-            Validar(cliente);
-
-            Persona? personaExiste = null;
-            // Verificar si la persona ya existe en la base de datos por su DNI
-            if (!string.IsNullOrWhiteSpace(cliente.Persona.Dni))
-                personaExiste = _clienteRepository.BuscarPersonaPorDni(cliente.Persona.Dni);
-
-            // Si la persona no existe, se marca como cliente; si existe, se actualiza su estado a cliente y se asigna al cliente
-            if (personaExiste == null)
-            {
-                cliente.Persona.EsCliente = true;
-            }
-            else
-            {
-                // Si la persona ya existe, se actualiza su estado a cliente y se asigna al cliente
-                personaExiste.EsCliente = true;
-                cliente.IdPersona = personaExiste.IdPersona;
-                cliente.Persona = personaExiste;
-            }
-            // Agregar el cliente a la base de datos
-            _clienteRepository.Agregar(cliente);
         }
     }
 }

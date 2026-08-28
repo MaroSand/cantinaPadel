@@ -28,22 +28,6 @@ namespace cantinaPadel.BLL
 
         public Proveedor? ObtenerPorId(int id) => _repo.ObtenerPorId(id);
 
-        // Alta: valida campos obligatorios antes de persistir
-        public void Agregar(Persona persona, Proveedor proveedor)
-        {
-            Validar(persona, proveedor);
-
-            _repo.Agregar(persona, proveedor);
-        }
-
-        // Modificación: mismas validaciones que el alta
-        public void Modificar(Persona persona, Proveedor proveedor)
-        {
-            Validar(persona, proveedor);
-
-            _repo.Modificar(persona, proveedor);
-        }
-
         // Activa/Desactiva (toggle) el proveedor según su estado actual
         public void BajaLogica(int idProveedor) => _repo.BajaLogica(idProveedor);
 
