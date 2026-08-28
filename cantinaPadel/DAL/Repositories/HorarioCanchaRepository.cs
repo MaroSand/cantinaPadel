@@ -20,17 +20,6 @@ namespace cantinaPadel.DAL.Repositories
                 .ToList();
         }
 
-        public List<HorarioCancha> ObtenerPorCancha(int idCancha, bool? activo = true)
-        {
-            using var ctx = new AppDbContext();
-            IQueryable<HorarioCancha> query = ctx.HorariosCancha.Where(h => h.IdCancha == idCancha);
-
-            if (activo.HasValue)
-                query = query.Where(h => h.Activo == activo.Value);
-
-            return query.OrderBy(h => h.DiaSemana).ThenBy(h => h.HoraInicio).ToList();
-        }
-
         public HorarioCancha? ObtenerPorId(int idHorario)
         {
             using var ctx = new AppDbContext();

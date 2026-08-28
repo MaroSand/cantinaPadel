@@ -106,7 +106,11 @@ namespace cantinaPadel.UI
         {
             try
             {
-                decimal.TryParse(txtPrecioHora.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal precioHora);
+                if (!decimal.TryParse(txtPrecioHora.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal precioHora))
+                {
+                    MessageBox.Show("Ingrese un precio por hora válido (solo números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 if (_canchaSeleccionada == null)
                 {
