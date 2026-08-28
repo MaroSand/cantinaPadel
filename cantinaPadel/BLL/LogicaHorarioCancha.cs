@@ -19,7 +19,6 @@ namespace cantinaPadel.BLL
 
         public List<HorarioCancha> ObtenerTodos(bool? activo = true) => _repo.ObtenerTodos(activo);
 
-        public List<HorarioCancha> ObtenerPorCancha(int idCancha, bool? activo = true) => _repo.ObtenerPorCancha(idCancha, activo);
 
         public HorarioCancha? ObtenerPorId(int idHorario) => _repo.ObtenerPorId(idHorario);
 
