@@ -28,6 +28,7 @@ namespace cantinaPadel.UI
         private TimeSpan? _horaFinSeleccionada;
         private int _idInstanciaSeleccionada;
         private int _idClienteSeleccionado;
+        private System.Windows.Forms.Timer _debounceBusquedaCliente = null!;
 
         public FrmAlquilerDia()
         {
@@ -87,6 +88,19 @@ namespace cantinaPadel.UI
                 Margin = new Padding(0, 0, 8, 8)
             };
             txtBuscarCliente.KeyDown += txtBuscarCliente_KeyDown;
+
+            // Búsqueda en vivo, espera 300ms sin que se tipee nada antes de consultar la bd
+            _debounceBusquedaCliente = new System.Windows.Forms.Timer { Interval = 300 };
+            _debounceBusquedaCliente.Tick += (_, _) =>
+            {
+                _debounceBusquedaCliente.Stop();
+                BuscarClientes();
+            };
+            txtBuscarCliente.TextChanged += (_, _) =>
+            {
+                _debounceBusquedaCliente.Stop();
+                _debounceBusquedaCliente.Start();
+            };
 
             btnBuscarCliente = CrearBoton("Buscar cliente");
             btnBuscarCliente.Click += (_, _) => BuscarClientes();
@@ -396,6 +410,8 @@ namespace cantinaPadel.UI
                 return;
 
             e.SuppressKeyPress = true;
+            // frena el timer si estaba corriendo, por si el usuario apreta Enter antes de que pasen los 300ms
+            _debounceBusquedaCliente.Stop();
             BuscarClientes();
         }
 
