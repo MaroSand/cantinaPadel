@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             panelDatos = new Panel();
+            panel1 = new Panel();
+            label6 = new Label();
             btnCancelar = new Button();
             btnGuardar = new Button();
             txtEmail = new TextBox();
@@ -43,8 +45,6 @@
             txtApellido = new TextBox();
             txtNombre = new TextBox();
             label1 = new Label();
-            panel1 = new Panel();
-            label6 = new Label();
             panelDatos.SuspendLayout();
             panel1.SuspendLayout();
             SuspendLayout();
@@ -73,6 +73,26 @@
             panelDatos.Name = "panelDatos";
             panelDatos.Size = new Size(882, 453);
             panelDatos.TabIndex = 0;
+            // 
+            // panel1
+            // 
+            panel1.BackColor = Color.Gold;
+            panel1.Controls.Add(label6);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(882, 47);
+            panel1.TabIndex = 12;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label6.Location = new Point(32, 9);
+            label6.Name = "label6";
+            label6.Size = new Size(196, 31);
+            label6.TabIndex = 0;
+            label6.Text = "Datos del Cliente";
             // 
             // btnCancelar
             // 
@@ -126,7 +146,7 @@
             // 
             txtTelefono.Location = new Point(137, 258);
             txtTelefono.Margin = new Padding(3, 4, 3, 4);
-            txtTelefono.MaxLength = 20;
+            txtTelefono.MaxLength = 10;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new Size(342, 27);
             txtTelefono.TabIndex = 9;
@@ -155,7 +175,7 @@
             label7.AutoSize = true;
             label7.Location = new Point(31, 222);
             label7.Name = "label7";
-            label7.Size = new Size(60, 20);
+            label7.Size = new Size(53, 20);
             label7.TabIndex = 13;
             label7.Text = "CUIT: *";
             // 
@@ -215,26 +235,6 @@
             label1.Size = new Size(67, 20);
             label1.TabIndex = 0;
             label1.Text = "Nombre:";
-            // 
-            // panel1
-            // 
-            panel1.BackColor = Color.Gold;
-            panel1.Controls.Add(label6);
-            panel1.Dock = DockStyle.Top;
-            panel1.Location = new Point(0, 0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(882, 47);
-            panel1.TabIndex = 12;
-            // 
-            // label6
-            // 
-            label6.AutoSize = true;
-            label6.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label6.Location = new Point(32, 9);
-            label6.Name = "label6";
-            label6.Size = new Size(196, 31);
-            label6.TabIndex = 0;
-            label6.Text = "Datos del Cliente";
             // 
             // FrmCRUDCliente
             // 
