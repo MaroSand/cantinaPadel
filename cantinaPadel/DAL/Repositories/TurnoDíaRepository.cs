@@ -100,6 +100,25 @@ namespace cantinaPadel.DAL.Repositories
                 .ToList();
         }
 
+        public List<InstanciaTurno> ObtenerInstanciasPorCliente(int idCliente)
+        {
+            using var ctx = new AppDbContext();
+
+            return ctx.InstanciasTurno
+                .Include(i => i.HorarioCancha)
+                    .ThenInclude(h => h.Cancha)
+                        .ThenInclude(c => c!.Producto)
+                .Include(i => i.TurnoReservado)
+                    .ThenInclude(t => t.Cliente)
+                        .ThenInclude(c => c.Persona)
+                .Where(i => i.TurnoReservado.IdCliente == idCliente
+                         && i.Estado == InstanciaTurno.EstadoActiva
+                         && i.TurnoReservado.Estado == TurnoReservado.EstadoActivo)
+                .OrderBy(i => i.Fecha)
+                    .ThenBy(i => i.HorarioCancha.HoraInicio)
+                .ToList();
+        }
+
         public InstanciaTurno? ObtenerInstanciaPorId(int idInstancia)
         {
             using var ctx = new AppDbContext();
@@ -123,8 +142,7 @@ namespace cantinaPadel.DAL.Repositories
 
             instancia.Estado = InstanciaTurno.EstadoCancelada;
 
-            // "Por dia" tiene una sola instancia: si se cancela, no
-            // tiene sentido dejar la cabecera del turno como "Activo".
+            // "Por dia" tiene una sola instancia. Si se cancela, no se deja la cabecera del turno como "Activo"
             if (instancia.TurnoReservado.Modalidad == TurnoReservado.ModalidadPorDia)
                 instancia.TurnoReservado.Estado = TurnoReservado.EstadoCancelado;
 

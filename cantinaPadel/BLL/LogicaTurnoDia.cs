@@ -100,23 +100,32 @@ namespace cantinaPadel.BLL
 
             return GenerarFranjasDelDia()
                 .Select(franja => new HorarioTurnoDiaDisponible
-            {
-                IdCancha = cancha.IdCancha,
-                Cancha = cancha.Nombre,
-                DiaSemana = diaSemana,
-                HoraInicio = franja.HoraInicio,
-                HoraFin = franja.HoraFin,
-                PrecioHora = cancha.PrecioHora,
-                Disponible = !reservas.Any(r =>
-                    r.HorarioCancha.HoraInicio < franja.HoraFin &&
-                    franja.HoraInicio < r.HorarioCancha.HoraFin)
-            })
+                {
+                    IdCancha = cancha.IdCancha,
+                    Cancha = cancha.Nombre,
+                    DiaSemana = diaSemana,
+                    HoraInicio = franja.HoraInicio,
+                    HoraFin = franja.HoraFin,
+                    PrecioHora = cancha.PrecioHora,
+                    Disponible = !reservas.Any(r =>
+                        r.HorarioCancha.HoraInicio < franja.HoraFin &&
+                        franja.HoraInicio < r.HorarioCancha.HoraFin)
+                })
                 .ToList();
         }
 
         public List<InstanciaTurno> ObtenerReservas(DateTime fecha, int? idCancha = null)
         {
             return _turnoRepo.ObtenerInstanciasPorFecha(fecha.Date, idCancha);
+        }
+
+        // Todos los turnos activos del cliente, sin importar fecha ni cancha.
+        public List<InstanciaTurno> ObtenerReservasPorCliente(int idCliente)
+        {
+            if (idCliente <= 0)
+                return new List<InstanciaTurno>();
+
+            return _turnoRepo.ObtenerInstanciasPorCliente(idCliente);
         }
 
         public int CalcularCantidadTurnos(string modalidad, DateTime fechaInicio)
@@ -152,7 +161,7 @@ namespace cantinaPadel.BLL
 
             if (idCancha <= 0)
                 throw new ArgumentException("Debe seleccionar una cancha.");
-            
+
             ValidarFecha(fechaInicio);
             ValidarFranja(horaInicio, horaFin);
             ValidarModalidad(modalidad);
