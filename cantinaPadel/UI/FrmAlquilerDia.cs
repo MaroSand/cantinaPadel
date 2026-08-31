@@ -187,12 +187,27 @@ namespace cantinaPadel.UI
 
         private void RefrescarDatos()
         {
-            if (cmbCancha?.SelectedValue is not int idCancha)
-                return;
-
             ActualizarResumenReserva();
-            CargarHorarios(idCancha);
-            CargarReservas(idCancha);
+
+            if (cmbCancha?.SelectedValue is int idCancha)
+                CargarHorarios(idCancha);
+
+            ActualizarVistaReservas();
+        }
+
+        // Si hay un cliente seleccionado desde la búsqueda, la grilla de reservas
+        // muestra TODOS sus turnos activos (cualquier fecha/cancha). Si no, vuelve
+        // a mostrar las reservas del día y cancha actualmente elegidos.
+        private void ActualizarVistaReservas()
+        {
+            if (_idClienteSeleccionado > 0)
+            {
+                CargarReservasPorCliente(_idClienteSeleccionado);
+            }
+            else if (cmbCancha?.SelectedValue is int idCancha)
+            {
+                CargarReservas(idCancha);
+            }
         }
 
         private void BuscarClientes()
@@ -215,6 +230,9 @@ namespace cantinaPadel.UI
 
                 dgvClientes.DataSource = null;
                 dgvClientes.DataSource = clientes;
+
+                // Al lanzar una nueva búsqueda se pierde la selección anterior, así que la grilla de reservas vuelve a mostrar el día/cancha actual
+                ActualizarVistaReservas();
             }
             catch (Exception ex)
             {
@@ -260,6 +278,7 @@ namespace cantinaPadel.UI
                     .Select(i => new
                     {
                         i.IdInstancia,
+                        Fecha = i.Fecha.ToString("dd/MM/yyyy"),
                         Cancha = i.HorarioCancha.Cancha?.Nombre ?? "-",
                         Horario = $"{i.HorarioCancha.HoraInicio:hh\\:mm} - {i.HorarioCancha.HoraFin:hh\\:mm}",
                         Cliente = $"{i.TurnoReservado.Cliente.Persona.Apellido}, {i.TurnoReservado.Cliente.Persona.Nombre}",
@@ -277,6 +296,37 @@ namespace cantinaPadel.UI
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al cargar reservas: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Muestra en la misma grilla todos los turnos activos del cliente seleccionado, indistinto de la fecha o la cancha
+        private void CargarReservasPorCliente(int idCliente)
+        {
+            try
+            {
+                _idInstanciaSeleccionada = 0;
+                var reservas = _logica.ObtenerReservasPorCliente(idCliente)
+                    .Select(i => new
+                    {
+                        i.IdInstancia,
+                        Fecha = i.Fecha.ToString("dd/MM/yyyy"),
+                        Cancha = i.HorarioCancha.Cancha?.Nombre ?? "-",
+                        Horario = $"{i.HorarioCancha.HoraInicio:hh\\:mm} - {i.HorarioCancha.HoraFin:hh\\:mm}",
+                        Cliente = $"{i.TurnoReservado.Cliente.Persona.Apellido}, {i.TurnoReservado.Cliente.Persona.Nombre}",
+                        Pago = i.EstadoPago,
+                        Precio = i.HorarioCancha.Cancha?.PrecioHora ?? 0m
+                    })
+                    .ToList();
+
+                dgvReservas.DataSource = null;
+                dgvReservas.DataSource = reservas;
+                lblSeleccionReserva.Text = reservas.Count == 0
+                    ? "Reservas del cliente: no tiene turnos activos reservados."
+                    : "Reservas del cliente: seleccione una reserva activa para cancelar.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar las reservas del cliente: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -394,14 +444,23 @@ namespace cantinaPadel.UI
             _idClienteSeleccionado = 0;
 
             if (dgvClientes.CurrentRow == null)
+            {
+                ActualizarVistaReservas();
                 return;
+            }
 
             object? idValue = dgvClientes.CurrentRow.Cells["IdCliente"].Value;
             if (idValue == null)
+            {
+                ActualizarVistaReservas();
                 return;
+            }
 
             _idClienteSeleccionado = Convert.ToInt32(idValue);
             lblClienteSeleccionado.Text = $"Cliente seleccionado: {dgvClientes.CurrentRow.Cells["Cliente"].Value}";
+
+            // Al elegir un cliente de la búsqueda, la grilla de reservas pasa a mostrar todos sus turnos activos
+            ActualizarVistaReservas();
         }
 
         private void txtBuscarCliente_KeyDown(object? sender, KeyEventArgs e)
@@ -602,7 +661,8 @@ namespace cantinaPadel.UI
         {
             dgvReservas.Columns.Clear();
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdInstancia", DataPropertyName = "IdInstancia", Visible = false });
-            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cancha", Name = "Cancha", DataPropertyName = "Cancha", FillWeight = 25 });
+            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Fecha", Name = "Fecha", DataPropertyName = "Fecha", FillWeight = 18 });
+            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cancha", Name = "Cancha", DataPropertyName = "Cancha", FillWeight = 22 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Horario", Name = "Horario", DataPropertyName = "Horario", FillWeight = 25 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cliente", Name = "Cliente", DataPropertyName = "Cliente", FillWeight = 45 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Pago", Name = "Pago", DataPropertyName = "Pago", FillWeight = 30 });
