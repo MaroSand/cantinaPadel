@@ -33,6 +33,8 @@ namespace cantinaPadel.DAL.Repositories
                 query = query.Where(c =>
                     c.Persona.Nombre.ToLower().Contains(texto) ||
                     c.Persona.Apellido.ToLower().Contains(texto) ||
+                    (c.Persona.Nombre + " " + c.Persona.Apellido).ToLower().Contains(texto) ||
+                    (c.Persona.Apellido + " " + c.Persona.Nombre).ToLower().Contains(texto) ||
                     (c.Persona.Dni != null && c.Persona.Dni.ToLower().Contains(texto)) ||
                     c.Email.ToLower().Contains(texto));
             }
