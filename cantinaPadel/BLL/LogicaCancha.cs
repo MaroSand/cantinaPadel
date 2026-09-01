@@ -21,7 +21,9 @@ namespace cantinaPadel.BLL
 
         public Cancha? ObtenerPorId(int idCancha) => _repo.ObtenerPorId(idCancha);
 
-        // Alta: además de la cancha, crea el producto "Hora Padel" asociado (categoría "Hora Padel", precio = precio por hora ingresado)
+        // Alta: además de la cancha, crea el producto "Hora Padel" asociado
+        // (categoría "Hora Padel"). El precio ya no se carga acá: queda en $0
+        // y se completa después desde la pantalla de Actualización de Precios.
         public void Agregar(Cancha cancha)
         {
             Validar(cancha, esAlta: true);
@@ -30,14 +32,14 @@ namespace cantinaPadel.BLL
             {
                 Nombre = $"Hora Padel - {cancha.Nombre}",
                 IdCategoria = _repo.ObtenerIdCategoriaHoraPadel(),
-                PrecioVenta = cancha.PrecioHora,
+                PrecioVenta = 0m,
                 Activo = true
             };
 
             _repo.Agregar(cancha);
         }
 
-        // El nombre y el precio por hora pueden cambiar; el precio impacta directo sobre el producto ya asociado
+        // El nombre y el estado pueden cambiar acá; el precio se maneja aparte, desde Actualización de Precios
         public void Modificar(Cancha cancha)
         {
             Validar(cancha, esAlta: false);
