@@ -28,9 +28,6 @@ namespace cantinaPadel.BLL
 
     public class LogicaTurnoDia
     {
-        private static readonly TimeSpan HoraApertura = new(8, 0, 0);
-        private static readonly TimeSpan HoraCierre = new(23, 0, 0);
-
         // Paso mínimo entre horarios de inicio posibles. Cambiar esto alcanza para
         // ajustar la granularidad de toda la grilla (ej: a 15 min si algún día hiciera falta).
         private static readonly TimeSpan GranularidadTurno = TimeSpan.FromMinutes(30);
@@ -56,9 +53,10 @@ namespace cantinaPadel.BLL
         private readonly ICanchaRepository _canchaRepo;
         private readonly IClienteRepository _clienteRepo;
         private readonly ICajaRepository _cajaRepo;
+        private readonly IHorarioCanchaRepository _horarioCanchaRepo;
 
         public LogicaTurnoDia()
-            : this(new TurnoDiaRepository(), new CanchaRepository(), new ClienteRepository(), new CajaRepository())
+            : this(new TurnoDiaRepository(), new CanchaRepository(), new ClienteRepository(), new CajaRepository(), new HorarioCanchaRepository())
         {
         }
 
@@ -66,12 +64,14 @@ namespace cantinaPadel.BLL
             ITurnoDiaRepository turnoRepo,
             ICanchaRepository canchaRepo,
             IClienteRepository clienteRepo,
-            ICajaRepository cajaRepo)
+            ICajaRepository cajaRepo,
+            IHorarioCanchaRepository horarioCanchaRepo)
         {
             _turnoRepo = turnoRepo;
             _canchaRepo = canchaRepo;
             _clienteRepo = clienteRepo;
             _cajaRepo = cajaRepo;
+            _horarioCanchaRepo = horarioCanchaRepo;
         }
 
         public List<Cancha> ObtenerCanchasActivas() => _canchaRepo.ObtenerActivas();
@@ -112,22 +112,23 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("La cancha seleccionada no existe o está inactiva.");
 
             string diaSemana = ObtenerDiaSemana(fecha);
+            var bandas = ObtenerBandasHorarias(idCancha, fecha);
             var reservas = _turnoRepo.ObtenerInstanciasPorFecha(fecha.Date, idCancha);
 
-            return GenerarIniciosDelDia()
-                // Descarta los inicios cuya duración elegida se pasaría del horario de cierre
-                .Where(inicio => inicio + duracionEfectiva <= HoraCierre)
-                .Select(inicio => new HorarioTurnoDiaDisponible
+            return GenerarInicios(bandas)
+                // Debe entrar completo dentro de la banda que lo contiene, no puede "saltar" el hueco cerrado entre dos bandas
+                .Where(x => x.Inicio + duracionEfectiva <= x.FinBanda)
+                .Select(x => new HorarioTurnoDiaDisponible
                 {
                     IdCancha = cancha.IdCancha,
                     Cancha = cancha.Nombre,
                     DiaSemana = diaSemana,
-                    HoraInicio = inicio,
-                    HoraFin = inicio + duracionEfectiva,
+                    HoraInicio = x.Inicio,
+                    HoraFin = x.Inicio + duracionEfectiva,
                     // Libre solo si NINGUNA reserva existente se solapa con todo el rango [inicio, inicio+duracion)
                     Disponible = !reservas.Any(r =>
-                        r.HorarioCancha.HoraInicio < inicio + duracionEfectiva &&
-                        inicio < r.HorarioCancha.HoraFin)
+                        r.HorarioCancha.HoraInicio < x.Inicio + duracionEfectiva &&
+                        x.Inicio < r.HorarioCancha.HoraFin)
                 })
                 .ToList();
         }
@@ -182,12 +183,13 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("Debe seleccionar una cancha.");
 
             ValidarFecha(fechaInicio);
-            ValidarFranja(horaInicio, horaFin);
             ValidarModalidad(modalidad);
 
             var cancha = _canchaRepo.ObtenerPorId(idCancha);
             if (cancha == null || !cancha.Activa)
                 throw new ArgumentException("La cancha seleccionada no existe o está inactiva.");
+
+            ValidarFranja(idCancha, fechaInicio, horaInicio, horaFin);
 
             var fechas = GenerarFechasReserva(modalidad, fechaInicio);
             var fechasOcupadas = fechas
@@ -302,15 +304,18 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("No se pueden registrar turnos en fechas pasadas.");
         }
 
-        private static void ValidarFranja(TimeSpan horaInicio, TimeSpan horaFin)
+        private void ValidarFranja(int idCancha, DateTime fecha, TimeSpan horaInicio, TimeSpan horaFin)
         {
             if (horaFin <= horaInicio)
                 throw new ArgumentException("La hora de fin debe ser posterior a la hora de inicio.");
 
-            if (horaInicio < HoraApertura || horaFin > HoraCierre)
-                throw new ArgumentException("La banda horaria está fuera del horario de atención.");
-
             ValidarDuracion(horaFin - horaInicio);
+
+            var bandas = ObtenerBandasHorarias(idCancha, fecha);
+            bool entraEnAlgunaBanda = bandas.Any(b => horaInicio >= b.Inicio && horaFin <= b.Fin);
+
+            if (!entraEnAlgunaBanda)
+                throw new ArgumentException("La banda horaria está fuera del horario configurado para esa cancha ese día.");
         }
 
         // Valida que la duración sea múltiplo positivo de la granularidad configurada
@@ -326,16 +331,38 @@ namespace cantinaPadel.BLL
             return duracion;
         }
 
-        // Genera todas las horas de inicio posibles del día, cada GranularidadTurno
-        // (ej: 08:00, 08:30, 09:00, ...). La hora de fin de cada opción la calcula
-        // ObtenerHorarios en base a la duración elegida, no queda fija acá.
-        private static List<TimeSpan> GenerarIniciosDelDia()
+        // Trae las bandas horarias activas configuradas para esa cancha en FrmHorarios, para el día
+        // de la semana que le corresponde a "fecha" (ej: si fecha es un lunes, trae lo cargado para "Lunes").
+        // Puede haber más de una banda por día (ej: turno mañana y turno tarde separados por un cierre al mediodía).
+        //
+        // Los horarios que cruzan la medianoche (ej: 20:00 a 02:00) se descartan por ahora: el motor de
+        // turnos por día todavía guarda cada reserva contra una única fecha, así que no soporta un turno
+        // que empiece un día y termine en la fecha siguiente. Si hace falta, es un cambio aparte.
+        private List<(TimeSpan Inicio, TimeSpan Fin)> ObtenerBandasHorarias(int idCancha, DateTime fecha)
         {
-            var inicios = new List<TimeSpan>();
+            string diaSemana = ObtenerDiaSemana(fecha);
 
-            for (var inicio = HoraApertura; inicio < HoraCierre; inicio += GranularidadTurno)
+            return _horarioCanchaRepo.ObtenerPorCancha(idCancha, activo: true)
+                .Where(h => string.Equals(h.DiaSemana, diaSemana, StringComparison.OrdinalIgnoreCase))
+                .Where(h => !h.CruzaMedianoche)
+                .OrderBy(h => h.HoraInicio)
+                .Select(h => (h.HoraInicio, h.HoraFin))
+                .ToList();
+        }
+
+        // Genera todas las horas de inicio posibles dentro de las bandas dadas, cada GranularidadTurno
+        // (ej: banda 08:00-12:00 -> 08:00, 08:30, ..., 11:30). Cada inicio viaja con el fin de SU banda,
+        // para que ObtenerHorarios pueda chequear que la duración elegida entra sin saltar a la banda siguiente.
+        private static List<(TimeSpan Inicio, TimeSpan FinBanda)> GenerarInicios(List<(TimeSpan Inicio, TimeSpan Fin)> bandas)
+        {
+            var inicios = new List<(TimeSpan Inicio, TimeSpan FinBanda)>();
+
+            foreach (var banda in bandas)
             {
-                inicios.Add(inicio);
+                for (var inicio = banda.Inicio; inicio < banda.Fin; inicio += GranularidadTurno)
+                {
+                    inicios.Add((inicio, banda.Fin));
+                }
             }
 
             return inicios;
