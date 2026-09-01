@@ -54,7 +54,7 @@ namespace cantinaPadel.Tests
             Assert.ThrowsExactly<ArgumentException>(() =>
                 logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, manana, new TimeSpan(6, 0, 0), new TimeSpan(7, 0, 0), LogicaTurnoDia.ModalidadDia));
             Assert.ThrowsExactly<ArgumentException>(() =>
-                logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, manana, inicio, fin, "Quincenal"));
+                logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, manana, inicio, fin, LogicaTurnoDia.ModalidadMensual));
         }
 
         [TestMethod]
@@ -95,6 +95,38 @@ namespace cantinaPadel.Tests
             Assert.ThrowsExactly<InvalidOperationException>(() =>
                 logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, DateTime.Today.AddDays(1),
                     new TimeSpan(10, 0, 0), new TimeSpan(11, 0, 0), LogicaTurnoDia.ModalidadDia));
+        }
+
+        [TestMethod]
+        public void RegistrarAlquiler_DuracionNoMultiploDeLaGranularidad_LanzaArgumentException()
+        {
+            var canchaRepo = new CanchaRepositoryFake();
+            canchaRepo.Cargar(CrearCanchaActiva());
+            var logica = CrearLogica(canchaRepo: canchaRepo);
+            var manana = DateTime.Today.AddDays(1);
+
+            // 20 minutos no es múltiplo de la granularidad de 30 min
+            Assert.ThrowsExactly<ArgumentException>(() =>
+                logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, manana,
+                    new TimeSpan(10, 0, 0), new TimeSpan(10, 20, 0), LogicaTurnoDia.ModalidadDia));
+        }
+
+        [TestMethod]
+        public void RegistrarAlquiler_MediaHora_SeRegistraCorrectamente()
+        {
+            var fecha = DateTime.Today.AddDays(1);
+            var canchaRepo = new CanchaRepositoryFake();
+            canchaRepo.Cargar(CrearCanchaActiva());
+            var turnoRepo = new TurnoDiaRepositoryFake();
+            var cajaRepo = new CajaRepositoryFake { CajaAbierta = new Caja { IdCaja = 55, IdEmpleado = IdEmpleadoValido } };
+            var logica = CrearLogica(turnoRepo, canchaRepo, cajaRepo: cajaRepo);
+
+            logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, fecha,
+                new TimeSpan(10, 0, 0), new TimeSpan(10, 30, 0), LogicaTurnoDia.ModalidadDia);
+
+            Assert.HasCount(1, turnoRepo.HorariosRegistrados!);
+            Assert.AreEqual(new TimeSpan(10, 0, 0), turnoRepo.HorariosRegistrados![0].HoraInicio);
+            Assert.AreEqual(new TimeSpan(10, 30, 0), turnoRepo.HorariosRegistrados[0].HoraFin);
         }
 
         [TestMethod]
@@ -198,13 +230,16 @@ namespace cantinaPadel.Tests
             });
             var logica = CrearLogica(turnoRepo, canchaRepo);
 
-            // Apertura 08:00, cierre 23:00, franjas de 1h -> 15 franjas en total (08-09 ... 22-23)
+            // Apertura 08:00, cierre 23:00, granularidad de 30 min -> 30 horas de inicio posibles,
+            // pero 22:30 se descarta porque con la duración por defecto (1h) no entra antes del cierre -> 29 franjas.
+            // La reserva existente de 10:00-11:00 se solapa con los inicios 09:30, 10:00 y 10:30 (cualquier turno
+            // de 1h que arranque ahí pisa esa reserva), así que quedan 3 franjas ocupadas y 26 disponibles.
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
-            Assert.HasCount(15, horarios);
+            Assert.HasCount(29, horarios);
             var franjaOcupada = horarios.Single(h => h.Horario == "10:00 - 11:00");
             Assert.IsFalse(franjaOcupada.Disponible);
-            Assert.AreEqual(14, horarios.Count(h => h.Disponible));
+            Assert.AreEqual(26, horarios.Count(h => h.Disponible));
         }
 
         // CalcularFechaFin / CalcularCantidadTurnos
@@ -256,8 +291,7 @@ namespace cantinaPadel.Tests
         }
     }
 
-    // Fakes en memoria de los repos que consume LogicaTurnoDia
-
+    // Repositorio falso que consume LogicaTurnoDia
     internal sealed class TurnoDiaRepositoryFake : ITurnoDiaRepository
     {
         private readonly List<HorarioCancha> _horarios = new();
