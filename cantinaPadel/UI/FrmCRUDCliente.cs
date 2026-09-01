@@ -21,11 +21,14 @@ namespace cantinaPadel.UI
         private TextBox txtContrasenaEmpleado = null!;
         private Label lblRolEmpleado = null!;
         private ComboBox cmbRolEmpleado = null!;
+        private Label lblCondicionIva = null!;
+        private ComboBox cmbCondicionIva = null!;
 
         public FrmCRUDCliente()
         {
             InitializeComponent();
             ConfigurarControlesRoles();
+            CargarCondicionesIva();
             ConfigurarFormatoCuit();
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _clienteEdicion = null;
@@ -58,6 +61,19 @@ namespace cantinaPadel.UI
             cmbRolEmpleado.Items.AddRange(new object[] { "Admin", "Empleado" });
             cmbRolEmpleado.SelectedIndex = 1;
 
+            cmbCondicionIva = new ComboBox
+            {
+                Location = new Point(txtEmail.Left, txtEmail.Bottom + 20),
+                Size = new Size(txtEmail.Width, 27),
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            lblCondicionIva = new Label
+            {
+                Text = "Condición IVA:",
+                Location = new Point(label5.Left, cmbCondicionIva.Top + 7),
+                AutoSize = true
+            };
+
             chkEsProveedor.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
             chkEsEmpleado.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
 
@@ -65,10 +81,19 @@ namespace cantinaPadel.UI
             {
                 chkEsProveedor, lblNombreEmpresa, txtNombreEmpresa,
                 chkEsEmpleado, lblUsuarioEmpleado, txtUsuarioEmpleado,
-                lblContrasenaEmpleado, txtContrasenaEmpleado, lblRolEmpleado, cmbRolEmpleado
+                lblContrasenaEmpleado, txtContrasenaEmpleado, lblRolEmpleado, cmbRolEmpleado,
+                lblCondicionIva, cmbCondicionIva
             });
 
             ActualizarVisibilidadRoles();
+        }
+
+        // Carga las condiciones de IVA válidas en el combo, igual que en FrmCRUDProveedor y FrmCRUDEmpleado
+        private void CargarCondicionesIva()
+        {
+            cmbCondicionIva.Items.Clear();
+            cmbCondicionIva.Items.AddRange(Persona.CondicionesIvaValidas);
+            cmbCondicionIva.SelectedIndex = -1;
         }
 
         private void ConfigurarFormatoCuit()
@@ -96,6 +121,9 @@ namespace cantinaPadel.UI
             txtCuit.Text = _clienteEdicion.Persona.Cuit ?? string.Empty;
             txtTelefono.Text = _clienteEdicion.Persona.Telefono ?? string.Empty;
             txtEmail.Text = _clienteEdicion.Email;
+
+            if (!string.IsNullOrEmpty(_clienteEdicion.Persona.CondicionIva))
+                cmbCondicionIva.SelectedItem = _clienteEdicion.Persona.CondicionIva;
 
             CargarRolesExistentes();
         }
@@ -132,7 +160,7 @@ namespace cantinaPadel.UI
                     Dni = string.IsNullOrWhiteSpace(txtDni.Text) ? null : txtDni.Text.Trim(),
                     Cuit = txtCuit.Text.Trim(),
                     Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
-                    CondicionIva = _clienteEdicion?.Persona.CondicionIva,
+                    CondicionIva = cmbCondicionIva.SelectedItem?.ToString() ?? string.Empty,
                     Direccion = _clienteEdicion?.Persona.Direccion,
                     Activo = _clienteEdicion?.Persona.Activo ?? true,
                     FechaAlta = _clienteEdicion?.Persona.FechaAlta ?? DateTime.Now
