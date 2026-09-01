@@ -10,6 +10,7 @@ namespace cantinaPadel.UI
         private DateTimePicker dtpFecha = null!;
         private TextBox txtBuscarCliente = null!;
         private Button btnBuscarCliente = null!;
+        private CheckBox chkIncluirCancelados = null!;
         private DataGridView dgvClientes = null!;
         private DataGridView dgvHorarios = null!;
         private DataGridView dgvReservas = null!;
@@ -105,6 +106,14 @@ namespace cantinaPadel.UI
             btnBuscarCliente = CrearBoton("Buscar cliente");
             btnBuscarCliente.Click += (_, _) => BuscarClientes();
 
+            chkIncluirCancelados = new CheckBox
+            {
+                Text = "Incluir cancelados",
+                AutoSize = true,
+                Margin = new Padding(0, 26, 16, 8)
+            };
+            chkIncluirCancelados.CheckedChanged += (_, _) => ActualizarVistaReservas();
+
             btnActualizar = CrearBoton("Actualizar");
             btnActualizar.Click += (_, _) => RefrescarDatos();
 
@@ -118,6 +127,7 @@ namespace cantinaPadel.UI
             filtros.Controls.Add(modalidad);
             filtros.Controls.Add(CrearCampo("Buscar cliente", txtBuscarCliente));
             filtros.Controls.Add(btnBuscarCliente);
+            filtros.Controls.Add(chkIncluirCancelados);
             filtros.Controls.Add(btnActualizar);
             filtros.Controls.Add(btnReservar);
 
@@ -252,8 +262,7 @@ namespace cantinaPadel.UI
                         h.Horario,
                         h.HoraInicio,
                         h.HoraFin,
-                        h.Estado,
-                        Precio = h.PrecioHora
+                        h.Estado
                     })
                     .ToList();
 
@@ -278,12 +287,14 @@ namespace cantinaPadel.UI
                     .Select(i => new
                     {
                         i.IdInstancia,
+                        FechaValor = i.Fecha,
                         Fecha = i.Fecha.ToString("dd/MM/yyyy"),
                         Cancha = i.HorarioCancha.Cancha?.Nombre ?? "-",
                         Horario = $"{i.HorarioCancha.HoraInicio:hh\\:mm} - {i.HorarioCancha.HoraFin:hh\\:mm}",
                         Cliente = $"{i.TurnoReservado.Cliente.Persona.Apellido}, {i.TurnoReservado.Cliente.Persona.Nombre}",
-                        Pago = i.EstadoPago,
-                        Precio = i.HorarioCancha.Cancha?.PrecioHora ?? 0m
+                        Modalidad = i.TurnoReservado.Modalidad,
+                        Estado = i.Estado,
+                        Pago = i.EstadoPago
                     })
                     .ToList();
 
@@ -299,29 +310,33 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Muestra en la misma grilla todos los turnos activos del cliente seleccionado, indistinto de la fecha o la cancha
+        // Muestra en la misma grilla todos los turnos del cliente seleccionado, indistinto de la fecha o la cancha.
+        // Si chkIncluirCancelados está tildado, trae también los turnos cancelados.
         private void CargarReservasPorCliente(int idCliente)
         {
             try
             {
                 _idInstanciaSeleccionada = 0;
-                var reservas = _logica.ObtenerReservasPorCliente(idCliente)
+                bool incluirCancelados = chkIncluirCancelados.Checked;
+                var reservas = _logica.ObtenerReservasPorCliente(idCliente, incluirCancelados)
                     .Select(i => new
                     {
                         i.IdInstancia,
+                        FechaValor = i.Fecha,
                         Fecha = i.Fecha.ToString("dd/MM/yyyy"),
                         Cancha = i.HorarioCancha.Cancha?.Nombre ?? "-",
                         Horario = $"{i.HorarioCancha.HoraInicio:hh\\:mm} - {i.HorarioCancha.HoraFin:hh\\:mm}",
                         Cliente = $"{i.TurnoReservado.Cliente.Persona.Apellido}, {i.TurnoReservado.Cliente.Persona.Nombre}",
-                        Pago = i.EstadoPago,
-                        Precio = i.HorarioCancha.Cancha?.PrecioHora ?? 0m
+                        Modalidad = i.TurnoReservado.Modalidad,
+                        Estado = i.Estado,
+                        Pago = i.EstadoPago
                     })
                     .ToList();
 
                 dgvReservas.DataSource = null;
                 dgvReservas.DataSource = reservas;
                 lblSeleccionReserva.Text = reservas.Count == 0
-                    ? "Reservas del cliente: no tiene turnos activos reservados."
+                    ? "Reservas del cliente: no tiene turnos reservados."
                     : "Reservas del cliente: seleccione una reserva activa para cancelar.";
             }
             catch (Exception ex)
@@ -387,8 +402,26 @@ namespace cantinaPadel.UI
                 return;
             }
 
+            var fila = dgvReservas.CurrentRow;
+            DateTime fecha = fila != null ? Convert.ToDateTime(fila.Cells["FechaValor"].Value) : DateTime.MinValue;
+            string modalidad = fila?.Cells["Modalidad"].Value?.ToString() ?? string.Empty;
+
+            // No se puede cancelar retroactivamente un turno ya ocurrido.
+            if (fecha.Date < DateTime.Today)
+            {
+                MessageBox.Show("No se puede cancelar un turno de una fecha que ya pasó.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // En un turno Fijo (Mensual/Anual), cancelar un día en el medio
+            // no cancela solo ese día: se pierde el resto de la reserva desde
+            // esa fecha en adelante. El mensaje lo deja explícito.
+            string mensaje = modalidad == "Fijo"
+                ? $"Esta reserva es Fija. Si cancelás, se pierde la reserva desde el {fecha:dd/MM/yyyy} en adelante (los turnos anteriores a esa fecha no se tocan).\n\n¿Seguro que querés cancelar?"
+                : "¿Seguro que querés cancelar este turno?";
+
             var confirmacion = MessageBox.Show(
-                "Desea cancelar el turno seleccionado y volver a publicarlo como disponible?",
+                mensaje,
                 "Confirmar cancelacion",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -635,16 +668,6 @@ namespace cantinaPadel.UI
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoraInicio", DataPropertyName = "HoraInicio", Visible = false });
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoraFin", DataPropertyName = "HoraFin", Visible = false });
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Estado", Name = "Estado", DataPropertyName = "Estado", FillWeight = 25 });
-
-            var precio = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Precio",
-                Name = "Precio",
-                DataPropertyName = "Precio",
-                FillWeight = 25,
-                DefaultCellStyle = { Format = "C2" }
-            };
-            dgvHorarios.Columns.Add(precio);
         }
 
         private void ConfigurarColumnasClientes()
@@ -661,21 +684,14 @@ namespace cantinaPadel.UI
         {
             dgvReservas.Columns.Clear();
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdInstancia", DataPropertyName = "IdInstancia", Visible = false });
+            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { Name = "FechaValor", DataPropertyName = "FechaValor", Visible = false });
+            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Modalidad", DataPropertyName = "Modalidad", Visible = false });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Fecha", Name = "Fecha", DataPropertyName = "Fecha", FillWeight = 18 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cancha", Name = "Cancha", DataPropertyName = "Cancha", FillWeight = 22 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Horario", Name = "Horario", DataPropertyName = "Horario", FillWeight = 25 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cliente", Name = "Cliente", DataPropertyName = "Cliente", FillWeight = 45 });
+            dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Estado", Name = "Estado", DataPropertyName = "Estado", FillWeight = 18 });
             dgvReservas.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Pago", Name = "Pago", DataPropertyName = "Pago", FillWeight = 30 });
-
-            var precio = new DataGridViewTextBoxColumn
-            {
-                HeaderText = "Precio",
-                Name = "Precio",
-                DataPropertyName = "Precio",
-                FillWeight = 25,
-                DefaultCellStyle = { Format = "C2" }
-            };
-            dgvReservas.Columns.Add(precio);
         }
     }
 }

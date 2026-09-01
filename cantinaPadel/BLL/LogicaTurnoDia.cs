@@ -11,7 +11,6 @@ namespace cantinaPadel.BLL
         public string DiaSemana { get; set; } = string.Empty;
         public TimeSpan HoraInicio { get; set; }
         public TimeSpan HoraFin { get; set; }
-        public decimal PrecioHora { get; set; }
         public bool Disponible { get; set; }
 
         public string Horario => $"{HoraInicio:hh\\:mm} - {HoraFin:hh\\:mm}";
@@ -106,7 +105,6 @@ namespace cantinaPadel.BLL
                     DiaSemana = diaSemana,
                     HoraInicio = franja.HoraInicio,
                     HoraFin = franja.HoraFin,
-                    PrecioHora = cancha.PrecioHora,
                     Disponible = !reservas.Any(r =>
                         r.HorarioCancha.HoraInicio < franja.HoraFin &&
                         franja.HoraInicio < r.HorarioCancha.HoraFin)
@@ -119,13 +117,14 @@ namespace cantinaPadel.BLL
             return _turnoRepo.ObtenerInstanciasPorFecha(fecha.Date, idCancha);
         }
 
-        // Todos los turnos activos del cliente, sin importar fecha ni cancha.
-        public List<InstanciaTurno> ObtenerReservasPorCliente(int idCliente)
+        // Turnos del cliente, sin importar fecha ni cancha. Por default solo
+        // los activos; con incluirCancelados=true trae también los cancelados.
+        public List<InstanciaTurno> ObtenerReservasPorCliente(int idCliente, bool incluirCancelados = false)
         {
             if (idCliente <= 0)
                 return new List<InstanciaTurno>();
 
-            return _turnoRepo.ObtenerInstanciasPorCliente(idCliente);
+            return _turnoRepo.ObtenerInstanciasPorCliente(idCliente, incluirCancelados);
         }
 
         public int CalcularCantidadTurnos(string modalidad, DateTime fechaInicio)
@@ -253,7 +252,14 @@ namespace cantinaPadel.BLL
             if (instancia.Estado == InstanciaTurno.EstadoCancelada)
                 throw new ArgumentException("El turno seleccionado ya está cancelado.");
 
-            _turnoRepo.CancelarTurnoDesdeInstancia(idInstancia, DateTime.Today);
+            // No se puede cancelar retroactivamente un turno cuya fecha ya pasó.
+            if (instancia.Fecha.Date < DateTime.Today)
+                throw new ArgumentException("No se puede cancelar un turno de una fecha que ya pasó.");
+
+            // El corte es la fecha de la instancia elegida, no "hoy": en un
+            // turno Fijo (Mensual/Anual), cancelar un día en el medio cancela
+            // ese día y todos los siguientes, dejando intactos los anteriores.
+            _turnoRepo.CancelarTurnoDesdeInstancia(idInstancia, instancia.Fecha);
         }
 
         private static void ValidarModalidad(string modalidad)

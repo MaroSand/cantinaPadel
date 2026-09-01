@@ -23,7 +23,7 @@ namespace cantinaPadel.DAL.Repositories
                 .Include(c => c.Producto)
                 .FirstOrDefault(c => c.IdCancha == idCancha);
         }
-        
+
         public List<Cancha> ObtenerActivas()
         {
             using var ctx = new AppDbContext();
@@ -74,9 +74,6 @@ namespace cantinaPadel.DAL.Repositories
 
             existente.Nombre = cancha.Nombre;
             existente.Activa = cancha.Activa;
-
-            if (existente.Producto != null)
-                existente.Producto.PrecioVenta = cancha.PrecioHora;
 
             ctx.SaveChanges();
         }
