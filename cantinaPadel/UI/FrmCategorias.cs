@@ -172,16 +172,12 @@ namespace cantinaPadel.UI
 
         private void LimpiarFormulario()
         {
-            // Se resetea la variable global, se vacía el texto y se hace foco
-            _categoriaSeleccionada = null;
-            txtNombre.Clear();
-            txtPorcentajeGanancia.Clear();
-
-            // ClearSelection() + CurrentCell = null son necesarios juntos: ClearSelection() saca el resaltado de fila, pero mientras CurrentCell siga apuntando a una celda
             dgvCategorias.ClearSelection();
             dgvCategorias.CurrentCell = null;
 
-            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            _categoriaSeleccionada = null;
+            txtNombre.Clear();
+            txtPorcentajeGanancia.Clear();
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.ForeColor = SystemColors.ControlText;
 

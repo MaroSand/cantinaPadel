@@ -203,15 +203,15 @@ namespace cantinaPadel.UI
 
         private void LimpiarFormulario()
         {
+            dgvHorarios.ClearSelection();
+            dgvHorarios.CurrentCell = null;
+
             _horarioSeleccionado = null;
 
             if (cmbCancha.Items.Count > 0) cmbCancha.SelectedIndex = 0;
             if (cmbDiaSemana.Items.Count > 0) cmbDiaSemana.SelectedIndex = 0;
             dtpHoraInicio.Value = DateTime.Today.AddHours(8);
             dtpHoraFin.Value = DateTime.Today.AddHours(9);
-
-            dgvHorarios.ClearSelection();
-            dgvHorarios.CurrentCell = null;
         }
     }
 }

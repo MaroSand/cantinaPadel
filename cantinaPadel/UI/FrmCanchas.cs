@@ -179,14 +179,10 @@ namespace cantinaPadel.UI
 
         private void LimpiarFormulario()
         {
-            _canchaSeleccionada = null;
-            txtNombre.Clear();
-            txtPrecioHora.Clear();
-
-            dgvCanchas.ClearSelection();
             dgvCanchas.CurrentCell = null;
 
-            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            _canchaSeleccionada = null;
+            txtNombre.Clear();
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.ForeColor = SystemColors.ControlText;
 
