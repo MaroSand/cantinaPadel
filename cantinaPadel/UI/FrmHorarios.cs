@@ -45,11 +45,11 @@ namespace cantinaPadel.UI
             cmbDiaSemana.DataSource = HorarioCancha.DiasValidos.ToList();
 
             dtpHoraInicio.Format = DateTimePickerFormat.Custom;
-            dtpHoraInicio.CustomFormat = "HH:mm";
+            dtpHoraInicio.CustomFormat = "HH:00";
             dtpHoraInicio.ShowUpDown = true;
 
             dtpHoraFin.Format = DateTimePickerFormat.Custom;
-            dtpHoraFin.CustomFormat = "HH:mm";
+            dtpHoraFin.CustomFormat = "HH:00";
             dtpHoraFin.ShowUpDown = true;
         }
 
@@ -118,8 +118,8 @@ namespace cantinaPadel.UI
             {
                 cmbCancha.SelectedValue = _horarioSeleccionado.IdCancha;
                 cmbDiaSemana.SelectedItem = _horarioSeleccionado.DiaSemana;
-                dtpHoraInicio.Value = DateTime.Today.Add(_horarioSeleccionado.HoraInicio);
-                dtpHoraFin.Value = DateTime.Today.Add(_horarioSeleccionado.HoraFin);
+                dtpHoraInicio.Value = DateTime.Today.AddHours(_horarioSeleccionado.HoraInicio.Hours);
+                dtpHoraFin.Value = DateTime.Today.AddHours(_horarioSeleccionado.HoraFin.Hours);
             }
         }
 
@@ -141,8 +141,8 @@ namespace cantinaPadel.UI
                     {
                         IdCancha = idCancha,
                         DiaSemana = diaSemana,
-                        HoraInicio = dtpHoraInicio.Value.TimeOfDay,
-                        HoraFin = dtpHoraFin.Value.TimeOfDay
+                        HoraInicio = TimeSpan.FromHours(dtpHoraInicio.Value.Hour),
+                        HoraFin = TimeSpan.FromHours(dtpHoraFin.Value.Hour)
                     };
                     _logicaHorario.Agregar(nuevo);
                 }
