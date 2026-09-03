@@ -53,9 +53,6 @@ namespace cantinaPadel.Models
 
             if (Nombre.Length > 100)
                 throw new ArgumentException("El nombre de la cancha no puede superar los 100 caracteres.");
-
-            if (PrecioHora <= 0)
-                throw new ArgumentException("El precio por hora debe ser mayor a cero.");
         }
     }
 }

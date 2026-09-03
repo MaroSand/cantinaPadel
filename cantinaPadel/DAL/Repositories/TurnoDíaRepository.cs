@@ -100,21 +100,28 @@ namespace cantinaPadel.DAL.Repositories
                 .ToList();
         }
 
-        public List<InstanciaTurno> ObtenerInstanciasPorCliente(int idCliente)
+        public List<InstanciaTurno> ObtenerInstanciasPorCliente(int idCliente, bool incluirCancelados = false)
         {
             using var ctx = new AppDbContext();
 
-            return ctx.InstanciasTurno
+            var query = ctx.InstanciasTurno
                 .Include(i => i.HorarioCancha)
                     .ThenInclude(h => h.Cancha)
                         .ThenInclude(c => c!.Producto)
                 .Include(i => i.TurnoReservado)
                     .ThenInclude(t => t.Cliente)
                         .ThenInclude(c => c.Persona)
-                .Where(i => i.TurnoReservado.IdCliente == idCliente
-                         && i.Estado == InstanciaTurno.EstadoActiva
-                         && i.TurnoReservado.Estado == TurnoReservado.EstadoActivo)
-                .OrderBy(i => i.Fecha)
+                .Where(i => i.TurnoReservado.IdCliente == idCliente);
+
+            if (!incluirCancelados)
+            {
+                query = query.Where(i =>
+                    i.Estado == InstanciaTurno.EstadoActiva &&
+                    i.TurnoReservado.Estado == TurnoReservado.EstadoActivo);
+            }
+
+            return query
+                .OrderByDescending(i => i.Fecha)
                     .ThenBy(i => i.HorarioCancha.HoraInicio)
                 .ToList();
         }

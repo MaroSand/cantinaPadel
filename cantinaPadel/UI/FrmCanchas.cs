@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
@@ -25,7 +24,6 @@ namespace cantinaPadel.UI
             cmbEstado.SelectedIndex = 1;
             ActualizarGrilla();
             LimpiarFormulario();
-            txtPrecioHora.KeyPress += TxtDecimal_KeyPress;
         }
 
         private void ActualizarGrilla()
@@ -54,7 +52,6 @@ namespace cantinaPadel.UI
                 {
                     c.IdCancha,
                     c.Nombre,
-                    PrecioHora = c.PrecioHora,
                     c.Activa
                 }).ToList();
 
@@ -66,13 +63,6 @@ namespace cantinaPadel.UI
 
                 var colNombre = dgvCanchas.Columns["Nombre"];
                 if (colNombre != null) colNombre.HeaderText = "Cancha";
-
-                var colPrecio = dgvCanchas.Columns["PrecioHora"];
-                if (colPrecio != null)
-                {
-                    colPrecio.HeaderText = "Precio x Hora";
-                    colPrecio.DefaultCellStyle.Format = "N2";
-                }
 
                 var colActiva = dgvCanchas.Columns["Activa"];
                 if (colActiva != null) colActiva.HeaderText = "Activa";
@@ -97,7 +87,6 @@ namespace cantinaPadel.UI
             if (_canchaSeleccionada != null)
             {
                 txtNombre.Text = _canchaSeleccionada.Nombre;
-                txtPrecioHora.Text = _canchaSeleccionada.PrecioHora.ToString("0.##", CultureInfo.CurrentCulture);
                 ActualizarBotonEstado();
             }
         }
@@ -106,21 +95,14 @@ namespace cantinaPadel.UI
         {
             try
             {
-                if (!decimal.TryParse(txtPrecioHora.Text, NumberStyles.Number, CultureInfo.CurrentCulture, out decimal precioHora))
-                {
-                    MessageBox.Show("Ingrese un precio por hora válido (solo números).", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
                 if (_canchaSeleccionada == null)
                 {
-                    var nueva = new Cancha { Nombre = txtNombre.Text, PrecioHora = precioHora };
+                    var nueva = new Cancha { Nombre = txtNombre.Text };
                     _logicaCancha.Agregar(nueva);
                 }
                 else
                 {
                     _canchaSeleccionada.Nombre = txtNombre.Text;
-                    _canchaSeleccionada.PrecioHora = precioHora;
                     _logicaCancha.Modificar(_canchaSeleccionada);
                 }
 
@@ -195,16 +177,6 @@ namespace cantinaPadel.UI
 
             btnBajaAlta.Text = _canchaSeleccionada.Activa ? "Desactivar" : "Activar";
             btnBajaAlta.ForeColor = _canchaSeleccionada.Activa ? Color.DarkRed : Color.DarkGreen;
-        }
-
-        private void TxtDecimal_KeyPress(object? sender, KeyPressEventArgs e)
-        {
-            string separador = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar) && e.KeyChar.ToString() != separador)
-            {
-                e.Handled = true;
-            }
         }
     }
 }

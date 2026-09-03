@@ -28,8 +28,6 @@
             label1 = new Label();
             panelDatos = new Panel();
             label4 = new Label();
-            txtPrecioHora = new TextBox();
-            label5 = new Label();
             txtNombre = new TextBox();
             btnGuardar = new Button();
             label3 = new Label();
@@ -103,8 +101,6 @@
             // 
             panelDatos.BackColor = SystemColors.Info;
             panelDatos.Controls.Add(label4);
-            panelDatos.Controls.Add(txtPrecioHora);
-            panelDatos.Controls.Add(label5);
             panelDatos.Controls.Add(txtNombre);
             panelDatos.Controls.Add(btnGuardar);
             panelDatos.Controls.Add(label3);
@@ -126,26 +122,6 @@
             label4.TabIndex = 4;
             label4.Text = "Selecciona una cancha para editar.";
             // 
-            // txtPrecioHora
-            // 
-            txtPrecioHora.Location = new Point(36, 208);
-            txtPrecioHora.Margin = new Padding(2);
-            txtPrecioHora.MaxLength = 12;
-            txtPrecioHora.Name = "txtPrecioHora";
-            txtPrecioHora.Size = new Size(86, 27);
-            txtPrecioHora.TabIndex = 2;
-            // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label5.Location = new Point(17, 176);
-            label5.Margin = new Padding(2, 0, 2, 0);
-            label5.Name = "label5";
-            label5.Size = new Size(122, 20);
-            label5.TabIndex = 3;
-            label5.Text = "Precio por Hora:";
-            // 
             // txtNombre
             // 
             txtNombre.Location = new Point(20, 126);
@@ -160,11 +136,11 @@
             btnGuardar.BackColor = Color.White;
             btnGuardar.FlatStyle = FlatStyle.Flat;
             btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnGuardar.Location = new Point(20, 260);
+            btnGuardar.Location = new Point(20, 176);
             btnGuardar.Margin = new Padding(2);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new Size(119, 52);
-            btnGuardar.TabIndex = 5;
+            btnGuardar.TabIndex = 2;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
             btnGuardar.Click += btnGuardar_Click;
@@ -283,8 +259,6 @@
         private System.Windows.Forms.Panel panelDatos;
         private TextBox txtNombre;
         private Label label3;
-        private TextBox txtPrecioHora;
-        private Label label5;
         private System.Windows.Forms.Panel panelAcciones;
         private Button btnBajaAlta;
         private Button btnGuardar;

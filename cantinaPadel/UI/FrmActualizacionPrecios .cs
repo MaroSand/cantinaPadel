@@ -33,6 +33,12 @@ namespace cantinaPadel.UI
 
         private bool _refrescandoGrilla;
 
+        // Categoría/marca seleccionadas en el filtro actual. Se usan para
+        // saber si la búsqueda quedó "sin filtro específico" (ambas null)
+        // y así aplicar las salvaguardas contra actualización masiva accidental.
+        private int? _idCategoriaActual;
+        private int? _idMarcaActual;
+
         // Constructor del formulario, inicializa componentes y lógica de negocio
         public FrmActualizacionPrecios()
         {
@@ -127,10 +133,8 @@ namespace cantinaPadel.UI
         }
 
         // Carga los combos de categoría, marca y proveedor con opciones activas.
-        // Categoría y marca NO tienen opción "Todas": el usuario siempre tiene
-        // que elegir una puntual, así se evita traer/actualizar el catálogo
-        // entero por error. Proveedor sí mantiene "Todos" porque es un filtro
-        // opcional adicional.
+        // Los tres combos incluyen una opción "Todas/Todos" (Id null) para
+        // no obligar al usuario a elegir un valor puntual.
         private void CargarCombos()
         {
             try
@@ -138,6 +142,7 @@ namespace cantinaPadel.UI
                 var categorias = _logicaProducto.ObtenerCategoriasActivas()
                     .Select(c => new { Id = (int?)c.IdCategoria, Nombre = c.Nombre })
                     .ToList();
+                categorias.Insert(0, new { Id = (int?)null, Nombre = "Todas las categorías" });
                 cmbCategoriaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbCategoriaFiltro.DisplayMember = "Nombre";
                 cmbCategoriaFiltro.ValueMember = "Id";
@@ -146,6 +151,7 @@ namespace cantinaPadel.UI
                 var marcas = _logicaProducto.ObtenerMarcasActivas()
                     .Select(m => new { Id = (int?)m.IdMarca, Nombre = m.Nombre })
                     .ToList();
+                marcas.Insert(0, new { Id = (int?)null, Nombre = "Todas las marcas" });
                 cmbMarcaFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
                 cmbMarcaFiltro.DisplayMember = "Nombre";
                 cmbMarcaFiltro.ValueMember = "Id";
@@ -178,6 +184,9 @@ namespace cantinaPadel.UI
                 int? idProveedor = cmbProveedorFiltro.SelectedValue as int?;
                 decimal porcentaje = nudPorcentaje.Value;
 
+                _idCategoriaActual = idCategoria;
+                _idMarcaActual = idMarca;
+
                 // Guardamos los precios editados manualmente antes de recargar el listado
                 var manuales = _listado
                     .Where(p => p.EditadoManualmente)
@@ -194,6 +203,15 @@ namespace cantinaPadel.UI
                         item.PrecioNuevo = precioManual;
                         item.EditadoManualmente = true;
                     }
+                }
+
+                // Salvaguarda: sin categoría ni marca elegida ("Todas" en ambas),
+                // no tildamos nada por default. El usuario tiene que elegir a
+                // mano qué productos actualizar en vez de arrastrar el catálogo entero.
+                if (!idCategoria.HasValue && !idMarca.HasValue)
+                {
+                    foreach (var item in _listado)
+                        item.Aplicar = false;
                 }
 
                 _refrescandoGrilla = true;
@@ -306,9 +324,26 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            var confirmacion = MessageBox.Show(
-                $"¿Confirma la actualización de precios para {seleccionados.Count} producto(s)?",
-                "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            // Sin categoría ni marca elegida, el mensaje se refuerza: advierte
+            // explícitamente que no hay filtro específico y muestra la cantidad
+            // real de productos que se van a tocar.
+            bool sinFiltroEspecifico = !_idCategoriaActual.HasValue && !_idMarcaActual.HasValue;
+
+            DialogResult confirmacion;
+            if (sinFiltroEspecifico)
+            {
+                confirmacion = MessageBox.Show(
+                    $"No hay categoría ni marca seleccionada como filtro.\n\n" +
+                    $"Vas a actualizar el precio de {seleccionados.Count} producto(s) de TODO el catálogo activo.\n\n" +
+                    $"¿Confirmás que querés continuar?",
+                    "Actualización sin filtro específico", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                confirmacion = MessageBox.Show(
+                    $"¿Confirma la actualización de precios para {seleccionados.Count} producto(s)?",
+                    "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            }
 
             if (confirmacion != DialogResult.Yes) return;
 
