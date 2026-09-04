@@ -34,12 +34,12 @@ namespace cantinaPadel.DAL.Repositories
                 .ToList();
         }
 
+        // El nombre debe ser único entre todas las canchas (activas o no)
         public bool ExisteNombre(string nombre, int? idCanchaExcluir = null)
         {
             using var ctx = new AppDbContext();
             return ctx.Canchas.Any(c =>
                 c.Nombre.ToLower() == nombre.ToLower() &&
-                c.Activa &&
                 (!idCanchaExcluir.HasValue || c.IdCancha != idCanchaExcluir.Value));
         }
 
