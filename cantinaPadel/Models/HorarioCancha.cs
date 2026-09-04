@@ -59,23 +59,51 @@ namespace cantinaPadel.Models
             if (!DiasValidos.Contains(DiaSemana, StringComparer.OrdinalIgnoreCase))
                 throw new ArgumentException("El día de la semana ingresado no es válido.");
 
-            // si HoraFin es menor o igual, se interpreta como que el horario cruza la medianoche
-            // <Si son sean exactamente iguales (duración cero) no es válido
+            // si HoraFin es menor o igual, se interpreta como que el horario cruza la medianoche. Si son sean exactamente iguales (duración cero)
+            // no es válido
             if (HoraFin == HoraInicio)
                 throw new ArgumentException("La hora de fin no puede ser igual a la hora de inicio.");
         }
 
-        // Dos horarios solapan si, siendo de la misma cancha y mismo día, sus intervalos [HoraInicio, HoraFinNormalizada) se cruzan en algún punto
-        // Se usa la versión normalizada de HoraFin para que los horarios que cruzan medianoche se comparen bien.
-        // Ej: 8-10 y 9-11 solapan; 8-10 y 10-12 no
-        // Ej: 22-2 y 1-3 sí
+        // Dos horarios solapan si, siendo de la misma cancha, sus intervalos se cruzan en algún punto
+        // Mismo día: se comparan directamente con la versión normalizada de HoraFin (+24hs si cruza medianoche), para que "Lunes 22-10" contra
+        // "Lunes 09-11" se detecte bien
+        // Días distintos: solo pueden pisarse si uno de los dos cruza la medianoche y su franja de madrugada cae en el día del otro
+        // (ej: "Lunes 22-02" invade la madrugada del "Martes")
+        // Ej: 8-10 y 9-11 solapan; 8-10 y 10-12 no; Lunes 22-02 y Martes 01-03 sí
         public bool Solapa(HorarioCancha otro)
         {
             if (otro == null) return false;
             if (IdCancha != otro.IdCancha) return false;
-            if (!string.Equals(DiaSemana, otro.DiaSemana, StringComparison.OrdinalIgnoreCase)) return false;
 
-            return HoraInicio < otro.HoraFinNormalizada && otro.HoraInicio < HoraFinNormalizada;
+            if (string.Equals(DiaSemana, otro.DiaSemana, StringComparison.OrdinalIgnoreCase))
+                return HoraInicio < otro.HoraFinNormalizada && otro.HoraInicio < HoraFinNormalizada;
+
+            if (CruzaMedianoche && EsDiaSiguiente(DiaSemana, otro.DiaSemana))
+                return otro.HoraInicio < HoraFin;
+
+            if (otro.CruzaMedianoche && EsDiaSiguiente(otro.DiaSemana, DiaSemana))
+                return HoraInicio < otro.HoraFin;
+
+            return false;
         }
+
+        // Día de la semana siguiente a "dia", con el ciclo (Domingo -> Lunes). Si "dia" no es válido, se devuelve tal cual (Validar ya se encarga
+        // de rechazar días inválidos antes)
+        public static string ObtenerDiaSiguiente(string dia)
+        {
+            int idx = Array.FindIndex(DiasValidos, d => string.Equals(d, dia, StringComparison.OrdinalIgnoreCase));
+            return idx < 0 ? dia : DiasValidos[(idx + 1) % DiasValidos.Length];
+        }
+
+        // Día de la semana anterior a "dia", con el ciclo (Lunes -> Domingo)
+        public static string ObtenerDiaAnterior(string dia)
+        {
+            int idx = Array.FindIndex(DiasValidos, d => string.Equals(d, dia, StringComparison.OrdinalIgnoreCase));
+            return idx < 0 ? dia : DiasValidos[(idx - 1 + DiasValidos.Length) % DiasValidos.Length];
+        }
+
+        private static bool EsDiaSiguiente(string dia, string siguiente)
+            => string.Equals(ObtenerDiaSiguiente(dia), siguiente, StringComparison.OrdinalIgnoreCase);
     }
 }
