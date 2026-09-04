@@ -64,11 +64,22 @@ namespace cantinaPadel.BLL
         public void CambiarEstado(int idMarca, bool nuevoEstado)
         {
             var marca = _context.Marcas.Find(idMarca);
-            if (marca != null)
+            if (marca == null)
+                return;
+
+            if (nuevoEstado)
             {
-                marca.Activa = nuevoEstado;
-                _context.SaveChanges();
+                bool yaExiste = _context.Marcas.Any(m =>
+                    m.IdMarca != idMarca &&
+                    m.Nombre.ToLower().Trim() == marca.Nombre.ToLower().Trim() &&
+                    m.Activa);
+
+                if (yaExiste)
+                    throw new ArgumentException($"No se puede activar: ya existe una marca activa con el nombre '{marca.Nombre}'.");
             }
+
+            marca.Activa = nuevoEstado;
+            _context.SaveChanges();
         }
     }
 }
