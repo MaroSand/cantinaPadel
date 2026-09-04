@@ -164,6 +164,10 @@ namespace cantinaPadel.UI
                     LimpiarFormulario();
                 }
             }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);

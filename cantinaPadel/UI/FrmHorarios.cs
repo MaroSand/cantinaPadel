@@ -150,8 +150,8 @@ namespace cantinaPadel.UI
                 {
                     _horarioSeleccionado.IdCancha = idCancha;
                     _horarioSeleccionado.DiaSemana = diaSemana;
-                    _horarioSeleccionado.HoraInicio = dtpHoraInicio.Value.TimeOfDay;
-                    _horarioSeleccionado.HoraFin = dtpHoraFin.Value.TimeOfDay;
+                    _horarioSeleccionado.HoraInicio = TimeSpan.FromHours(dtpHoraInicio.Value.Hour);
+                    _horarioSeleccionado.HoraFin = TimeSpan.FromHours(dtpHoraFin.Value.Hour);
                     _logicaHorario.Modificar(_horarioSeleccionado);
                 }
 
@@ -194,6 +194,10 @@ namespace cantinaPadel.UI
                     ActualizarGrilla();
                     LimpiarFormulario();
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {

@@ -21,9 +21,6 @@ namespace cantinaPadel.BLL
 
         public Cancha? ObtenerPorId(int idCancha) => _repo.ObtenerPorId(idCancha);
 
-        // Alta: además de la cancha, crea el producto "Hora Padel" asociado
-        // (categoría "Hora Padel"). El precio ya no se carga acá: queda en $0
-        // y se completa después desde la pantalla de Actualización de Precios.
         public void Agregar(Cancha cancha)
         {
             Validar(cancha, esAlta: true);
@@ -47,7 +44,21 @@ namespace cantinaPadel.BLL
             _repo.Modificar(cancha);
         }
 
-        public void CambiarEstado(int idCancha, bool nuevoEstado) => _repo.CambiarEstado(idCancha, nuevoEstado);
+        public void CambiarEstado(int idCancha, bool nuevoEstado)
+        {
+            if (nuevoEstado)
+            {
+                var cancha = _repo.ObtenerPorId(idCancha);
+                if (cancha == null)
+                    throw new ArgumentException("La cancha no existe.");
+
+                if (_repo.ExisteNombre(cancha.Nombre, idCancha))
+                    throw new ArgumentException(
+                        $"No se puede activar: ya existe una cancha activa con el nombre '{cancha.Nombre}'.");
+            }
+
+            _repo.CambiarEstado(idCancha, nuevoEstado);
+        }
 
         private void Validar(Cancha cancha, bool esAlta)
         {
