@@ -4,6 +4,11 @@ using System.Configuration;
 
 namespace cantinaPadel.BLL
 {
+    //TODO:
+    //SACAR CONEXIÓN CON CAJA
+    //ELIMINAR POSIBILIDAD DE ERSERVAR TURNO 30m 1h30m y 2h. SOLO PERMITIR RESERVAR 1h
+    //VER porqué no se muestran los horarios de cancha que superan las 23:00hs. Por ejemplo, horario creado en cancha 2 el sab de 8:00am a 3:00 (pertenece al sábado aunque supere las 23:00). No se muestran en la tabla de reserva de turnos.
+    
     public class HorarioTurnoDiaDisponible
     {
         public int IdCancha { get; set; }
