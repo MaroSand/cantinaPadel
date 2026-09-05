@@ -36,7 +36,21 @@ namespace cantinaPadel.BLL
             _repo.Modificar(horario);
         }
 
-        public void CambiarEstado(int idHorario, bool nuevoEstado) => _repo.CambiarEstado(idHorario, nuevoEstado);
+        public void CambiarEstado(int idHorario, bool nuevoEstado)
+        {
+            if (nuevoEstado)
+            {
+                var horario = _repo.ObtenerPorId(idHorario);
+                if (horario == null)
+                    throw new ArgumentException("El horario no existe.");
+
+                if (_repo.ExisteSolapamiento(horario.IdCancha, horario.DiaSemana, horario.HoraInicio, horario.HoraFin, idHorario))
+                    throw new ArgumentException(
+                        $"No se puede activar: se superpone con otro horario activo de esta cancha el día {horario.DiaSemana}.");
+            }
+
+            _repo.CambiarEstado(idHorario, nuevoEstado);
+        }
 
         private void Validar(HorarioCancha horario, bool esAlta)
         {

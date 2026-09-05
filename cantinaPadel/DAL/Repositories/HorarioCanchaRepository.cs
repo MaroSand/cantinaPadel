@@ -43,12 +43,16 @@ namespace cantinaPadel.DAL.Repositories
         {
             using var ctx = new AppDbContext();
 
-            // Traemos los horarios activos de esa cancha/día y comparamos en memoria con HorarioCancha.Solapa(), que sabe manejar franjas que cruzan
-            // la (ej. 08:00 a 04:00). Esa normalización no se puede traducir a SQL vía LINQ
+            string diaAnterior = HorarioCancha.ObtenerDiaAnterior(diaSemana);
+            string diaSiguiente = HorarioCancha.ObtenerDiaSiguiente(diaSemana);
+
+            // Se traen los horarios activos de esa cancha en el día, el anterior y el siguiente: un horario que cruza medianoche puede pisarse
+            // con la madrugada del día siguiente (o ser pisado por la madrugada de uno que cruza desde el día anterior). Comparamos en memoria con
+            // HorarioCancha.Solapa(), que sabe manejar esos cruces y no se puede traducir a SQL vía LINQ
             var candidatos = ctx.HorariosCancha
                 .Where(h =>
                     h.IdCancha == idCancha &&
-                    h.DiaSemana == diaSemana &&
+                    (h.DiaSemana == diaSemana || h.DiaSemana == diaAnterior || h.DiaSemana == diaSiguiente) &&
                     h.Activo &&
                     (!idHorarioExcluir.HasValue || h.IdHorario != idHorarioExcluir.Value))
                 .ToList();

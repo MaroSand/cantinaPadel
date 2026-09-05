@@ -359,14 +359,24 @@ namespace cantinaPadel.Tests
 
         public List<Cancha> ObtenerActivas() => _canchas.Where(c => c.Activa).ToList();
 
+        // El nombre debe ser único entre TODAS las canchas (activas o no), igual que CanchaRepository.ExisteNombre.
         public bool ExisteNombre(string nombre, int? idCanchaExcluir = null)
-            => _canchas.Any(c => c.Nombre == nombre && (!idCanchaExcluir.HasValue || c.IdCancha != idCanchaExcluir.Value));
+            => _canchas.Any(c =>
+                c.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase) &&
+                (!idCanchaExcluir.HasValue || c.IdCancha != idCanchaExcluir.Value));
 
         public int ObtenerIdCategoriaHoraPadel() => 1;
 
         public void Agregar(Cancha cancha) => _canchas.Add(cancha);
 
-        public void Modificar(Cancha cancha) { }
+        public void Modificar(Cancha cancha)
+        {
+            var existente = ObtenerPorId(cancha.IdCancha);
+            if (existente == null) return;
+
+            existente.Nombre = cancha.Nombre;
+            existente.Activa = cancha.Activa;
+        }
 
         public void CambiarEstado(int idCancha, bool nuevoEstado)
         {

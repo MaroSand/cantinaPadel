@@ -153,6 +153,10 @@ namespace cantinaPadel.UI
                     LimpiarFormulario();
                 }
             }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -161,13 +165,11 @@ namespace cantinaPadel.UI
 
         private void LimpiarFormulario()
         {
-            _canchaSeleccionada = null;
-            txtNombre.Clear();
-
             dgvCanchas.ClearSelection();
             dgvCanchas.CurrentCell = null;
 
-            // Sin nada seleccionado, el botón vuelve a su texto y color neutros
+            _canchaSeleccionada = null;
+            txtNombre.Clear();
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.ForeColor = SystemColors.ControlText;
 
