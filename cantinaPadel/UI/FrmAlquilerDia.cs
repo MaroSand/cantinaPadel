@@ -7,7 +7,6 @@ namespace cantinaPadel.UI
         private readonly LogicaTurnoDia _logica;
 
         private ComboBox cmbCancha = null!;
-        private ComboBox cmbDuracion = null!;
         private DateTimePicker dtpFecha = null!;
         private TextBox txtBuscarCliente = null!;
         private Button btnBuscarCliente = null!;
@@ -72,14 +71,6 @@ namespace cantinaPadel.UI
             cmbCancha = CrearCombo(220);
             cmbCancha.SelectedIndexChanged += (_, _) => RefrescarDatos();
 
-            cmbDuracion = CrearCombo(120);
-            foreach (var duracion in LogicaTurnoDia.DuracionesDisponibles)
-            {
-                cmbDuracion.Items.Add(new DuracionOpcion(duracion, FormatearDuracion(duracion)));
-            }
-            cmbDuracion.SelectedIndex = 1; // 60 min, mismo comportamiento que antes del cambio
-            cmbDuracion.SelectedIndexChanged += (_, _) => RefrescarDatos();
-
             dtpFecha = new DateTimePicker
             {
                 Format = DateTimePickerFormat.Short,
@@ -133,7 +124,6 @@ namespace cantinaPadel.UI
 
             filtros.Controls.Add(CrearCampo("Cancha", cmbCancha));
             filtros.Controls.Add(CrearCampo("Primera fecha", dtpFecha));
-            filtros.Controls.Add(CrearCampo("Duración", cmbDuracion));
             filtros.Controls.Add(modalidad);
             filtros.Controls.Add(CrearCampo("Buscar cliente", txtBuscarCliente));
             filtros.Controls.Add(btnBuscarCliente);
@@ -266,7 +256,7 @@ namespace cantinaPadel.UI
             {
                 _horaInicioSeleccionada = null;
                 _horaFinSeleccionada = null;
-                var horarios = _logica.ObtenerHorarios(idCancha, dtpFecha.Value.Date, ObtenerDuracionSeleccionada())
+                var horarios = _logica.ObtenerHorarios(idCancha, dtpFecha.Value.Date)
                     .Select(h => new
                     {
                         h.Horario,
@@ -595,34 +585,6 @@ namespace cantinaPadel.UI
         {
             if (sender is RadioButton { Checked: true })
                 ActualizarResumenReserva();
-        }
-
-        private TimeSpan ObtenerDuracionSeleccionada()
-        {
-            return cmbDuracion.SelectedItem is DuracionOpcion opcion ? opcion.Valor : TimeSpan.FromHours(1);
-        }
-
-        // Envuelve una duración con su texto para mostrar en cmbDuracion.
-        // Al no usar DataSource, el ComboBox llama a ToString() de cada item
-        // directamente para mostrarlo, así que no depende del BindingContext.
-        private sealed class DuracionOpcion
-        {
-            public TimeSpan Valor { get; }
-            private readonly string _texto;
-
-            public DuracionOpcion(TimeSpan valor, string texto)
-            {
-                Valor = valor;
-                _texto = texto;
-            }
-
-            public override string ToString() => _texto;
-        }
-
-        private static string FormatearDuracion(TimeSpan d)
-        {
-            if (d.TotalHours < 1) return $"{d.Minutes} min";
-            return d.Minutes == 0 ? $"{(int)d.TotalHours} h" : $"{(int)d.TotalHours} h {d.Minutes}";
         }
 
         private static ComboBox CrearCombo(int width)
