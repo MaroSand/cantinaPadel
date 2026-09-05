@@ -38,7 +38,7 @@ namespace cantinaPadel.Models
                 throw new ArgumentException("El Email es obligatorio.");
 
             if (!EsEmailValido(Email))
-                throw new ArgumentException("El Email ingresado no es válido.");
+                throw new ArgumentException("Ingrese un email válido. Por ejemplo: juan@gmail.com");
         }
 
         public static bool EsEmailValido(string email)

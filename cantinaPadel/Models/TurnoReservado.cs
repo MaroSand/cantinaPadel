@@ -3,9 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cantinaPadel.Models
 {
-    // Cabecera de una reserva. Para "Por dia" (esta US) FechaFin queda null
-    // y sólo cuelga UNA InstanciaTurno. Para "Fijo" (otra US, a futuro)
-    // FechaFin se completa y se generan ~52 instancias, una por semana.
     [Table("turnos_reservados")]
     public class TurnoReservado
     {
@@ -24,10 +21,6 @@ namespace cantinaPadel.Models
 
         [Column("id_empleado")]
         public int IdEmpleado { get; set; }
-
-        // La DB exige una caja abierta para poder reservar.
-        [Column("id_caja")]
-        public int IdCaja { get; set; }
 
         [Column("modalidad")]
         public string Modalidad { get; set; } = ModalidadPorDia;

@@ -173,7 +173,7 @@ namespace cantinaPadel.Models
         public static void ValidarTelefono(string? telefono)
         {
             if (!string.IsNullOrWhiteSpace(telefono) && !Regex.IsMatch(telefono, @"^[\d\s\-\+]{6,20}$"))
-                throw new ArgumentException("El teléfono ingresado no es válido.");
+                throw new ArgumentException("Ingrese un número de teléfono valido. Por ejemplo: 3644123456");
         }
 
         public static void ValidarCondicionIva(string? condicionIva)
