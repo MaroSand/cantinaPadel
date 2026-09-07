@@ -3,10 +3,10 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.Tests
 {
-    // BLL: Carrito - US-13 (Pantalla de Ventas con Carrito).
-    // Agregar/quitar productos, actualizar cantidades, validar stock disponible y calcular el total
+    // BLL: LogicaCarrito  (Pantalla de Ventas con Carrito)
+    // Agregar/quitar productos,/ actualizar cantidades, validar stock disponible y calcular el total
     [TestClass]
-    public class CarritoTests
+    public class LogicaCarritoTests
     {
         private static Producto CrearProducto(
             int id = 1,
@@ -28,7 +28,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_ProductoNuevo_LoAgregaConLaCantidadIndicada()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 10);
 
             carrito.AgregarProducto(producto, 3);
@@ -40,7 +40,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_SinIndicarCantidad_AgregaUno()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 10);
 
             carrito.AgregarProducto(producto);
@@ -52,7 +52,7 @@ namespace cantinaPadel.Tests
         public void AgregarProducto_YaEstabaEnElCarrito_SumaALaCantidadExistente()
         {
             // Ej: se escanea dos veces el mismo código de barras
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 10);
 
             carrito.AgregarProducto(producto, 2);
@@ -65,7 +65,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_CantidadSuperaElStockDisponible_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 5);
 
             Assert.ThrowsExactly<ArgumentException>(() => carrito.AgregarProducto(producto, 6));
@@ -74,7 +74,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_LaSumaConLoYaAgregadoSuperaElStock_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 5);
             carrito.AgregarProducto(producto, 3);
 
@@ -88,7 +88,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_ProductoInactivo_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(activo: false);
 
             Assert.ThrowsExactly<ArgumentException>(() => carrito.AgregarProducto(producto, 1));
@@ -99,7 +99,7 @@ namespace cantinaPadel.Tests
         [DataRow(-1)]
         public void AgregarProducto_CantidadCeroONegativa_LanzaArgumentException(int cantidad)
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto();
 
             Assert.ThrowsExactly<ArgumentException>(() => carrito.AgregarProducto(producto, cantidad));
@@ -108,7 +108,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void AgregarProducto_ProductoNulo_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
 
             Assert.ThrowsExactly<ArgumentException>(() => carrito.AgregarProducto(null!, 1));
         }
@@ -118,7 +118,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ActualizarCantidad_ProductoEnElCarrito_CambiaLaCantidad()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 10);
             carrito.AgregarProducto(producto, 2);
 
@@ -130,7 +130,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ActualizarCantidad_SuperaElStockDisponible_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto(stock: 5);
             carrito.AgregarProducto(producto, 2);
 
@@ -142,7 +142,7 @@ namespace cantinaPadel.Tests
         [DataRow(-1)]
         public void ActualizarCantidad_CeroONegativa_QuitaElProductoDelCarrito(int cantidadNueva)
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto();
             carrito.AgregarProducto(producto, 2);
 
@@ -154,7 +154,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ActualizarCantidad_ProductoQueNoEstaEnElCarrito_LanzaArgumentException()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
 
             Assert.ThrowsExactly<ArgumentException>(() => carrito.ActualizarCantidad(999, 1));
         }
@@ -164,7 +164,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void QuitarProducto_ProductoEnElCarrito_LoElimina()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             var producto = CrearProducto();
             carrito.AgregarProducto(producto, 2);
 
@@ -176,7 +176,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void QuitarProducto_ProductoQueNoEstaEnElCarrito_NoLanzaExcepcion()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
 
             carrito.QuitarProducto(999);
         }
@@ -184,7 +184,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void Vaciar_ConVariosProductos_DejaElCarritoVacio()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             carrito.AgregarProducto(CrearProducto(id: 1), 1);
             carrito.AgregarProducto(CrearProducto(id: 2), 1);
 
@@ -198,7 +198,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void Total_SumaLosSubtotalesConIva()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             // PrecioConIva = PrecioVenta * 1.21, redondeado a 2 decimales
             carrito.AgregarProducto(CrearProducto(id: 1, precioVenta: 100m, stock: 10), 2); // 121.00 c/u -> 242.00
             carrito.AgregarProducto(CrearProducto(id: 2, precioVenta: 50m, stock: 10), 3);  // 60.50 c/u  -> 181.50
@@ -209,7 +209,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void CantidadItems_SumaLasCantidadesDeTodosLosProductos()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
             carrito.AgregarProducto(CrearProducto(id: 1), 2);
             carrito.AgregarProducto(CrearProducto(id: 2), 5);
 
@@ -219,7 +219,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void Total_CarritoVacio_EsCero()
         {
-            var carrito = new Carrito();
+            var carrito = new LogicaCarrito();
 
             Assert.AreEqual(0m, carrito.Total);
         }
