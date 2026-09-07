@@ -6,15 +6,22 @@ namespace cantinaPadel.BLL
     public class LogicaCancha
     {
         private readonly ICanchaRepository _repo;
+        private readonly IHorarioCanchaRepository _horarioRepo;
 
         public LogicaCancha()
-            : this(new CanchaRepository())
+            : this(new CanchaRepository(), new HorarioCanchaRepository())
         {
         }
 
         public LogicaCancha(ICanchaRepository repo)
+            : this(repo, new HorarioCanchaRepository())
+        {
+        }
+
+        public LogicaCancha(ICanchaRepository repo, IHorarioCanchaRepository horarioRepo)
         {
             _repo = repo;
+            _horarioRepo = horarioRepo;
         }
 
         public List<Cancha> ObtenerTodas(bool? activa = true) => _repo.ObtenerTodas(activa);
@@ -58,6 +65,13 @@ namespace cantinaPadel.BLL
             }
 
             _repo.CambiarEstado(idCancha, nuevoEstado);
+
+            // Al dar de baja la cancha, sus horarios fijos dejan de tener sentido como "vigentes":
+            // se desactivan en cascada para no dejar horarios activos de una cancha inactiva
+            // No se hace lo inverso al reactivar: los horarios quedan para que se revisen y reactiven a mano
+            // (podrían solaparse con otros que se hayan cargado mientras tanto)
+            if (!nuevoEstado)
+                _horarioRepo.DesactivarTodosPorCancha(idCancha);
         }
 
         private void Validar(Cancha cancha, bool esAlta)
@@ -65,7 +79,7 @@ namespace cantinaPadel.BLL
             if (cancha == null)
                 throw new ArgumentException("Los datos de la cancha son obligatorios.");
 
-            // Valida nombre obligatorio/longitud y precio > 0 (ver Cancha.Validar)
+            // Valida nombre obligatorio y longitud (ver Cancha.Validar). El precio se maneja aparte, desde Actualización de Precios
             cancha.Validar();
 
             int? idExcluir = esAlta ? null : cancha.IdCancha;

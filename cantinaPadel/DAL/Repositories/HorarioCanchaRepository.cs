@@ -92,5 +92,17 @@ namespace cantinaPadel.DAL.Repositories
                 ctx.SaveChanges();
             }
         }
+
+        public void DesactivarTodosPorCancha(int idCancha)
+        {
+            using var ctx = new AppDbContext();
+            var horarios = ctx.HorariosCancha.Where(h => h.IdCancha == idCancha && h.Activo).ToList();
+
+            foreach (var horario in horarios)
+                horario.Activo = false;
+
+            if (horarios.Count > 0)
+                ctx.SaveChanges();
+        }
     }
 }
