@@ -19,6 +19,8 @@ namespace cantinaPadel.DAL
         public DbSet<Caja> Cajas { get; set; }
         public DbSet<InstanciaTurno> InstanciasTurno { get; set; }
         public DbSet<TurnoReservado> TurnosReservados { get; set; }
+        public DbSet<Comprobante> Comprobantes { get; set; }
+
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
