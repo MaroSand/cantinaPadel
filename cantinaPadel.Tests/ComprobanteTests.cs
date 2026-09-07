@@ -7,11 +7,9 @@ using System.Linq;
 
 namespace cantinaPadel.Tests
 {
-    // Pruebas unitarias de LogicaComprobante (US-15).
-    // No se testean acá los caminos Imprimir/Email de ConfirmarEmision:
-    // dependen de recursos del sistema operativo (impresora / SMTP) y no
-    // tienen sentido en un test unitario. Lo que sí se cubre es todo lo que
-    // es lógica propia: numeración correlativa y validaciones.
+    // Pruebas unitarias de LogicaComprobante (US-15)
+    // No se testean acá los caminos Imprimir/Email de ConfirmarEmision: dependen de recursos del sistema operativo (impresora / SMTP) y no
+    // tienen sentido en un test unitario. Lo que sí se cubre es todo lo que es lógica propia: numeración correlativa y validaciones
     [TestClass]
     public class ComprobanteTests
     {
@@ -60,7 +58,7 @@ namespace cantinaPadel.Tests
             var logica = new LogicaComprobante(repo);
             var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m, EmailCliente = null };
 
-            Assert.ThrowsException<ArgumentException>(
+            Assert.ThrowsExactly<ArgumentException>(
                 () => logica.ConfirmarEmision(datos, TipoComprobante.Ticket, FormaEntrega.Email));
         }
 

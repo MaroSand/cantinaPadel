@@ -27,7 +27,7 @@ namespace cantinaPadel.Tests
         // Por defecto, en los tests la cancha está "abierta" los 7 días de 08:00 a 23:00 — replica el
         // comportamiento fijo que tenía el sistema antes de que los horarios pasaran a configurarse
         // por cancha (ver FrmHorarios). Los tests que necesiten un horario particular pueden pasar
-        // su propio HorarioCanchaRepositoryFake.
+        // su propio HorarioCanchaRepositoryFake
         private static HorarioCanchaRepositoryFake CrearHorarioCanchaRepoAbierto()
         {
             var repo = new HorarioCanchaRepositoryFake();
@@ -50,9 +50,9 @@ namespace cantinaPadel.Tests
             return new Cancha { IdCancha = idCancha, Nombre = "Cancha 1", Activa = true };
         }
 
-        // Próxima fecha (a partir de mañana) que caiga en el día de la semana pedido.
-        // Usarlo cuando el test necesita un día de la semana determinado (ej: para
-        // que coincida con un HorarioCancha cargado específicamente para "Lunes").
+        // Próxima fecha (a partir de mañana) que caiga en el día de la semana pedido
+        // Usarlo cuando el test necesita un día de la semana determinado (ej: para que coincida con un HorarioCancha cargado específicamente
+        // para "Lunes")
         private static DateTime ProximoDia(DayOfWeek dia)
         {
             var fecha = DateTime.Today.AddDays(1);
@@ -213,7 +213,7 @@ namespace cantinaPadel.Tests
                 HorarioCancha = new HorarioCancha { HoraInicio = new TimeSpan(10, 0, 0), HoraFin = new TimeSpan(11, 0, 0) }
             });
             var logica = CrearLogica(turnoRepo, canchaRepo);
-            
+
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
             Assert.HasCount(29, horarios);
@@ -398,7 +398,7 @@ namespace cantinaPadel.Tests
 
         public List<Cancha> ObtenerActivas() => _canchas.Where(c => c.Activa).ToList();
 
-        // El nombre debe ser único entre TODAS las canchas (activas o no), igual que CanchaRepository.ExisteNombre.
+        // El nombre debe ser único entre todas las canchas (activas o no), igual que CanchaRepository.ExisteNombre
         public bool ExisteNombre(string nombre, int? idCanchaExcluir = null)
             => _canchas.Any(c =>
                 c.Nombre.Equals(nombre, StringComparison.OrdinalIgnoreCase) &&
@@ -485,13 +485,29 @@ namespace cantinaPadel.Tests
 
         public void Agregar(HorarioCancha horario) => _horarios.Add(horario);
 
-        public void Modificar(HorarioCancha horario) { }
+        public void Modificar(HorarioCancha horario)
+        {
+            var existente = ObtenerPorId(horario.IdHorario);
+            if (existente == null) return;
+
+            existente.IdCancha = horario.IdCancha;
+            existente.DiaSemana = horario.DiaSemana;
+            existente.HoraInicio = horario.HoraInicio;
+            existente.HoraFin = horario.HoraFin;
+            existente.Activo = horario.Activo;
+        }
 
         public void CambiarEstado(int idHorario, bool nuevoEstado)
         {
             var horario = ObtenerPorId(idHorario);
             if (horario != null)
                 horario.Activo = nuevoEstado;
+        }
+
+        public void DesactivarTodosPorCancha(int idCancha)
+        {
+            foreach (var horario in _horarios.Where(h => h.IdCancha == idCancha && h.Activo))
+                horario.Activo = false;
         }
     }
 }
