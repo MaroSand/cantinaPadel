@@ -2,8 +2,8 @@
 
 namespace cantinaPadel.BLL
 {
-    // Una línea del carrito: un producto elegido, con la cantidad que se está por vender. No tiene tabla propia en la base
-    // vive en memoria mientras se arma la venta en FrmPuntoVenta
+    // Una línea del carrito tiene un producto elegido, con la cantidad que se está por vender
+    // No tiene tabla propia en la base porque vive en memoria mientras se arma la venta en FrmPuntoVenta
     public class ItemCarrito
     {
         public Producto Producto { get; }
@@ -23,9 +23,9 @@ namespace cantinaPadel.BLL
 
     // Carrito de venta de FrmPuntoVenta
     // Agrupa los productos elegidos con su cantidad, valida que no se pida más del stock disponible y calcula el total
-    // Este carrito no depende de ningún repositorio: solo necesita los Producto ya obtenidos (por LogicaProducto.Buscar / ObtenerPorCodigoBarras)
+    // Esta clase no depende de ningún repositorio, solo necesita los Producto ya obtenidos (por LogicaProducto.Buscar / ObtenerPorCodigoBarras)
     // para validar stock contra lo cargado
-    public class Carrito
+    public class LogicaCarrito
     {
         private readonly List<ItemCarrito> _items = new();
 
