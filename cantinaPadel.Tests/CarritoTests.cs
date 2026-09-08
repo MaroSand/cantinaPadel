@@ -223,5 +223,27 @@ namespace cantinaPadel.Tests
 
             Assert.AreEqual(0m, carrito.Total);
         }
+
+        // ObtenerCantidadEnCarrito
+        // lo usa la UI para pintar el "stock disponible" en la grilla de resultados de búsqueda
+
+        [TestMethod]
+        public void ObtenerCantidadEnCarrito_ProductoEnElCarrito_DevuelveLaCantidad()
+        {
+            var carrito = new LogicaCarrito();
+            var producto = CrearProducto(id: 1, stock: 10);
+
+            carrito.AgregarProducto(producto, 4);
+
+            Assert.AreEqual(4, carrito.ObtenerCantidadEnCarrito(1));
+        }
+
+        [TestMethod]
+        public void ObtenerCantidadEnCarrito_ProductoQueNoEstaEnElCarrito_DevuelveCero()
+        {
+            var carrito = new LogicaCarrito();
+
+            Assert.AreEqual(0, carrito.ObtenerCantidadEnCarrito(999));
+        }
     }
 }
