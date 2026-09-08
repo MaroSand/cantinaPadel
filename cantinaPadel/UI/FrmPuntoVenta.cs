@@ -66,7 +66,15 @@ namespace cantinaPadel.UI
             dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
             { Name = "Nombre", DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 180 });
             dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "CodigoBarras", DataPropertyName = "CodigoBarras", HeaderText = "Código", Width = 100 });
+            { Name = "Marca", DataPropertyName = "Marca", HeaderText = "Marca", Width = 110 });
+            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
+            {
+                Name = "StockDisponible",
+                DataPropertyName = "StockDisponible",
+                HeaderText = "Stock",
+                Width = 60,
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
+            });
             dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "PrecioConIva",
@@ -77,13 +85,7 @@ namespace cantinaPadel.UI
                 { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "StockDisponible",
-                DataPropertyName = "StockDisponible",
-                HeaderText = "Stock",
-                Width = 60,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
-            });
+            { Name = "CodigoBarras", DataPropertyName = "CodigoBarras", HeaderText = "Código", Width = 100 });
         }
 
         private void ConfigurarGrillaCarrito()
@@ -234,6 +236,7 @@ namespace cantinaPadel.UI
             {
                 IdProducto = p.IdProducto,
                 Nombre = p.Nombre,
+                Marca = p.Marca?.Nombre ?? "-",
                 CodigoBarras = p.CodigoBarras,
                 PrecioConIva = p.PrecioConIva,
                 StockDisponible = Math.Max(0, p.StockActual - _logicaCarrito.ObtenerCantidadEnCarrito(p.IdProducto))
@@ -458,6 +461,7 @@ namespace cantinaPadel.UI
     {
         public int IdProducto { get; set; }
         public string Nombre { get; set; } = string.Empty;
+        public string Marca { get; set; } = string.Empty;
         public string? CodigoBarras { get; set; }
         public decimal PrecioConIva { get; set; }
         public int StockDisponible { get; set; }

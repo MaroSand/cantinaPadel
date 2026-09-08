@@ -94,13 +94,13 @@
             dgvResultadosBusqueda.Location = new Point(30, 81);
             dgvResultadosBusqueda.Name = "dgvResultadosBusqueda";
             dgvResultadosBusqueda.RowHeadersWidth = 51;
-            dgvResultadosBusqueda.Size = new Size(438, 158);
+            dgvResultadosBusqueda.Size = new Size(445, 158);
             dgvResultadosBusqueda.TabIndex = 4;
             // 
             // btnAgregarAlCarrito
             // 
             btnAgregarAlCarrito.BackColor = Color.Gold;
-            btnAgregarAlCarrito.Location = new Point(325, 245);
+            btnAgregarAlCarrito.Location = new Point(332, 245);
             btnAgregarAlCarrito.Name = "btnAgregarAlCarrito";
             btnAgregarAlCarrito.Size = new Size(143, 40);
             btnAgregarAlCarrito.TabIndex = 5;
@@ -112,7 +112,7 @@
             panel1.BackColor = SystemColors.Info;
             panel1.Controls.Add(lblCodigoBarras);
             panel1.Controls.Add(txtCodigoBarras);
-            panel1.Location = new Point(28, 12);
+            panel1.Location = new Point(28, 42);
             panel1.Name = "panel1";
             panel1.Size = new Size(742, 61);
             panel1.TabIndex = 6;
@@ -126,7 +126,7 @@
             panel2.Controls.Add(txtBuscarProducto);
             panel2.Location = new Point(28, 133);
             panel2.Name = "panel2";
-            panel2.Size = new Size(502, 304);
+            panel2.Size = new Size(509, 304);
             panel2.TabIndex = 7;
             // 
             // panel3
@@ -138,13 +138,13 @@
             panel3.Controls.Add(btnQuitarDelCarrito);
             panel3.Location = new Point(560, 133);
             panel3.Name = "panel3";
-            panel3.Size = new Size(477, 304);
+            panel3.Size = new Size(499, 304);
             panel3.TabIndex = 8;
             // 
             // btnVaciarCarrito
             // 
             btnVaciarCarrito.BackColor = Color.FromArgb(255, 224, 192);
-            btnVaciarCarrito.Location = new Point(329, 245);
+            btnVaciarCarrito.Location = new Point(344, 245);
             btnVaciarCarrito.Name = "btnVaciarCarrito";
             btnVaciarCarrito.Size = new Size(119, 40);
             btnVaciarCarrito.TabIndex = 6;
@@ -160,7 +160,7 @@
             dgvCarrito.Location = new Point(29, 42);
             dgvCarrito.Name = "dgvCarrito";
             dgvCarrito.RowHeadersWidth = 51;
-            dgvCarrito.Size = new Size(419, 197);
+            dgvCarrito.Size = new Size(434, 197);
             dgvCarrito.TabIndex = 4;
             // 
             // label1
@@ -189,14 +189,14 @@
             panel4.Controls.Add(lblTotal);
             panel4.Location = new Point(28, 469);
             panel4.Name = "panel4";
-            panel4.Size = new Size(1009, 62);
+            panel4.Size = new Size(1031, 62);
             panel4.TabIndex = 9;
             // 
             // btnConfirmarVenta
             // 
             btnConfirmarVenta.BackColor = Color.FromArgb(255, 255, 192);
             btnConfirmarVenta.FlatStyle = FlatStyle.System;
-            btnConfirmarVenta.Location = new Point(828, 7);
+            btnConfirmarVenta.Location = new Point(843, 7);
             btnConfirmarVenta.Name = "btnConfirmarVenta";
             btnConfirmarVenta.Size = new Size(152, 45);
             btnConfirmarVenta.TabIndex = 1;
