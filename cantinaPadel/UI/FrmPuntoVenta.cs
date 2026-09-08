@@ -428,12 +428,13 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            // Placeholder: acá va el handoff real a FrmMetodoPago pasándole
-            // _logicaCarrito.Items (o el Total) una vez que Facu G. arranque US-14
-            MessageBox.Show(
-                $"Venta lista para cobrar. Total: {_logicaCarrito.Total:C2}\n" +
-                "(pantalla de método de pago pendiente - US-14)",
-                "Confirmar venta", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using var frmMetodoPago = new FrmMetodoPago(_logicaCarrito.Items);
+            if (frmMetodoPago.ShowDialog(this) == DialogResult.OK)
+            {
+                _logicaCarrito.Vaciar();
+                RefrescarUI();
+                txtBuscarProducto.Focus();
+            }
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)
