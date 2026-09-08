@@ -36,7 +36,6 @@ namespace cantinaPadel.UI
             ConfigurarGrillaCarrito();
 
             // Se suscriben los eventos de controles
-            txtCodigoBarras.KeyDown += txtCodigoBarras_KeyDown;
             txtBuscarProducto.KeyDown += txtBuscarProducto_KeyDown;
             txtBuscarProducto.TextChanged += txtBuscarProducto_TextChanged;
             dgvResultadosBusqueda.CellDoubleClick += dgvResultadosBusqueda_CellDoubleClick;
@@ -132,53 +131,10 @@ namespace cantinaPadel.UI
             });
         }
 
-        // Código de barras
-        // El lector HID "tipea" el código y termina mandando Enter. Si encuentra el producto y hay stock, lo agrega
-        private void txtCodigoBarras_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode != Keys.Enter) return;
-
-            e.SuppressKeyPress = true;
-
-            string codigo = txtCodigoBarras.Text.Trim();
-            txtCodigoBarras.Clear();
-
-            if (string.IsNullOrWhiteSpace(codigo))
-            {
-                txtCodigoBarras.Focus();
-                return;
-            }
-
-            try
-            {
-                Producto? producto = _logicaProducto.ObtenerPorCodigoBarras(codigo);
-
-                if (producto == null)
-                {
-                    MessageBox.Show($"No se encontró ningún producto con el código '{codigo}'.",
-                        "Producto no encontrado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                _logicaCarrito.AgregarProducto(producto, 1);
-                RefrescarUI();
-            }
-            catch (ArgumentException ex)
-            {
-                MessageBox.Show(ex.Message, "No se pudo agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error al buscar el producto: {ex.Message}",
-                    "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                txtCodigoBarras.Focus();
-            }
-        }
-
-        // Búsqueda por nombre
+        // Búsqueda unificada: una sola barra sirve tanto para nombre como para código de barras, sin necesidad de presionar Enter.
+        // El lector HID "tipea" el código muy rápido; como cada tecla reinicia el debounce, la búsqueda recién se dispara cuando
+        // el lector termina de tipear. Si el texto ingresado coincide exactamente con el código de barras de un producto,
+        // se lo agrega directo al carrito (mismo comportamiento que antes tenía el campo separado de código de barras)
         private void txtBuscarProducto_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;
@@ -219,11 +175,48 @@ namespace cantinaPadel.UI
 
                 _ultimosResultados = _logicaProducto.Buscar(texto, null, null, activo: true);
                 ActualizarGrillaResultados();
+
+                // Si lo tipeado coincide exacto con un código de barras (típico de un lector HID), se agrega directo al
+                // carrito en vez de esperar a que el usuario lo seleccione de la grilla
+                if (texto != null)
+                {
+                    Producto? porCodigo = _ultimosResultados
+                        .FirstOrDefault(p => string.Equals(p.CodigoBarras, texto, StringComparison.OrdinalIgnoreCase));
+
+                    if (porCodigo != null)
+                        AgregarProductoAlCarrito(porCodigo, limpiarBusqueda: true);
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al buscar productos: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Agrega un producto al carrito. Cuando viene de una coincidencia exacta de código de barras (lector HID), además se
+        // limpia la barra de búsqueda y se refoca, dejándola lista para el próximo escaneo. Cuando viene de una selección
+        // manual en la grilla (doble click o botón "Agregar al carrito"), se deja la búsqueda como está para poder seguir
+        // agregando otros resultados de la misma búsqueda
+        private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false)
+        {
+            try
+            {
+                _logicaCarrito.AgregarProducto(producto, 1);
+                RefrescarUI();
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(ex.Message, "No se pudo agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            finally
+            {
+                if (limpiarBusqueda)
+                {
+                    txtBuscarProducto.Clear();
+                    dgvResultadosBusqueda.DataSource = null;
+                    txtBuscarProducto.Focus();
+                }
             }
         }
 
@@ -272,18 +265,10 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            try
-            {
-                Producto? producto = _logicaProducto.ObtenerPorId(idProducto);
-                if (producto == null) return;
+            Producto? producto = _logicaProducto.ObtenerPorId(idProducto);
+            if (producto == null) return;
 
-                _logicaCarrito.AgregarProducto(producto, 1);
-                RefrescarUI();
-            }
-            catch (ArgumentException ex)
-            {
-                MessageBox.Show(ex.Message, "No se pudo agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
+            AgregarProductoAlCarrito(producto);
         }
 
         // Carrito
@@ -428,12 +413,13 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            // Placeholder: acá va el handoff real a FrmMetodoPago pasándole
-            // _logicaCarrito.Items (o el Total) una vez que Facu G. arranque US-14
-            MessageBox.Show(
-                $"Venta lista para cobrar. Total: {_logicaCarrito.Total:C2}\n" +
-                "(pantalla de método de pago pendiente - US-14)",
-                "Confirmar venta", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            using var frmMetodoPago = new FrmMetodoPago(_logicaCarrito.Items);
+            if (frmMetodoPago.ShowDialog(this) == DialogResult.OK)
+            {
+                _logicaCarrito.Vaciar();
+                RefrescarUI();
+                txtBuscarProducto.Focus();
+            }
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

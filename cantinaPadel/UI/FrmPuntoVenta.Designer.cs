@@ -28,8 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            lblCodigoBarras = new Label();
-            txtCodigoBarras = new TextBox();
             lblBuscarProducto = new Label();
             txtBuscarProducto = new TextBox();
             dgvResultadosBusqueda = new DataGridView();
@@ -50,40 +48,22 @@
             panel4.SuspendLayout();
             SuspendLayout();
             // 
-            // lblCodigoBarras
-            // 
-            lblCodigoBarras.AutoSize = true;
-            lblCodigoBarras.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblCodigoBarras.Location = new Point(508, 19);
-            lblCodigoBarras.Name = "lblCodigoBarras";
-            lblCodigoBarras.Size = new Size(130, 20);
-            lblCodigoBarras.TabIndex = 0;
-            lblCodigoBarras.Text = "Código de barras:";
-            // 
-            // txtCodigoBarras
-            // 
-            txtCodigoBarras.Location = new Point(508, 42);
-            txtCodigoBarras.MaxLength = 100;
-            txtCodigoBarras.Name = "txtCodigoBarras";
-            txtCodigoBarras.Size = new Size(473, 27);
-            txtCodigoBarras.TabIndex = 1;
-            // 
             // lblBuscarProducto
             // 
             lblBuscarProducto.AutoSize = true;
             lblBuscarProducto.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblBuscarProducto.Location = new Point(30, 19);
             lblBuscarProducto.Name = "lblBuscarProducto";
-            lblBuscarProducto.Size = new Size(125, 20);
+            lblBuscarProducto.Size = new Size(266, 20);
             lblBuscarProducto.TabIndex = 2;
-            lblBuscarProducto.Text = "Buscar producto:";
+            lblBuscarProducto.Text = "Buscar producto (nombre o código de barras):";
             // 
             // txtBuscarProducto
             // 
             txtBuscarProducto.Location = new Point(30, 42);
-            txtBuscarProducto.MaxLength = 30;
+            txtBuscarProducto.MaxLength = 100;
             txtBuscarProducto.Name = "txtBuscarProducto";
-            txtBuscarProducto.Size = new Size(413, 27);
+            txtBuscarProducto.Size = new Size(951, 27);
             txtBuscarProducto.TabIndex = 3;
             // 
             // dgvResultadosBusqueda
@@ -112,8 +92,6 @@
             // 
             panel2.BackColor = Color.Gold;
             panel2.BorderStyle = BorderStyle.FixedSingle;
-            panel2.Controls.Add(txtCodigoBarras);
-            panel2.Controls.Add(lblCodigoBarras);
             panel2.Controls.Add(dgvResultadosBusqueda);
             panel2.Controls.Add(lblBuscarProducto);
             panel2.Controls.Add(btnAgregarAlCarrito);
@@ -239,8 +217,6 @@
 
         #endregion
 
-        private Label lblCodigoBarras;
-        private TextBox txtCodigoBarras;
         private Label lblBuscarProducto;
         private TextBox txtBuscarProducto;
         private DataGridView dgvResultadosBusqueda;
