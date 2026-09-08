@@ -2,7 +2,7 @@
 
 namespace cantinaPadel.DAL.Repositories
 {
-    public interface ITurnoDiaRepository
+    public interface ITurnoDíaRepository
     {
         // En este módulo los horarios disponibles se calculan en memoria. La bd guarda solo franjas que alguna vez fueron reservadas
         HorarioCancha? ObtenerHorarioPorFranja(int idCancha, string diaSemana, TimeSpan horaInicio, TimeSpan horaFin);
