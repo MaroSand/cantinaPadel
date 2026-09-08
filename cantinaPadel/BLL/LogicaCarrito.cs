@@ -82,6 +82,11 @@ namespace cantinaPadel.BLL
                 _items.Remove(item);
         }
 
+        // Cuánto de este producto ya está en el carrito (0 si no está). Lo usa la UI  para mostrar el stock disponible (stock real - lo ya cargado
+        // en el carrito) en la grilla de resultados de búsqueda
+        public int ObtenerCantidadEnCarrito(int idProducto)
+            => _items.FirstOrDefault(i => i.Producto.IdProducto == idProducto)?.Cantidad ?? 0;
+
         public void Vaciar() => _items.Clear();
 
         private static void ValidarStock(Producto producto, int cantidadPedida)
