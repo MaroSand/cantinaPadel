@@ -19,7 +19,11 @@ namespace cantinaPadel.DAL
         public DbSet<Caja> Cajas { get; set; }
         public DbSet<InstanciaTurno> InstanciasTurno { get; set; }
         public DbSet<TurnoReservado> TurnosReservados { get; set; }
+        // Se conserva el mapeo por compatibilidad; US-14 no lo consulta ni
+        // lo crea, porque los comprobantes se manejan en memoria.
         public DbSet<Comprobante> Comprobantes { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVenta> DetallesVenta { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -56,6 +60,11 @@ namespace cantinaPadel.DAL
                 .HasOne(p => p.Proveedor)
                 .WithMany()
                 .HasForeignKey(p => p.IdProveedor);
+
+            modelBuilder.Entity<Venta>()
+                .HasMany(v => v.Detalles)
+                .WithOne()
+                .HasForeignKey(d => d.IdVenta);
         }
     }
 }

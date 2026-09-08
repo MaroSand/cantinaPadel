@@ -38,9 +38,13 @@ namespace cantinaPadel.BLL
         private const int PUNTO_VENTA = 1;
 
         private readonly IComprobanteRepository _repo;
+        // US-14 no requiere una tabla de comprobantes. Se conserva el
+        // correlativo mientras la aplicación está abierta para imprimir o
+        // enviar el comprobante, sin acceder a la base de datos.
+        private static readonly IComprobanteRepository _repositorioEnMemoria = new ComprobanteRepositoryEnMemoria();
 
         public LogicaComprobante()
-            : this(new ComprobanteRepository())
+            : this(_repositorioEnMemoria)
         {
         }
 
@@ -54,8 +58,8 @@ namespace cantinaPadel.BLL
         public long GenerarProximoNumero(TipoComprobante tipo)
             => _repo.ObtenerUltimoNumero(tipo, PUNTO_VENTA) + 1;
 
-        // Punto de entrada de US-15: valida, arma el Comprobante, lo
-        // persiste con su número correlativo y resuelve la entrega elegida
+        // Punto de entrada de US-15: valida, arma el Comprobante, conserva
+        // su número correlativo en memoria y resuelve la entrega elegida
         // (imprimir / mandar por email / no emitir nada).
         public Comprobante ConfirmarEmision(DatosVentaParaComprobante datos, TipoComprobante tipo, FormaEntrega formaEntrega)
         {
@@ -158,6 +162,36 @@ namespace cantinaPadel.BLL
 
             using var smtp = new SmtpClient();
             smtp.Send(mensaje);
+        }
+    }
+
+    // Implementación deliberadamente en memoria: evita depender de una
+    // tabla "comprobantes" que aún no forma parte del esquema de ventas.
+    internal sealed class ComprobanteRepositoryEnMemoria : IComprobanteRepository
+    {
+        private readonly List<Comprobante> _comprobantes = new();
+        private readonly object _sync = new();
+
+        public long ObtenerUltimoNumero(TipoComprobante tipo, int puntoVenta)
+        {
+            lock (_sync)
+                return _comprobantes.Where(c => c.Tipo == tipo && c.PuntoVenta == puntoVenta)
+                    .Select(c => (long?)c.Numero).Max() ?? 0;
+        }
+
+        public void Agregar(Comprobante comprobante)
+        {
+            lock (_sync)
+            {
+                comprobante.IdComprobante = _comprobantes.Count + 1;
+                _comprobantes.Add(comprobante);
+            }
+        }
+
+        public Comprobante? ObtenerPorId(int idComprobante)
+        {
+            lock (_sync)
+                return _comprobantes.FirstOrDefault(c => c.IdComprobante == idComprobante);
         }
     }
 }
