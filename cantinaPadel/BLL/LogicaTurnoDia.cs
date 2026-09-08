@@ -39,13 +39,13 @@ namespace cantinaPadel.BLL
         public const string ModalidadMensual = "Mensual";
         public const string ModalidadAnual = "Anual";
 
-        private readonly ITurnoDiaRepository _turnoRepo;
+        private readonly ITurnoDíaRepository _turnoRepo;
         private readonly ICanchaRepository _canchaRepo;
         private readonly IClienteRepository _clienteRepo;
         private readonly IHorarioCanchaRepository _horarioCanchaRepo;
 
         public LogicaTurnoDia()
-            : this(new TurnoDiaRepository(), new CanchaRepository(), new ClienteRepository(), new HorarioCanchaRepository())
+            : this(new TurnoDíaRepository(), new CanchaRepository(), new ClienteRepository(), new HorarioCanchaRepository())
         {
         }
 
@@ -53,7 +53,7 @@ namespace cantinaPadel.BLL
         // cancha/horario está ocupado por qué cliente. El cobro (si corresponde) se
         // maneja aparte, en el módulo de Caja/Ventas.
         public LogicaTurnoDia(
-            ITurnoDiaRepository turnoRepo,
+            ITurnoDíaRepository turnoRepo,
             ICanchaRepository canchaRepo,
             IClienteRepository clienteRepo,
             IHorarioCanchaRepository horarioCanchaRepo)
@@ -201,22 +201,23 @@ namespace cantinaPadel.BLL
                 Estado = TurnoReservado.EstadoActivo
             };
 
+   
+            string diaSemana = ObtenerDiaSemana(fechaInicio);
+            var horario = _turnoRepo.ObtenerHorarioPorFranja(idCancha, diaSemana, horaInicio, horaFin)
+                ?? new HorarioCancha
+                {
+                    IdCancha = idCancha,
+                    DiaSemana = diaSemana,
+                    HoraInicio = horaInicio,
+                    HoraFin = horaFin,
+                    Activo = false
+                };
+
             var horarios = new List<HorarioCancha>();
             var instancias = new List<InstanciaTurno>();
 
             foreach (var fecha in fechas)
             {
-                string diaSemana = ObtenerDiaSemana(fecha);
-                var horario = _turnoRepo.ObtenerHorarioPorFranja(idCancha, diaSemana, horaInicio, horaFin)
-                    ?? new HorarioCancha
-                    {
-                        IdCancha = idCancha,
-                        DiaSemana = diaSemana,
-                        HoraInicio = horaInicio,
-                        HoraFin = horaFin,
-                        Activo = true
-                    };
-
                 horarios.Add(horario);
                 instancias.Add(new InstanciaTurno
                 {
@@ -285,7 +286,9 @@ namespace cantinaPadel.BLL
             if (!entraEnAlgunaBanda)
                 throw new ArgumentException("La banda horaria está fuera del horario configurado para esa cancha ese día.");
         }
-        
+
+        // Solo se permite alquilar turnos de 1 hora exacta (antes existían opciones de
+        // 30 min, 1:30 y 2hs, se sacaron tanto acá como del frm de turnos).
         private static void ValidarDuracionTurno(TimeSpan duracion)
         {
             if (duracion != DuracionTurno)
@@ -299,8 +302,9 @@ namespace cantinaPadel.BLL
         // Los horarios que cruzan la medianoche (ej: Lunes 20:00 a 02:00) siguen perteneciendo al día en el
         // que arrancan (HorarioCancha.CruzaMedianoche), así que acá se usa HoraFinNormalizada (+24hs)
         // como fin de esa banda. Así, GenerarInicios/ObtenerHorarios generan también los turnos de después de
-        // medianoche (ej: 00:30-01:30) para ese mismo día. El turno sigue quedando
-        // asociado a la fecha en la que arrancó la banda.
+        // medianoche (ej: 00:30-01:30) para ese mismo día, en vez de perderlos. El turno sigue quedando
+        // asociado a la fecha en la que arrancó la banda: TimeSpan admite valores mayores a 24hs sin problema,
+        // y al formatearlos (hh:mm) muestran igual la hora de reloj real.
         private List<(TimeSpan Inicio, TimeSpan Fin)> ObtenerBandasHorarias(int idCancha, DateTime fecha)
         {
             string diaSemana = ObtenerDiaSemana(fecha);
@@ -313,7 +317,7 @@ namespace cantinaPadel.BLL
         }
 
         // Genera todas las horas de inicio posibles dentro de las bandas dadas, cada GranularidadTurno
-        // (banda 08:00-12:00 -> 08:00, 08:30, ..., 11:30). Cada inicio viaja con el fin de SU banda,
+        // (ej: banda 08:00-12:00 -> 08:00, 08:30, ..., 11:30). Cada inicio viaja con el fin de SU banda,
         // para que ObtenerHorarios pueda chequear que la duración elegida entra sin saltar a la banda siguiente.
         private static List<(TimeSpan Inicio, TimeSpan FinBanda)> GenerarInicios(List<(TimeSpan Inicio, TimeSpan Fin)> bandas)
         {

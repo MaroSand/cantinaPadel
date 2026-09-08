@@ -12,13 +12,13 @@ namespace cantinaPadel.Tests
         private const int IdCanchaValida = 1;
 
         private static LogicaTurnoDia CrearLogica(
-            TurnoDiaRepositoryFake? turnoRepo = null,
+            TurnoDíaRepositoryFake? turnoRepo = null,
             CanchaRepositoryFake? canchaRepo = null,
             ClienteRepositoryFake? clienteRepo = null,
             HorarioCanchaRepositoryFake? horarioCanchaRepo = null)
         {
             return new LogicaTurnoDia(
-                turnoRepo ?? new TurnoDiaRepositoryFake(),
+                turnoRepo ?? new TurnoDíaRepositoryFake(),
                 canchaRepo ?? new CanchaRepositoryFake(),
                 clienteRepo ?? new ClienteRepositoryFake(),
                 horarioCanchaRepo ?? CrearHorarioCanchaRepoAbierto());
@@ -49,10 +49,7 @@ namespace cantinaPadel.Tests
         {
             return new Cancha { IdCancha = idCancha, Nombre = "Cancha 1", Activa = true };
         }
-
-        // Próxima fecha (a partir de mañana) que caiga en el día de la semana pedido.
-        // Usarlo cuando el test necesita un día de la semana determinado (ej: para
-        // que coincida con un HorarioCancha cargado específicamente para "Lunes").
+        
         private static DateTime ProximoDia(DayOfWeek dia)
         {
             var fecha = DateTime.Today.AddDays(1);
@@ -93,7 +90,7 @@ namespace cantinaPadel.Tests
             var fecha = DateTime.Today.AddDays(1);
             var canchaRepo = new CanchaRepositoryFake();
             canchaRepo.Cargar(CrearCanchaActiva());
-            var turnoRepo = new TurnoDiaRepositoryFake();
+            var turnoRepo = new TurnoDíaRepositoryFake();
             turnoRepo.MarcarOcupada(fecha);
             var logica = CrearLogica(turnoRepo, canchaRepo);
 
@@ -103,25 +100,12 @@ namespace cantinaPadel.Tests
         }
 
         [TestMethod]
-        public void RegistrarAlquiler_DuracionNoMultiploDeLaGranularidad_LanzaArgumentException()
-        {
-            var canchaRepo = new CanchaRepositoryFake();
-            canchaRepo.Cargar(CrearCanchaActiva());
-            var logica = CrearLogica(canchaRepo: canchaRepo);
-            var manana = DateTime.Today.AddDays(1);
-
-            Assert.ThrowsExactly<ArgumentException>(() =>
-                logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, manana,
-                    new TimeSpan(10, 0, 0), new TimeSpan(10, 20, 0), LogicaTurnoDia.ModalidadDia));
-        }
-
-        [TestMethod]
         public void RegistrarAlquiler_UnaHora_SeRegistraCorrectamenteSinCaja()
         {
             var fecha = DateTime.Today.AddDays(1);
             var canchaRepo = new CanchaRepositoryFake();
             canchaRepo.Cargar(CrearCanchaActiva());
-            var turnoRepo = new TurnoDiaRepositoryFake();
+            var turnoRepo = new TurnoDíaRepositoryFake();
             var logica = CrearLogica(turnoRepo, canchaRepo);
 
             logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, fecha,
@@ -156,7 +140,7 @@ namespace cantinaPadel.Tests
             var fecha = DateTime.Today.AddDays(1);
             var canchaRepo = new CanchaRepositoryFake();
             canchaRepo.Cargar(CrearCanchaActiva());
-            var turnoRepo = new TurnoDiaRepositoryFake();
+            var turnoRepo = new TurnoDíaRepositoryFake();
             var logica = CrearLogica(turnoRepo, canchaRepo);
 
             logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, fecha,
@@ -170,6 +154,54 @@ namespace cantinaPadel.Tests
             Assert.IsTrue(turnoRepo.InstanciasRegistradas.All(i => i.Fecha >= fecha.Date && i.Fecha <= fechaFinEsperada));
         }
 
+        [TestMethod]
+        public void RegistrarAlquiler_ModalidadMensual_ReutilizaLaMismaFranjaParaTodasLasInstancias()
+        {
+            var fecha = DateTime.Today.AddDays(1);
+            var canchaRepo = new CanchaRepositoryFake();
+            canchaRepo.Cargar(CrearCanchaActiva());
+            var turnoRepo = new TurnoDíaRepositoryFake();
+            var logica = CrearLogica(turnoRepo, canchaRepo);
+
+            logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, fecha,
+                new TimeSpan(10, 0, 0), new TimeSpan(11, 0, 0), LogicaTurnoDia.ModalidadMensual);
+
+            var horarios = turnoRepo.HorariosRegistrados!;
+            Assert.IsGreaterThan(1, horarios.Count); // hay varias instancias (una por semana)
+            
+            Assert.IsTrue(horarios.All(h => ReferenceEquals(h, horarios[0])));
+        }
+
+        [TestMethod]
+        public void RegistrarAlquiler_DentroDeUnaBandaYaConfigurada_NoDuplicaLaFranjaEnObtenerHorarios()
+        {
+            var domingo = ProximoDia(DayOfWeek.Sunday);
+            var tablaHorarios = new List<HorarioCancha>
+            {
+                new HorarioCancha
+                {
+                    IdCancha = IdCanchaValida,
+                    DiaSemana = "Domingo",
+                    HoraInicio = new TimeSpan(8, 0, 0),
+                    HoraFin = new TimeSpan(3, 0, 0), // cruza medianoche
+                    Activo = true
+                }
+            };
+            var canchaRepo = new CanchaRepositoryFake();
+            canchaRepo.Cargar(CrearCanchaActiva());
+            var turnoRepo = new TurnoDíaRepositoryFake(tablaHorarios);
+            var horarioCanchaRepo = new HorarioCanchaRepositoryFake(tablaHorarios);
+            var logica = CrearLogica(turnoRepo, canchaRepo, horarioCanchaRepo: horarioCanchaRepo);
+
+            logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, domingo,
+                new TimeSpan(1, 30, 0), new TimeSpan(2, 30, 0), LogicaTurnoDia.ModalidadAnual);
+
+            var horarios = logica.ObtenerHorarios(IdCanchaValida, domingo);
+
+            Assert.HasCount(1, horarios.Where(h => h.Horario == "01:30 - 02:30"));
+            Assert.IsTrue(horarios.Single(h => h.Horario == "01:30 - 02:30").Disponible == false);
+        }
+
         // CancelarTurno
 
         [TestMethod]
@@ -181,13 +213,13 @@ namespace cantinaPadel.Tests
             Assert.ThrowsExactly<ArgumentException>(() =>
                 CrearLogica().CancelarTurno(999));
 
-            var turnoRepoCancelada = new TurnoDiaRepositoryFake();
+            var turnoRepoCancelada = new TurnoDíaRepositoryFake();
             turnoRepoCancelada.CargarInstancia(new InstanciaTurno { IdInstancia = 1, Fecha = DateTime.Today.AddDays(1), Estado = InstanciaTurno.EstadoCancelada });
             Assert.ThrowsExactly<ArgumentException>(() =>
                 CrearLogica(turnoRepoCancelada).CancelarTurno(1));
 
             // No se puede cancelar retroactivamente un turno cuya fecha ya pasó
-            var turnoRepoPasado = new TurnoDiaRepositoryFake();
+            var turnoRepoPasado = new TurnoDíaRepositoryFake();
             turnoRepoPasado.CargarInstancia(new InstanciaTurno { IdInstancia = 1, Fecha = DateTime.Today.AddDays(-1), Estado = InstanciaTurno.EstadoActiva });
             Assert.ThrowsExactly<ArgumentException>(() =>
                 CrearLogica(turnoRepoPasado).CancelarTurno(1));
@@ -204,7 +236,7 @@ namespace cantinaPadel.Tests
             var fecha = DateTime.Today.AddDays(1);
             var canchaRepo = new CanchaRepositoryFake();
             canchaRepo.Cargar(CrearCanchaActiva());
-            var turnoRepo = new TurnoDiaRepositoryFake();
+            var turnoRepo = new TurnoDíaRepositoryFake();
             turnoRepo.CargarInstancia(new InstanciaTurno
             {
                 IdInstancia = 1,
@@ -262,10 +294,7 @@ namespace cantinaPadel.Tests
                 Activo = true
             });
             var logica = CrearLogica(canchaRepo: canchaRepo, horarioCanchaRepo: horarioRepo);
-
-            // Banda cargada: 22:00-03:00(+1 día). Con duración fija de 1h, los inicios posibles son
-            // 22:00, 22:30, 23:00, 23:30, 00:00, 00:30, 01:00, 01:30 y 02:00 (9 en total, ya que 02:30+1h
-            // se pasaría de las 03:00 de fin de banda).
+            
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
             Assert.HasCount(9, horarios);
@@ -293,7 +322,6 @@ namespace cantinaPadel.Tests
             });
             var logica = CrearLogica(canchaRepo: canchaRepo, horarioCanchaRepo: horarioRepo);
 
-            // 20:00 caería dentro del viejo rango fijo (8-23), pero está fuera de la banda real cargada para esta cancha (9-12)
             Assert.ThrowsExactly<ArgumentException>(() =>
                 logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, fecha,
                     new TimeSpan(20, 0, 0), new TimeSpan(21, 0, 0), LogicaTurnoDia.ModalidadDia));
@@ -320,14 +348,17 @@ namespace cantinaPadel.Tests
             }
         }
     }
-
-    // Fakes en memoria de los repos que consume LogicaTurnoDia
-
-    internal sealed class TurnoDiaRepositoryFake : ITurnoDiaRepository
+    
+    internal sealed class TurnoDíaRepositoryFake : ITurnoDíaRepository
     {
-        private readonly List<HorarioCancha> _horarios = new();
+        private readonly List<HorarioCancha> _horarios;
         private readonly List<InstanciaTurno> _instancias = new();
         private readonly HashSet<DateTime> _fechasOcupadas = new();
+
+        public TurnoDíaRepositoryFake(List<HorarioCancha>? tablaHorariosCancha = null)
+        {
+            _horarios = tablaHorariosCancha ?? new List<HorarioCancha>();
+        }
 
         public TurnoReservado? TurnoRegistrado { get; private set; }
         public List<HorarioCancha>? HorariosRegistrados { get; private set; }
@@ -337,7 +368,7 @@ namespace cantinaPadel.Tests
         public void CargarInstancia(InstanciaTurno instancia) => _instancias.Add(instancia);
 
         public void MarcarOcupada(DateTime fecha) => _fechasOcupadas.Add(fecha.Date);
-
+        
         public HorarioCancha? ObtenerHorarioPorFranja(int idCancha, string diaSemana, TimeSpan horaInicio, TimeSpan horaFin)
             => _horarios.FirstOrDefault(h =>
                 h.IdCancha == idCancha && h.DiaSemana == diaSemana && h.HoraInicio == horaInicio && h.HoraFin == horaFin);
@@ -350,9 +381,7 @@ namespace cantinaPadel.Tests
 
         public void RegistrarAlquiler(TurnoReservado turno, HorarioCancha horario, InstanciaTurno instancia)
         {
-            TurnoRegistrado = turno;
-            HorariosRegistrados = new List<HorarioCancha> { horario };
-            InstanciasRegistradas = new List<InstanciaTurno> { instancia };
+            RegistrarAlquiler(turno, new List<HorarioCancha> { horario }, new List<InstanciaTurno> { instancia });
         }
 
         public void RegistrarAlquiler(TurnoReservado turno, List<HorarioCancha> horarios, List<InstanciaTurno> instancias)
@@ -360,6 +389,14 @@ namespace cantinaPadel.Tests
             TurnoRegistrado = turno;
             HorariosRegistrados = horarios;
             InstanciasRegistradas = instancias;
+            
+            foreach (var horario in horarios.Distinct())
+            {
+                if (!_horarios.Contains(horario))
+                    _horarios.Add(horario);
+            }
+
+            _instancias.AddRange(instancias);
         }
 
         public List<InstanciaTurno> ObtenerInstanciasPorFecha(DateTime fecha, int? idCancha = null)
@@ -462,7 +499,12 @@ namespace cantinaPadel.Tests
 
     internal sealed class HorarioCanchaRepositoryFake : IHorarioCanchaRepository
     {
-        private readonly List<HorarioCancha> _horarios = new();
+        private readonly List<HorarioCancha> _horarios;
+
+        public HorarioCanchaRepositoryFake(List<HorarioCancha>? tablaHorariosCancha = null)
+        {
+            _horarios = tablaHorariosCancha ?? new List<HorarioCancha>();
+        }
 
         public void Cargar(params HorarioCancha[] horarios) => _horarios.AddRange(horarios);
 

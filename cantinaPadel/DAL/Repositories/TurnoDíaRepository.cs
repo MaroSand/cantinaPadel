@@ -3,19 +3,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.DAL.Repositories
 {
-    public class TurnoDiaRepository : ITurnoDiaRepository
+    public class TurnoDíaRepository : ITurnoDíaRepository
     {
         public HorarioCancha? ObtenerHorarioPorFranja(int idCancha, string diaSemana, TimeSpan horaInicio, TimeSpan horaFin)
         {
             using var ctx = new AppDbContext();
+            // No se filtra por Activo acá: además de bandas realmente configuradas (activas), esta
+            // búsqueda también debe reencontrar filas de HorarioCancha creadas antes solo para
+            // vincular una reserva (esas quedan con Activo=false, ver LogicaTurnoDia.RegistrarAlquiler).
+            // Si no las reencuentra, cada nueva reserva de la misma franja exacta crearía una fila
+            // nueva en vez de reutilizar la existente.
             return ctx.HorariosCancha
                 .Include(h => h.Cancha)
                     .ThenInclude(c => c!.Producto)
                 .FirstOrDefault(h => h.IdCancha == idCancha
                                   && h.DiaSemana == diaSemana
                                   && h.HoraInicio == horaInicio
-                                  && h.HoraFin == horaFin
-                                  && h.Activo);
+                                  && h.HoraFin == horaFin);
         }
 
         public HorarioCancha? ObtenerHorarioPorId(int idHorario)
@@ -44,27 +48,37 @@ namespace cantinaPadel.DAL.Repositories
 
         public void RegistrarAlquiler(TurnoReservado turno, List<HorarioCancha> horarios, List<InstanciaTurno> instancias)
         {
+            if (horarios.Count != instancias.Count)
+                throw new ArgumentException("La cantidad de horarios y de instancias debe coincidir.");
+
             using var ctx = new AppDbContext();
             using var tx = ctx.Database.BeginTransaction();
 
             ctx.TurnosReservados.Add(turno);
+            
+            var horariosPersistidos = new Dictionary<(int IdCancha, string DiaSemana, TimeSpan HoraInicio, TimeSpan HoraFin), HorarioCancha>();
 
             for (int i = 0; i < instancias.Count; i++)
             {
                 var horario = horarios[i];
                 var instancia = instancias[i];
+                var clave = (horario.IdCancha, horario.DiaSemana, horario.HoraInicio, horario.HoraFin);
 
-                var horarioPersistido = ctx.HorariosCancha.FirstOrDefault(h =>
-                    h.IdCancha == horario.IdCancha &&
-                    h.DiaSemana == horario.DiaSemana &&
-                    h.HoraInicio == horario.HoraInicio &&
-                    h.HoraFin == horario.HoraFin &&
-                    h.Activo);
-
-                if (horarioPersistido == null)
+                if (!horariosPersistidos.TryGetValue(clave, out var horarioPersistido))
                 {
-                    horarioPersistido = horario;
-                    ctx.HorariosCancha.Add(horarioPersistido);
+                    horarioPersistido = ctx.HorariosCancha.FirstOrDefault(h =>
+                        h.IdCancha == horario.IdCancha &&
+                        h.DiaSemana == horario.DiaSemana &&
+                        h.HoraInicio == horario.HoraInicio &&
+                        h.HoraFin == horario.HoraFin);
+
+                    if (horarioPersistido == null)
+                    {
+                        horarioPersistido = horario;
+                        ctx.HorariosCancha.Add(horarioPersistido);
+                    }
+
+                    horariosPersistidos[clave] = horarioPersistido;
                 }
 
                 instancia.TurnoReservado = turno;
