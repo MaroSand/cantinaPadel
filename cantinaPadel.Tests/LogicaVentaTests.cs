@@ -15,7 +15,7 @@ public class LogicaVentaTests
         var logica = new LogicaVenta(repoVentas, new ClienteRepositoryFake(consumidor), new CajaRepositoryFake());
         var items = new[] { new ItemCarrito(CrearProducto(3, 100m), 2) }; // 242 con IVA
 
-        var venta = logica.ConfirmarVenta(items, null, new PagoVenta { Efectivo = 242m }, 5);
+        var venta = logica.ConfirmarVenta(items, null, new PagoVenta { Metodo = MetodoPago.Efectivo }, 5);
 
         Assert.AreEqual(7, venta.IdCliente);
         Assert.AreEqual(242m, venta.Total);
@@ -27,28 +27,41 @@ public class LogicaVentaTests
     }
 
     [TestMethod]
-    public void ConfirmarVenta_PagoMixto_SeRegistraComoMixto()
+    public void ConfirmarVenta_BilleteraVirtual_SeRegistraConEsaFormaDePago()
     {
         var repoVentas = new VentaRepositoryFake();
         var cliente = CrearCliente(8, "Ana", "Paz");
         var logica = new LogicaVenta(repoVentas, new ClienteRepositoryFake(cliente), new CajaRepositoryFake());
         var items = new[] { new ItemCarrito(CrearProducto(3, 100m), 1) }; // 121 con IVA
 
-        var venta = logica.ConfirmarVenta(items, cliente, new PagoVenta { Efectivo = 20m, Transferencia = 101m }, 5);
+        var venta = logica.ConfirmarVenta(items, cliente, new PagoVenta { Metodo = MetodoPago.BilleteraVirtual }, 5);
 
-        Assert.AreEqual("Mixto", venta.FormaPago);
+        Assert.AreEqual("Billetera Virtual", venta.FormaPago);
     }
 
     [TestMethod]
-    public void ConfirmarVenta_ImporteDistintoAlTotal_NoRegistra()
+    public void ConfirmarVenta_CuentaCorrienteSinCliente_NoRegistra()
     {
         var repoVentas = new VentaRepositoryFake();
         var cliente = CrearCliente(8, "Ana", "Paz");
         var logica = new LogicaVenta(repoVentas, new ClienteRepositoryFake(cliente), new CajaRepositoryFake());
         var items = new[] { new ItemCarrito(CrearProducto(3, 100m), 1) };
 
-        Assert.ThrowsExactly<ArgumentException>(() => logica.ConfirmarVenta(items, cliente, new PagoVenta { Efectivo = 100m }, 5));
+        Assert.ThrowsExactly<ArgumentException>(() => logica.ConfirmarVenta(items, null, new PagoVenta { Metodo = MetodoPago.CuentaCorriente }, 5));
         Assert.IsNull(repoVentas.VentaRegistrada);
+    }
+
+    [TestMethod]
+    public void ConfirmarVenta_CuentaCorrienteConCliente_Registra()
+    {
+        var repoVentas = new VentaRepositoryFake();
+        var cliente = CrearCliente(8, "Ana", "Paz");
+        var logica = new LogicaVenta(repoVentas, new ClienteRepositoryFake(cliente), new CajaRepositoryFake());
+        var items = new[] { new ItemCarrito(CrearProducto(3, 100m), 1) };
+
+        var venta = logica.ConfirmarVenta(items, cliente, new PagoVenta { Metodo = MetodoPago.CuentaCorriente }, 5);
+
+        Assert.AreEqual("Cuenta Corriente", venta.FormaPago);
     }
 
     private static Producto CrearProducto(int id, decimal precioVenta) => new() { IdProducto = id, Nombre = "Producto", PrecioVenta = precioVenta, StockActual = 10, Activo = true };
