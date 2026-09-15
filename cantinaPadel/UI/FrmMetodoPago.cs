@@ -11,9 +11,13 @@ public class FrmMetodoPago : Form
     private readonly TextBox _txtBuscarCliente = new() { Width = 260 };
     private readonly DataGridView _dgvClientes = new();
     private readonly Label _lblCliente = new() { AutoSize = true, Text = "Cliente: Consumidor Final (por defecto)" };
-    private readonly TextBox _txtEfectivo = new() { Width = 120, Text = "0" };
-    private readonly TextBox _txtTransferencia = new() { Width = 120, Text = "0" };
-    private readonly Label _lblRestante = new() { AutoSize = true };
+    private readonly CheckBox _chkEfectivo = new() { Text = "Efectivo", AutoSize = true, Checked = true };
+    private readonly CheckBox _chkTransferencia = new() { Text = "Transferencia", AutoSize = true };
+    private readonly CheckBox _chkTarjeta = new() { Text = "Tarjeta", AutoSize = true };
+    private readonly CheckBox _chkBilleteraVirtual = new() { Text = "Billetera Virtual", AutoSize = true };
+    private readonly CheckBox _chkCuentaCorriente = new() { Text = "Cuenta Corriente", AutoSize = true };
+    private List<CheckBox> _checksMetodoPago = new();
+    private bool _actualizandoChecks;
     private Cliente? _clienteSeleccionado;
     private List<Cliente> _clientesEncontrados = new();
 
@@ -63,14 +67,15 @@ public class FrmMetodoPago : Form
         ConfigurarGrillaClientes();
         layout.Controls.Add(_dgvClientes, 0, 2);
 
-        var pagos = new GroupBox { Text = "Importes recibidos", Dock = DockStyle.Fill, Height = 95 };
+        var pagos = new GroupBox { Text = "Método de pago", Dock = DockStyle.Fill, Height = 95 };
         var flujoPagos = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(8), WrapContents = true };
-        flujoPagos.Controls.Add(CrearCampo("Efectivo", _txtEfectivo));
-        flujoPagos.Controls.Add(CrearCampo("Transferencia", _txtTransferencia));
-        flujoPagos.Controls.Add(_lblRestante);
+        _checksMetodoPago = new List<CheckBox> { _chkEfectivo, _chkTransferencia, _chkTarjeta, _chkBilleteraVirtual, _chkCuentaCorriente };
+        foreach (var chk in _checksMetodoPago)
+        {
+            chk.CheckedChanged += (sender, _) => SeleccionarMetodoUnico((CheckBox)sender!);
+            flujoPagos.Controls.Add(chk);
+        }
         pagos.Controls.Add(flujoPagos);
-        _txtEfectivo.TextChanged += (_, _) => ActualizarRestante();
-        _txtTransferencia.TextChanged += (_, _) => ActualizarRestante();
         layout.Controls.Add(pagos, 0, 3);
 
         var acciones = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.RightToLeft };
@@ -83,15 +88,37 @@ public class FrmMetodoPago : Form
         Controls.Add(layout);
         AcceptButton = btnConfirmar;
         CancelButton = btnCancelar;
-        ActualizarRestante();
     }
 
-    private static Control CrearCampo(string texto, Control control)
+    // Los checks se comportan como selección única (tipo radio buttons).
+    private void SeleccionarMetodoUnico(CheckBox seleccionado)
     {
-        var panel = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.TopDown, Margin = new Padding(0, 0, 22, 0) };
-        panel.Controls.Add(new Label { Text = texto, AutoSize = true });
-        panel.Controls.Add(control);
-        return panel;
+        if (_actualizandoChecks) return; // evita reentrancia: los cambios de abajo no deben re-disparar este handler
+        _actualizandoChecks = true;
+        try
+        {
+            if (!seleccionado.Checked)
+            {
+                seleccionado.Checked = true; // no se permite dejar todo destildado
+                return;
+            }
+
+            foreach (var chk in _checksMetodoPago.Where(chk => chk != seleccionado))
+                chk.Checked = false;
+        }
+        finally
+        {
+            _actualizandoChecks = false;
+        }
+    }
+
+    private MetodoPago ObtenerMetodoSeleccionado()
+    {
+        if (_chkTransferencia.Checked) return MetodoPago.Transferencia;
+        if (_chkTarjeta.Checked) return MetodoPago.Tarjeta;
+        if (_chkBilleteraVirtual.Checked) return MetodoPago.BilleteraVirtual;
+        if (_chkCuentaCorriente.Checked) return MetodoPago.CuentaCorriente;
+        return MetodoPago.Efectivo;
     }
 
     private void ConfigurarGrillaClientes()
@@ -132,20 +159,18 @@ public class FrmMetodoPago : Form
         _lblCliente.Text = $"Cliente seleccionado: {cliente.Persona.Nombre} {cliente.Persona.Apellido}";
     }
 
-    private void ActualizarRestante()
-    {
-        decimal efectivo = LeerImporte(_txtEfectivo.Text);
-        decimal transferencia = LeerImporte(_txtTransferencia.Text);
-        _lblRestante.Text = $"Diferencia: {_total - efectivo - transferencia:C2}";
-    }
-
-    private static decimal LeerImporte(string texto) => decimal.TryParse(texto, out var importe) ? importe : -1;
-
     private void btnConfirmar_Click(object? sender, EventArgs e)
     {
         try
         {
-            var pago = new PagoVenta { Efectivo = LeerImporte(_txtEfectivo.Text), Transferencia = LeerImporte(_txtTransferencia.Text) };
+            var metodo = ObtenerMetodoSeleccionado();
+            if (metodo == MetodoPago.CuentaCorriente && _clienteSeleccionado == null)
+            {
+                MessageBox.Show(this, "Cuenta Corriente requiere seleccionar un cliente.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var pago = new PagoVenta { Metodo = metodo };
             var venta = _logicaVenta.ConfirmarVenta(_items, _clienteSeleccionado, pago, Sesion.IdUsuario);
             var cliente = _clienteSeleccionado ?? _logicaVenta.ObtenerConsumidorFinal();
             var datos = new DatosVentaParaComprobante

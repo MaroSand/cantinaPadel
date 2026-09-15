@@ -3,17 +3,26 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.BLL;
 
+public enum MetodoPago
+{
+    Efectivo,
+    Transferencia,
+    Tarjeta,
+    BilleteraVirtual,
+    CuentaCorriente
+}
+
 public sealed class PagoVenta
 {
-    public decimal Efectivo { get; init; }
-    public decimal Transferencia { get; init; }
-    public decimal Total => Efectivo + Transferencia;
+    public MetodoPago Metodo { get; init; }
 
-    public string FormaPago => (Efectivo > 0, Transferencia > 0) switch
+    public string FormaPago => Metodo switch
     {
-        (true, false) => "Efectivo",
-        (false, true) => "Transferencia",
-        (true, true) => "Mixto",
+        MetodoPago.Efectivo => "Efectivo",
+        MetodoPago.Transferencia => "Transferencia",
+        MetodoPago.Tarjeta => "Tarjeta",
+        MetodoPago.BilleteraVirtual => "Billetera Virtual",
+        MetodoPago.CuentaCorriente => "Cuenta Corriente",
         _ => string.Empty
     };
 }
@@ -49,12 +58,12 @@ public class LogicaVenta
             throw new ArgumentException("El carrito está vacío.");
         if (idEmpleado <= 0)
             throw new ArgumentException("No hay un empleado autenticado para registrar la venta.");
-        if (pago == null || pago.Efectivo < 0 || pago.Transferencia < 0 || string.IsNullOrEmpty(pago.FormaPago))
-            throw new ArgumentException("Ingrese un importe válido en efectivo y/o transferencia.");
+        if (pago == null)
+            throw new ArgumentException("Seleccione un método de pago.");
+        if (pago.Metodo == MetodoPago.CuentaCorriente && clienteSeleccionado == null)
+            throw new ArgumentException("Cuenta Corriente requiere seleccionar un cliente.");
 
         decimal total = Math.Round(items.Sum(i => i.Subtotal), 2);
-        if (pago.Total != total)
-            throw new ArgumentException($"El pago debe coincidir con el total a cobrar ({total:C2}).");
 
         var cliente = clienteSeleccionado ?? ObtenerConsumidorFinal();
         if (!cliente.Persona.Activo)
