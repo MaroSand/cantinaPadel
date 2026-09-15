@@ -38,8 +38,7 @@ namespace cantinaPadel.DAL.Repositories
                 texto = texto.Trim().ToLower();
                 query = query.Where(p =>
                     p.Nombre.ToLower().Contains(texto) ||
-                    (p.CodigoBarras != null && p.CodigoBarras.Contains(texto)) ||
-                    (p.Proveedor != null && p.Proveedor.NombreEmpresa.ToLower().Contains(texto)));
+                    (p.CodigoBarras != null && p.CodigoBarras.Contains(texto)));
             }
 
             if (idCategoria.HasValue)
