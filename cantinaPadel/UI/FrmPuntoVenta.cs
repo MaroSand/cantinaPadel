@@ -36,7 +36,6 @@ namespace cantinaPadel.UI
             ConfigurarGrillaCarrito();
 
             // Se suscriben los eventos de controles
-            txtCodigoBarras.KeyDown += txtCodigoBarras_KeyDown;
             txtBuscarProducto.KeyDown += txtBuscarProducto_KeyDown;
             txtBuscarProducto.TextChanged += txtBuscarProducto_TextChanged;
             dgvResultadosBusqueda.CellDoubleClick += dgvResultadosBusqueda_CellDoubleClick;
