@@ -125,6 +125,11 @@ namespace cantinaPadel.BLL
 
             clienteDb.Email = cliente.Email;
             personaDb.EsCliente = true;
+
+            // La persona ya era cliente (por ejemplo, se cargó un DNI que ya existía): se devuelve el id real en el objeto recibido,
+            // así quien llama sabe cuál es el cliente que quedó guardado
+            cliente.IdCliente = clienteDb.IdCliente;
+            cliente.IdPersona = personaDb.IdPersona;
         }
 
         private static void GuardarProveedor(AppDbContext ctx, Persona personaDb, Proveedor proveedor)
