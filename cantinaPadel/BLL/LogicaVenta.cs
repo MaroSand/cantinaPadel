@@ -71,7 +71,7 @@ public class LogicaVenta
         var caja = _cajas.ObtenerCajaAbierta(idEmpleado)
             ?? throw new InvalidOperationException("No hay una caja abierta para el empleado actual.");
 
-        // El precio de carrito ya incluye IVA; se descompone para mantener las columnas de ventas consistentes.
+        // El precio de carrito ya incluye IVA; se descompone para mantener las columnas de ventas consistentes
         decimal subtotal = Math.Round(total / (1 + TasaIva), 2);
         var venta = new Venta
         {
@@ -84,11 +84,8 @@ public class LogicaVenta
             Total = total,
             FormaPago = pago.FormaPago
         };
-        // cada unidad vendida es su propia fila de detalles_venta (ya
-        // no existe "cantidad"). Si se paga con Cuenta Corriente, las filas
-        // quedan sin pagar (Pagado = false) hasta que el cliente las cancele
-        // desde la pantalla de Cuenta Corriente; con cualquier otro método
-        // quedan pagadas en el momento.
+        // cada unidad vendida es su propia fila de detalles_venta. Si se paga con Cuenta Corriente, las filas quedan sin pagar (Pagado = false)
+        // hasta que el cliente las cancele desde la pantalla de Cuenta Corriente. con cualquier otro método quedan pagadas en el momento
         bool pagadoAlMomento = pago.Metodo != MetodoPago.CuentaCorriente;
         var detalles = items
             .SelectMany(i => Enumerable.Range(0, i.Cantidad).Select(_ => new DetalleVenta
@@ -103,11 +100,6 @@ public class LogicaVenta
         return _ventas.Registrar(venta, detalles, cliente.IdCliente);
     }
 
-    // Guarda en ventas.tipo_comprobante (CHAR(1), ver
-    // database/US_punto4_tipo_comprobante_remito.sql) qué se terminó
-    // emitiendo. Antes este mapeo solo distinguía FacturaA de "todo lo
-    // demás" y volcaba Ticket/FacturaC/Remito como si fueran Factura B;
-    // ahora cada tipo tiene su propia letra.
     public void ActualizarTipoComprobante(int idVenta, TipoComprobante tipo) => _ventas.ActualizarTipoComprobante(idVenta, tipo switch
     {
         TipoComprobante.Ticket => "T",

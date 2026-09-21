@@ -12,12 +12,10 @@ namespace cantinaPadel.BLL
         public string Nombre { get; set; } = string.Empty;
         public decimal PrecioActual { get; set; }
         public decimal PrecioNuevo { get; set; }
-        // Tildado en la grilla: indica si este producto se incluye al confirmar.
-        // Por default viene tildado (true) al previsualizar.
+        // Tildado en la grilla: indica si este producto se incluye al confirmar. Por default viene tildado (true) al previsualizar
         public bool Aplicar { get; set; } = true;
-        // No se muestra en la grilla (no es columna). Se usa para que el
-        // recálculo automático por porcentaje NO pise un precio que el
-        // usuario ya tipeó a mano en la celda "Precio Nuevo".
+        // No se muestra en la grilla. Se usa para que el recálculo automático por porcentaje no pise un precio que el
+        // usuario ya tipeó a mano en la celda "Precio Nuevo"
         public bool EditadoManualmente { get; set; } = false;
     }
     public class LogicaProducto
@@ -62,12 +60,8 @@ namespace cantinaPadel.BLL
 
         public void BajaLogica(int idProducto) => _repo.BajaLogica(idProducto);
 
-        // Búsqueda única para FrmActualizacionPrecios: combina texto libre
-        // (nombre, código, categoría o marca) con los combos de categoría,
-        // marca y proveedor, todo en simultáneo (AND). Reemplaza a los antiguos
-        // PrevisualizarActualizacion / PrevisualizarPorTexto: ya no hace
-        // falta elegir un "criterio" único, se usa lo que el usuario haya
-        // completado de cada filtro.
+        // Búsqueda única para FrmActualizacionPrecios: combina texto libre (nombre, código, categoría o marca) con los combos de categoría,
+        // marca y proveedor, todo en simultáneo
         public List<ProductoPrecioPreview> BuscarParaActualizacion(string? texto, int? idCategoria, int? idMarca, int? idProveedor, decimal porcentaje)
         {
             using var ctx = new DAL.AppDbContext();
@@ -108,9 +102,7 @@ namespace cantinaPadel.BLL
             }).ToList();
         }
 
-        // Confirma los precios finales tal cual quedaron en la grilla del
-        // usuario (ya sea calculados por porcentaje o tipeados a mano),
-        // no un porcentaje único para todos.
+        // Confirma los precios finales tal cual quedaron en la grilla del usuario
         public void ConfirmarActualizacion(Dictionary<int, decimal> preciosFinales)
             => _repo.ActualizarPrecios(preciosFinales);
 
@@ -180,8 +172,7 @@ namespace cantinaPadel.BLL
             if (producto.StockMinimo < 0)
                 throw new ArgumentException("El stock mínimo no puede ser negativo.");
 
-            // Unicidad del código de barras. En modificación, excluimos
-            // el propio producto para no chocar contra sí mismo.
+            // Unicidad del código de barras. En modificación, excluimos el propio producto para no chocar contra sí mismo
             int? idExcluir = esAlta ? null : producto.IdProducto;
             if (_repo.ExisteCodigoBarras(producto.CodigoBarras!, idExcluir))
                 throw new ArgumentException($"Ya existe un producto con el código de barras '{producto.CodigoBarras}'.");

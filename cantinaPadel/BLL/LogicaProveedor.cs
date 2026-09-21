@@ -32,8 +32,7 @@ namespace cantinaPadel.BLL
         public void BajaLogica(int idProveedor) => _repo.BajaLogica(idProveedor);
 
         // Validaciones de negocio para alta/modificación de Proveedor.
-        // Los guards de null se quedan acá (no se le puede pedir a una referencia null
-        // que se autovalide); el formato de cada objeto lo resuelve cada uno por su cuenta.
+        // Los guards de null se quedan acá. El formato de cada objeto lo resuelve cada uno por su cuenta
         public void Validar(Persona persona, Proveedor proveedor)
         {
             if (persona == null)

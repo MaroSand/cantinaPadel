@@ -19,8 +19,7 @@ public class LogicaCuentaCorriente
         _cajas = cajas;
     }
 
-    // Busca por DNI, apellido o nombre (reutiliza la misma búsqueda que ya
-    // usa el resto de la aplicación para clientes).
+    // Busca por dni, apellido o nombre
     public List<Cliente> BuscarClientes(string texto) => _clientes.Buscar(texto ?? string.Empty);
 
     public List<ItemDeudaCliente> ObtenerPendientes(int idCliente) => _cuentaCorriente.ObtenerPendientes(idCliente);

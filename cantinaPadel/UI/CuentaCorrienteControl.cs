@@ -32,7 +32,7 @@ public class CuentaCorrienteControl : UserControl
     private List<Cliente> _clientesEncontrados = new();
     private Cliente? _clienteSeleccionado;
     // Último resumen cargado: se necesita a mano para armar el preview de confirmación (cuántas unidades se saldan, cuánto queda de crédito)
-    // antes de mandar el pago, sin tener que volver a consultar la BD
+    // antes de mandar el pago, sin tener que volver a consultar la bd
     private ResumenCuentaCorriente? _resumenActual;
 
     public CuentaCorrienteControl() : this(new LogicaCuentaCorriente()) { }
@@ -165,8 +165,7 @@ public class CuentaCorrienteControl : UserControl
         CargarCuenta();
     }
 
-    // Punto de entrada para integrarse con Punto de Venta: si el cajero ya eligió un cliente para la venta, "Ver Cuenta Corriente" llama a este
-    // método y evita que el cliente se tenga que buscar dos veces
+    // Si el cajero ya eligió un cliente para la venta, "Ver Cuenta Corriente" llama a este método y evita que el cliente se tenga que buscar dos veces
     public void CargarCliente(Cliente cliente)
     {
         if (cliente == null) return;
@@ -205,9 +204,7 @@ public class CuentaCorrienteControl : UserControl
         _lblCredito.Text = DescribirCredito(resumen);
         _dgvDeuda.DataSource = resumen.Pendientes.ToList();
 
-        // Von Restorff / visibilidad del estado del sistema: si hay deuda se resalta en rojo, si está
-        // saldada se muestra en verde. El monto por sí solo no siempre se nota a simple vista en una
-        // pantalla con mucha información
+        // Visibilidad del estado del sistema: si hay deuda se resalta en rojo, si está saldada se muestra en verde
         bool hayDeuda = resumen.DeudaNeta > 0m;
         _lblDeudaTotal.ForeColor = hayDeuda ? Color.Firebrick : Color.ForestGreen;
         _lblDeudaTotal.Text = hayDeuda ? $"Total a cobrar: {resumen.DeudaNeta:C2}" : "Sin deuda pendiente";
@@ -283,8 +280,8 @@ public class CuentaCorrienteControl : UserControl
 
     }
 
-    // Preview de confirmación: antes de mandar el pago a la BD, le mostramos al cajero exactamente qué va a
-    // pasar con la plata: cuánto se suma al crédito previo, cuántas unidades se terminan saldando, y si queda algo de crédito para la próxima vez
+    // Preview de confirmación: antes de mandar el pago a la bd, se muestra al cajero qué va a pasar con la plata:
+    // cuánto se suma al crédito previo, cuántas unidades se terminan saldando, y si queda algo de crédito para la próxima vez
     private bool ConfirmarPago(decimal monto, decimal creditoPrevio)
     {
         if (_resumenActual == null) return true;
@@ -321,7 +318,7 @@ public class CuentaCorrienteControl : UserControl
     }
 
     // Al cobrar cuenta corriente se abre la misma pantalla de comprobante que usa el punto de venta
-    // El empleado ahí elige si imprime, manda por email o no emite nada, así se decide si se quiere imprimir un remito sin agregar una pantalla nueva
+    // El empleado ahí elige si imprime, manda por email o no emite nada
     // Si todavía queda deuda pendiente después de este pago, se fuerza Remito
     private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio)
     {
@@ -333,8 +330,7 @@ public class CuentaCorrienteControl : UserControl
             Total = resultado.MontoRecibido,
             NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
             EmailCliente = cliente.Email,
-            // Se muestra eb "Cuenta Corriente" únicamente cuando todavía queda deuda: es el que compara FrmSeleccionComprobante y
-            // LogicaComprobante para forzar/bloquear
+            // Se muestra msj en "Cuenta Corriente" solo cuando todavía queda deuda
             // Con la deuda saldada se usa un texto informativo para no disparar esa regla y dejar elegir Factura
             MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : "Cuenta Corriente (saldada)",
             CuitCliente = cliente.Persona.Cuit,

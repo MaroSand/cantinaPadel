@@ -6,7 +6,6 @@ using cantinaPadel.DAL.Repositories;
 
 namespace cantinaPadel.BLL
 {
-    //TODO VER SI ELIMINAR MÉTODOS QUE NO SE USAN MÁS POR REFACTOR LogicaPersonaRoles
     public class LogicaCliente
     {
 
@@ -38,7 +37,7 @@ namespace cantinaPadel.BLL
             _clienteRepository.Bajalogica(id);
         }
 
-        // Método privado para validar los datos de un cliente antes de agregarlo o modificarlo.
+        // Método privado para validar los datos de un cliente antes de agregarlo o modificarlo
         private void Validar(Cliente cliente)
         {
             if (cliente == null)

@@ -7,8 +7,7 @@ using System.Text;
 
 namespace cantinaPadel.BLL
 {
-    // Una línea del carrito, tal como se necesita para imprimir el
-    // comprobante (nombre + cantidad + precio, nada más).
+    // Una línea del carrito, tal como se necesita para imprimir el comprobante (nombre + cantidad + precio)
     public class DetalleComprobante
     {
         public string Nombre { get; set; } = string.Empty;
@@ -27,7 +26,7 @@ namespace cantinaPadel.BLL
         public string MetodoPago { get; set; } = string.Empty;
 
         // Datos impositivos del cliente, necesarios para decidir si se le puede emitir Factura A. Se toman de Persona.Cuit y
-        // Persona.CondicionIva (ver Models/Persona.cs). Quedan null/vacíos para Consumidor Final, que no tiene por qué tener CUIT cargado
+        // Persona.CondicionIva. Quedan null/vacíos para Consumidor Final que no tiene CUIT cargado
         public string? CuitCliente { get; set; }
         public string? CondicionIvaCliente { get; set; }
 
@@ -44,7 +43,7 @@ namespace cantinaPadel.BLL
         // Único punto de venta por ahora (una sola caja). Si en el futuro hay más de una, esto deja de ser una constante
         private const int PUNTO_VENTA = 1;
 
-        // En PagoVenta.FormaPago (LogicaVenta.cs) para Cuenta Corriente. Se compara sin distinguir mayúsculas por las dudas.
+        // En PagoVenta.FormaPago (LogicaVenta.cs) para Cuenta Corriente. Se compara sin distinguir mayúsculas
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
 
  
@@ -179,9 +178,8 @@ namespace cantinaPadel.BLL
             doc.Print();
         }
 
-        // TODO: por ahora usa la configuración de SMTP que tenga la máquina
-        // (SmtpClient sin parámetros lee app.config). Falta definir de dónde
-        // sale esa configuración real (usuario/contraseña de la cantina).
+        // TODO: por ahora usa la configuración de SMTP que tenga la máquina (SmtpClient sin parámetros lee app.config). Falta definir de dónde
+        // sale esa configuración real (usuario/contraseña de la cantina)
         private void EnviarPorEmail(Comprobante comprobante, DatosVentaParaComprobante datos)
         {
             string texto = GenerarTexto(comprobante, datos);
