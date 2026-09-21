@@ -10,8 +10,7 @@ public class VentaRepository : IVentaRepository
         using var ctx = new AppDbContext();
         using var transaccion = ctx.Database.BeginTransaction();
 
-        // US-16: ya no hay "cantidad" por fila; se agrupa por producto para
-        // saber cuántas unidades se están vendiendo de cada uno.
+        // Se agrupa por producto para saber cuántas unidades se están vendiendo de cada uno
         var cantidadPorProducto = detalles
             .GroupBy(d => d.IdProducto!.Value)
             .ToDictionary(g => g.Key, g => g.Count());
@@ -38,10 +37,8 @@ public class VentaRepository : IVentaRepository
         ctx.DetallesVenta.AddRange(detalles);
         ctx.SaveChanges();
 
-        // Si la venta quedó a Cuenta Corriente, se deja un registro de
-        // auditoría (Cargo). La deuda en sí vive en las filas de
-        // detalles_venta con Pagado = false. Si el cliente ya tenía crédito
-        // suficiente para cubrir alguna unidad, se aplica en el momento.
+        // Si la venta quedó a Cuenta Corriente, se deja un registro de auditoría (Cargo). La deuda en sí vive en las filas de detalles_venta con
+        // Pagado = false. Si el cliente ya tenía crédito suficiente para cubrir alguna unidad, se aplica en el momento
         if (venta.FormaPago == "Cuenta Corriente")
         {
             ConciliacionCuentaCorriente.ConciliarClientes(ctx, new[] { idCliente });

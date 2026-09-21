@@ -6,7 +6,7 @@ namespace cantinaPadel.DAL.Repositories
 {
     public class ProveedorRepository : IProveedorRepository
     {
-        // Trae todos los proveedores (activos e inactivos); el filtro de estado se hace en la UI
+        // Trae todos los proveedores (activos e inactivos). El filtro de estado se hace en la ui
         public List<Proveedor> ObtenerTodos()
         {
             using var ctx = new AppDbContext();
@@ -43,8 +43,8 @@ namespace cantinaPadel.DAL.Repositories
                 .FirstOrDefault(p => p.IdProveedor == idProveedor);
         }
 
-        // Alta: inserta Persona primero, luego Proveedor (TPT).
-        // Transacción para que si falla alguno no queden filas huérfanas.
+        // Alta: inserta Persona primero, luego Proveedor
+        // Transacción para que si falla alguno no queden filas huérfanas
         public void Agregar(Persona persona, Proveedor proveedor)
         {
             using var ctx = new AppDbContext();

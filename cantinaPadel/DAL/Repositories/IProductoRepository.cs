@@ -6,8 +6,7 @@ namespace cantinaPadel.DAL.Repositories
     {
         List<Producto> ObtenerTodos(bool? activo = true);
 
-        // Un solo método de búsqueda "todo en uno". Cada parámetro es opcional
-        // (nullable). Si viene null, ese filtro simplemente no se aplica.
+        // Un solo método de búsqueda "todo en uno". Cada parámetro es opcional (nullable). Si viene null ese filtro simplemente no se aplica
         List<Producto> Buscar(string? texto, int? idCategoria, int? idMarca, bool? activo = true);
 
         Producto? ObtenerPorCodigoBarras(string codigoBarras);
@@ -18,13 +17,10 @@ namespace cantinaPadel.DAL.Repositories
         void Modificar(Producto producto);
         void BajaLogica(int idProducto);
 
-        // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto.
+        // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto
         List<Producto> ObtenerPorCriterio(int? idCategoria, int? idMarca, int? idProducto);
 
-        // Actualiza el precio de venta de cada producto al valor final indicado
-        // en el diccionario (idProducto -> precioNuevo). Reemplaza al viejo
-        // esquema de "un solo porcentaje para todos", porque ahora cada fila
-        // puede tener un precio distinto (por % o editado a mano).
+        // Actualiza el precio de venta de cada producto al valor final indicado en el diccionario (idProducto -> precioNuevo)
         void ActualizarPrecios(Dictionary<int, decimal> preciosNuevos);
     }
 }

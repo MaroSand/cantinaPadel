@@ -3,19 +3,16 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.DAL.Repositories;
 
-// Unidad impaga (fila de detalles_venta) junto con los datos para mostrarla.
+// Unidad impaga (fila de detalles_venta) junto con los datos para mostrarla
 internal sealed record PendienteCliente(DetalleVenta Detalle, ItemDeudaCliente Item);
 
-// Punto único donde se aplica el crédito de un cliente a sus unidades
-// impagas. Lo usan el registro de pagos, las ventas a cuenta corriente y los
-// cambios de precio, así el estado de "pagado" y el saldo del cliente nunca
-// quedan desincronizados.
-//
-// Ninguno de estos métodos guarda cambios: el llamador es dueño del
-// SaveChanges y de la transacción.
+// Punto único donde se aplica el crédito de un cliente a sus unidades impagas. Lo usan el registro de pagos, las ventas a cuenta corriente y
+// los cambios de precio, así el estado de "pagado" y el saldo del cliente nunca quedan desincronizados
+
+// Ninguno de estos métodos guarda cambios: el llamador es dueño del SaveChanges y de la transacción
 internal static class ConciliacionCuentaCorriente
 {
-    // Unidades impagas del cliente, de la más vieja a la más nueva (FIFO).
+    // Unidades impagas del cliente, de la más vieja a la más nueva (FIFO)
     public static List<PendienteCliente> ConsultarPendientes(AppDbContext ctx, int idCliente)
     {
         var filas = (from d in ctx.DetallesVenta
@@ -38,8 +35,7 @@ internal static class ConciliacionCuentaCorriente
             .ToList();
     }
 
-    // Marca como pagadas las unidades que el crédito del cliente cubre por
-    // completo y deja en su saldo lo que sobra.
+    // Marca como pagadas las unidades que el crédito del cliente cubre por completo y deja en su saldo lo que sobra
     public static (List<ItemDeudaCliente> Saldados, List<ItemDeudaCliente> Pendientes) Aplicar(
         Cliente cliente, IReadOnlyList<PendienteCliente> pendientes)
     {
@@ -57,9 +53,8 @@ internal static class ConciliacionCuentaCorriente
             pendientes.Skip(aplicacion.CantidadSaldada).Select(p => p.Item).ToList());
     }
 
-    // Reaplica el crédito de los clientes indicados. Se usa cuando cambió la
-    // deuda por fuera de un pago (nueva venta, cambio de precio) y el crédito
-    // que ya tenían puede alcanzar ahora para saldar una unidad.
+    // Reaplica el crédito de los clientes indicados. Se usa cuando cambió la deuda por fuera de un pago (nueva venta, cambio de precio)
+    // y el crédito que ya tenían puede alcanzar ahora para saldar una unidad
     public static void ConciliarClientes(AppDbContext ctx, IEnumerable<int> idsClientes)
     {
         var ids = idsClientes.Distinct().ToList();

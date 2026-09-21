@@ -47,8 +47,8 @@ namespace cantinaPadel.DAL.Repositories
             string diaSiguiente = HorarioCancha.ObtenerDiaSiguiente(diaSemana);
 
             // Se traen los horarios activos de esa cancha en el día, el anterior y el siguiente: un horario que cruza medianoche puede pisarse
-            // con la madrugada del día siguiente (o ser pisado por la madrugada de uno que cruza desde el día anterior). Comparamos en memoria con
-            // HorarioCancha.Solapa(), que sabe manejar esos cruces y no se puede traducir a SQL vía LINQ
+            // con la madrugada del día siguiente (o ser pisado por la madrugada de uno que cruza desde el día anterior). Se compara en memoria con
+            // HorarioCancha.Solapa(), que sabe manejar esos cruces y no se puede traducir a sql vía LINQ
             var candidatos = ctx.HorariosCancha
                 .Where(h =>
                     h.IdCancha == idCancha &&

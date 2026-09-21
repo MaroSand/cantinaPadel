@@ -18,8 +18,7 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
     {
         using var ctx = new AppDbContext();
 
-        // Se lee el saldo de la base (no del objeto que tenga la pantalla) para
-        // no mostrar un valor desactualizado.
+        // Se lee el saldo de la base (no del objeto que tenga la pantalla) para no mostrar un valor desactualizado
         var cliente = ctx.Clientes.AsNoTracking().FirstOrDefault(c => c.IdCliente == idCliente)
             ?? throw new InvalidOperationException("No se encontró el cliente.");
 
@@ -47,8 +46,7 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         var pendientes = ConciliacionCuentaCorriente.ConsultarPendientes(ctx, idCliente);
         ValidarQueNoSuperaLaDeuda(monto, pendientes, cliente);
 
-        // El pago se suma al crédito previo y se aplica a las unidades más
-        // viejas: solo se saldan las que quedan cubiertas por completo.
+        // El pago se suma al crédito previo y se aplica a las unidades más viejas: solo se saldan las que quedan cubiertas por completo
         cliente.SaldoCuentaCorriente = Math.Max(cliente.SaldoCuentaCorriente, 0m) + monto;
         var (saldados, siguenPendientes) = ConciliacionCuentaCorriente.Aplicar(cliente, pendientes);
 
@@ -75,9 +73,8 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         };
     }
 
-    // Cobrar más de lo que se debe generaría un "saldo a favor" que no
-    // corresponde. La pantalla ya limita el monto, pero la regla se valida
-    // acá porque la deuda pudo cambiar (otra terminal, cambio de precio).
+    // Cobrar más de lo que se debe generaría un "saldo a favor" que no corresponde. La pantalla ya limita el monto pero la regla se valida
+    // acá porque la deuda pudo cambiar (otra terminal, cambio de precio)
     private static void ValidarQueNoSuperaLaDeuda(decimal monto, IReadOnlyList<PendienteCliente> pendientes, Cliente cliente)
     {
         decimal deudaNeta = CalculadorCuentaCorriente.CalcularDeudaNeta(

@@ -18,9 +18,8 @@ namespace cantinaPadel.DAL.Repositories
 
         List<InstanciaTurno> ObtenerInstanciasPorFecha(DateTime fecha, int? idCancha = null);
 
-        // Todos los turnos del cliente (cualquier fecha/cancha). Por default
-        // solo los activos; con incluirCancelados=true trae también los
-        // cancelados, para poder ver el historial completo del cliente.
+        // Todos los turnos del cliente (cualquier fecha/cancha). Por default solo los activos
+        // con incluirCancelados=true trae también los cancelados, para poder ver el historial completo del cliente
         List<InstanciaTurno> ObtenerInstanciasPorCliente(int idCliente, bool incluirCancelados = false);
 
         InstanciaTurno? ObtenerInstanciaPorId(int idInstancia);

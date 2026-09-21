@@ -8,11 +8,9 @@ namespace cantinaPadel.DAL.Repositories
         public HorarioCancha? ObtenerHorarioPorFranja(int idCancha, string diaSemana, TimeSpan horaInicio, TimeSpan horaFin)
         {
             using var ctx = new AppDbContext();
-            // No se filtra por Activo acá: además de bandas realmente configuradas (activas), esta
-            // búsqueda también debe reencontrar filas de HorarioCancha creadas antes solo para
-            // vincular una reserva (esas quedan con Activo=false, ver LogicaTurnoDia.RegistrarAlquiler).
-            // Si no las reencuentra, cada nueva reserva de la misma franja exacta crearía una fila
-            // nueva en vez de reutilizar la existente.
+            // No se filtra por Activo acá: además de bandas configuradas (activas), esta búsqueda también debe reencontrar filas de HorarioCancha
+            // creadas antes solo para vincular una reserva (esas quedan con Activo=false, ver LogicaTurnoDia.RegistrarAlquiler)
+            // Si no las reencuentra, cada nueva reserva de la misma franja exacta crearía una fila nueva en vez de reutilizar la existente
             return ctx.HorariosCancha
                 .Include(h => h.Cancha)
                     .ThenInclude(c => c!.Producto)

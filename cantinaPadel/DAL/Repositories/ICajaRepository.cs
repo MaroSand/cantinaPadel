@@ -2,9 +2,7 @@
 
 namespace cantinaPadel.DAL.Repositories
 {
-    // PLACEHOLDER: contrato mínimo que necesita Alquiler por Día.
-    // Si en paralelo aparece un módulo de Caja más completo, fusionar
-    // este método ahí en vez de mantener dos repos de la misma tabla.
+    // PLACEHOLDER: contrato mínimo que necesita Alquiler por Día
     public interface ICajaRepository
     {
         Caja? ObtenerCajaAbierta(int idEmpleado);

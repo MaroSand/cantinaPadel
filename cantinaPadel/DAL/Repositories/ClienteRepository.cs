@@ -56,9 +56,8 @@ namespace cantinaPadel.DAL.Repositories
             using var context = new AppDbContext();
             context.Clientes.Update(cliente);
 
-            // El saldo lo mueven únicamente los pagos y las ventas de cuenta
-            // corriente. El objeto que llega del formulario puede tener un
-            // valor viejo, y guardarlo pisaría el saldo real.
+            // El saldo lo mueven únicamente los pagos y las ventas de cuenta corriente. El objeto que llega del formulario puede tener un
+            // valor viejo y guardarlo pisaría el saldo real
             context.Entry(cliente).Property(c => c.SaldoCuentaCorriente).IsModified = false;
 
             context.SaveChanges();

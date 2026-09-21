@@ -50,7 +50,7 @@ namespace cantinaPadel.DAL.Repositories
             return query.OrderBy(p => p.Nombre).ToList();
         }
 
-        // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto.
+        // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto
         public List<Producto> ObtenerPorCriterio(int? idCategoria, int? idMarca, int? idProducto)
         {
             using var ctx = new AppDbContext();
@@ -72,10 +72,8 @@ namespace cantinaPadel.DAL.Repositories
             return query.OrderBy(p => p.Nombre).ToList();
         }
 
-        // Actualiza cada producto a su precio final indicado en el diccionario.
-        // A diferencia del viejo esquema (un solo % para todos, resuelto con
-        // ExecuteUpdate), acá cada fila puede traer un valor distinto, así
-        // que se trackean las entidades y se guardan con SaveChanges.
+        // Actualiza cada producto a su precio final indicado en el diccionario
+        // cada fila puede traer un valor distinto así que se trackean las entidades y se guardan con SaveChanges
         public void ActualizarPrecios(Dictionary<int, decimal> preciosNuevos)
         {
             if (preciosNuevos == null || preciosNuevos.Count == 0) return;
@@ -99,16 +97,12 @@ namespace cantinaPadel.DAL.Repositories
             transaccion.Commit();
         }
 
-        // Si un producto que todavía tiene unidades impagas (cuenta corriente)
-        // cambia de precio, todas esas unidades pasan al precio nuevo, ya sea
-        // que el precio suba o baje. Las unidades pagadas por completo no se
-        // tocan: son historial de una venta ya cobrada.
-        //
-        // Después de reprecificar se reaplica el crédito de los clientes
-        // afectados, porque con un precio menor el crédito que ya tenían puede
-        // alcanzar para saldar una unidad.
-        //
-        // Guarda los cambios con SaveChanges; el llamador maneja la transacción.
+        // Si un producto que todavía tiene unidades impagas (cuenta corriente) cambia de precio, todas esas unidades pasan al precio nuevo, ya sea
+        // que el precio suba o baje. Las unidades pagadas por completo no se tocan, son historial de una venta ya cobrada
+
+        // Después de modificar el precio se reaplica el crédito de los clientes afectados porque con un precio menor el crédito que ya tenían
+        // puede alcanzar para saldar una unidad
+        // Guarda los cambios con SaveChanges, el llamador maneja la transacción
         private static void ReajustarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IReadOnlyCollection<Producto> productosActualizados)
         {
             if (productosActualizados.Count == 0) return;
@@ -134,7 +128,7 @@ namespace cantinaPadel.DAL.Repositories
             ctx.SaveChanges();
         }
 
-        // Usado por el lector de código de barras: escaneás y busca al toque
+        // Usado por el lector de código de barras: escanea y busca inmediatamente
         public Producto? ObtenerPorCodigoBarras(string codigoBarras)
         {
             using var ctx = new AppDbContext();
@@ -167,7 +161,7 @@ namespace cantinaPadel.DAL.Repositories
                 .FirstOrDefault();
         }
 
-        // Valida unicidad del código de barras antes de guardar.
+        // Valida unicidad del código de barras antes de guardar
         public bool ExisteCodigoBarras(string codigoBarras, int? idProductoExcluir = null)
         {
             using var ctx = new AppDbContext();
@@ -198,7 +192,7 @@ namespace cantinaPadel.DAL.Repositories
             transaccion.Commit();
         }
 
-        // Baja/alta lógica: no se borra un producto, se alterna su estado.
+        // Baja/alta lógica: no se borra un producto, cambia su estado
         public void BajaLogica(int idProducto)
         {
             using var ctx = new AppDbContext();
