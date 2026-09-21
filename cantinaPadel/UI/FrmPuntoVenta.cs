@@ -13,13 +13,14 @@ namespace cantinaPadel.UI
         private readonly LogicaProducto _logicaProducto;
         private readonly LogicaCarrito _logicaCarrito;
 
-        // Timer de debounce para el autocompletado
-        // cada tecla reinicia el timer de 300ms, recién cuando el usuario deja de tipear por ese tiempo, se dispara la búsqueda real
+        // Timer de debounce para el autocompletado cada tecla reinicia el timer de 300ms, recién cuando el usuario deja de tipear por ese tiempo,
+        // se dispara la búsqueda real
         private readonly System.Windows.Forms.Timer _debounceBusqueda = new() { Interval = 300 };
 
-        // Últimos productos traídos por la búsqueda. Se cachean acá en vez de re-consultar la base para poder recalcular el "stock disponible"
-        // que se ve en dgvResultadosBusqueda cada vez que el carrito cambia
-        private List<Producto> _ultimosResultados = new();
+        // Se usa para distinguir cuando el combo cambia de selección porque el usuario eligió una opción,
+        // de cuando cambia porque lo estamos repoblando (DataSource, SelectedIndex = -1, etc.)
+        // Sin esta bandera, repoblar el combo dispararía un "agregado al carrito" falso
+        private bool _actualizandoComboResultados;
 
         public FrmPuntoVenta()
         {
@@ -32,14 +33,12 @@ namespace cantinaPadel.UI
 
         private void FrmPuntoVenta_Load(object sender, EventArgs e)
         {
-            ConfigurarGrillaResultados();
             ConfigurarGrillaCarrito();
 
             // Se suscriben los eventos de controles
             txtBuscarProducto.KeyDown += txtBuscarProducto_KeyDown;
             txtBuscarProducto.TextChanged += txtBuscarProducto_TextChanged;
-            dgvResultadosBusqueda.CellDoubleClick += dgvResultadosBusqueda_CellDoubleClick;
-            btnAgregarAlCarrito.Click += btnAgregarAlCarrito_Click;
+            cmbResultados.SelectionChangeCommitted += cmbResultados_SelectionChangeCommitted;
             btnQuitarDelCarrito.Click += btnQuitarDelCarrito_Click;
             btnVaciarCarrito.Click += btnVaciarCarrito_Click;
             dgvCarrito.CellEndEdit += dgvCarrito_CellEndEdit;
@@ -51,48 +50,11 @@ namespace cantinaPadel.UI
             txtBuscarProducto.Focus();
         }
 
-        // Configuración de grillas
-        private void ConfigurarGrillaResultados()
-        {
-            dgvResultadosBusqueda.AutoGenerateColumns = false;
-            dgvResultadosBusqueda.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvResultadosBusqueda.ReadOnly = true;
-            dgvResultadosBusqueda.MultiSelect = false;
-
-            dgvResultadosBusqueda.Columns.Clear();
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "IdProducto", DataPropertyName = "IdProducto", Visible = false });
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "Nombre", DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 180 });
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "Marca", DataPropertyName = "Marca", HeaderText = "Marca", Width = 110 });
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "StockDisponible",
-                DataPropertyName = "StockDisponible",
-                HeaderText = "Stock",
-                Width = 60,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
-            });
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            {
-                Name = "PrecioConIva",
-                DataPropertyName = "PrecioConIva",
-                HeaderText = "Precio",
-                Width = 90,
-                DefaultCellStyle = new DataGridViewCellStyle
-                { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
-            });
-            dgvResultadosBusqueda.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "CodigoBarras", DataPropertyName = "CodigoBarras", HeaderText = "Código", Width = 100 });
-        }
-
         private void ConfigurarGrillaCarrito()
         {
             dgvCarrito.AutoGenerateColumns = false;
             dgvCarrito.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvCarrito.MultiSelect = false;
-            // Solo la columna Cantidad es editable; el resto son de solo lectura
             dgvCarrito.EditMode = DataGridViewEditMode.EditOnKeystrokeOrF2;
 
             dgvCarrito.Columns.Clear();
@@ -131,28 +93,60 @@ namespace cantinaPadel.UI
             });
         }
 
-        // Búsqueda unificada: una sola barra sirve tanto para nombre como para código de barras, sin necesidad de presionar Enter.
-        // El lector HID "tipea" el código muy rápido; como cada tecla reinicia el debounce, la búsqueda recién se dispara cuando
-        // el lector termina de tipear. Si el texto ingresado coincide exactamente con el código de barras de un producto,
-        // se lo agrega directo al carrito (mismo comportamiento que antes tenía el campo separado de código de barras)
+        // Barra de búsqueda por nombre y por código de barras
+        // El lector HID "tipea" el código muy rápido, como cada tecla reinicia el debounce, la búsqueda recién se
+        // dispara cuando el lector termina de tipear, sin necesidad de que el lector mande un Enter. Si el texto
+        // ingresado coincide exacto con el código de barras de un producto, se lo agrega directo al carrito
+        // si no, se muestran las coincidencias por nombre en cmbResultados
+        
+        // Con las flechas Arriba/Abajo se navega el combo sin sacar el foco del textbox
+        // Enter agrega la opción resaltada, si no hay ninguna resaltada, busca ya mismo
         private void txtBuscarProducto_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter) return;
+            if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
+            {
+                e.SuppressKeyPress = true;
+                MoverSeleccionCombo(e.KeyCode == Keys.Down ? 1 : -1);
+                return;
+            }
 
-            e.SuppressKeyPress = true;
-            _debounceBusqueda.Stop(); // Enter busca ya, no hace falta esperar el debounce
-            BuscarProductosPorNombre();
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+
+                // Si ya hay una opción resaltada en el combo (se llegó con las flechas), Enter la agrega directo
+                if (cmbResultados.SelectedItem is ProductoComboItem resaltado)
+                {
+                    AgregarProductoAlCarrito(resaltado.Producto, limpiarBusqueda: true);
+                    return;
+                }
+
+                _debounceBusqueda.Stop(); // Enter busca ya, no hace falta esperar el debounce
+                BuscarProductosPorNombre(avisarSiNoHayResultados: true);
+            }
         }
 
-        // Autocompletado en tiempo real: cada tecla reinicia el timer de debounce
-        // Con menos de 2 caracteres no se busca y se limpia la grilla de resultados
+        // Mueve la selección resaltada del combo un paso hacia arriba o abajo (direccion = 1 o -1), sin pasarse de los límites
+        // Como esto pasa por asignación directa de SelectedIndex, no dispara SelectionChangeCommitted, así que pasear
+        // con las flechas nunca agrega nada al carrito por sí solo, solo lo hace un Enter posterior o un click
+        private void MoverSeleccionCombo(int direccion)
+        {
+            if (cmbResultados.Items.Count == 0) return;
+
+            int nuevoIndice = cmbResultados.SelectedIndex + direccion;
+            nuevoIndice = Math.Max(0, Math.Min(cmbResultados.Items.Count - 1, nuevoIndice));
+            cmbResultados.SelectedIndex = nuevoIndice;
+        }
+
+        // Autocompletado en tiempo real, cada tecla reinicia el timer de debounce
+        // Con menos de 2 caracteres no se busca y se limpia el combo de resultados
         private void txtBuscarProducto_TextChanged(object sender, EventArgs e)
         {
             _debounceBusqueda.Stop();
 
             if (txtBuscarProducto.Text.Trim().Length < 2)
             {
-                dgvResultadosBusqueda.DataSource = null;
+                LimpiarCombo();
                 return;
             }
 
@@ -165,39 +159,123 @@ namespace cantinaPadel.UI
             BuscarProductosPorNombre();
         }
 
-        private void BuscarProductosPorNombre()
+        // Se separó en dos pasos la consulta a la base (try/catch propio, con el mensaje
+        // "Error de conexión" que corresponde) de todo lo que toca el ComboBox (otro try/catch,
+        // con un mensaje distinto)
+        private void BuscarProductosPorNombre(bool avisarSiNoHayResultados = false)
         {
+            string? texto = string.IsNullOrWhiteSpace(txtBuscarProducto.Text)
+                ? null
+                : txtBuscarProducto.Text.Trim();
+
+            List<Producto> resultados;
             try
             {
-                string? texto = string.IsNullOrWhiteSpace(txtBuscarProducto.Text)
-                    ? null
-                    : txtBuscarProducto.Text.Trim();
-
-                _ultimosResultados = _logicaProducto.Buscar(texto, null, null, activo: true);
-                ActualizarGrillaResultados();
-
-                // Si lo tipeado coincide exacto con un código de barras (típico de un lector HID), se agrega directo al
-                // carrito en vez de esperar a que el usuario lo seleccione de la grilla
-                if (texto != null)
-                {
-                    Producto? porCodigo = _ultimosResultados
-                        .FirstOrDefault(p => string.Equals(p.CodigoBarras, texto, StringComparison.OrdinalIgnoreCase));
-
-                    if (porCodigo != null)
-                        AgregarProductoAlCarrito(porCodigo, limpiarBusqueda: true);
-                }
+                resultados = _logicaProducto.Buscar(texto, null, null, activo: true);
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al buscar productos: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                // Si lo tipeado coincide exacto con un código de barras
+                if (texto != null)
+                {
+                    Producto? porCodigo = resultados
+                        .FirstOrDefault(p => string.Equals(p.CodigoBarras, texto, StringComparison.OrdinalIgnoreCase));
+
+                    if (porCodigo != null)
+                    {
+                        AgregarProductoAlCarrito(porCodigo, limpiarBusqueda: true);
+                        return;
+                    }
+                }
+
+                MostrarResultadosEnCombo(resultados);
+
+                // Mientras se tipea (debounce), si no hay resultados la lista del combo queda en blanco
+                // El aviso de "no encontrado" se muestra cuando el usuario presiona Enter y no hay nada para mostrarle
+                if (avisarSiNoHayResultados && resultados.Count == 0 && texto != null)
+                {
+                    MessageBox.Show($"No se encontró ningún producto para '{texto}'.",
+                        "Producto no encontrado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error inesperado al mostrar los resultados ({ex.GetType().Name}): {ex.Message}",
+                    "Error de interfaz", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        // Agrega un producto al carrito. Cuando viene de una coincidencia exacta de código de barras (lector HID), además se
-        // limpia la barra de búsqueda y se refoca, dejándola lista para el próximo escaneo. Cuando viene de una selección
-        // manual en la grilla (doble click o botón "Agregar al carrito"), se deja la búsqueda como está para poder seguir
-        // agregando otros resultados de la misma búsqueda
+        // Repuebla cmbResultados con las coincidencias por nombre. StockDisponible se calcula al momento de la búsqueda
+        // Se usa Items.Add en vez de DataSource: enlazar una lista vacía como DataSource puede tirar
+        // ArgumentOutOfRangeException desde el binding interno de WinForms, y acá la lista de resultados
+        // cambia todo el tiempo (cada tecla), incluso llegando a 0 elementos con cualquier texto que no matchee
+        private void MostrarResultadosEnCombo(List<Producto> resultados)
+        {
+            _actualizandoComboResultados = true;
+            try
+            {
+                // Se cierra el desplegable antes de tocar Items/SelectedIndex. Si Items.Clear()
+                // se ejecuta con el combo todavía desplegado (DroppedDown = true), el control nativo de Windows queda
+                // desincronizado con la lista managed recién vaciada y tira un ArgumentOutOfRangeException ("index (0) must be less than 0")
+                // Por eso primero se achica, y recién al final se decide si corresponde volver a desplegar
+                cmbResultados.DroppedDown = false;
+                cmbResultados.SelectedIndex = -1;
+                cmbResultados.Items.Clear();
+
+                foreach (var p in resultados)
+                {
+                    int stockDisponible = Math.Max(0, p.StockActual - _logicaCarrito.ObtenerCantidadEnCarrito(p.IdProducto));
+                    cmbResultados.Items.Add(new ProductoComboItem(p, stockDisponible));
+                }
+
+                // Se deja resaltada la primera opción así alcanza con Enter para agregar el resultado más relevante, y las flechas quedan solo
+                // para bajar a otra opción si hace falta
+                cmbResultados.SelectedIndex = cmbResultados.Items.Count > 0 ? 0 : -1;
+
+                cmbResultados.DroppedDown = cmbResultados.Items.Count > 0;
+            }
+            finally
+            {
+                _actualizandoComboResultados = false;
+            }
+        }
+
+        private void LimpiarCombo()
+        {
+            _actualizandoComboResultados = true;
+            try
+            {
+                cmbResultados.DroppedDown = false;
+                cmbResultados.SelectedIndex = -1;
+                cmbResultados.Items.Clear();
+            }
+            finally
+            {
+                _actualizandoComboResultados = false;
+            }
+        }
+
+        // El usuario elige una opción del combo con el mouse -> se agrega directo al carrito
+        // Usamos SelectionChangeCommitted: este evento solo se dispara ante una interacción del usuario con el control
+        // (click o flechas usadas directamente sobre el combo), no cuando movemos la selección por código desde MoverSeleccionCombo
+        private void cmbResultados_SelectionChangeCommitted(object sender, EventArgs e)
+        {
+            if (_actualizandoComboResultados) return;
+            if (cmbResultados.SelectedItem is not ProductoComboItem item) return;
+
+            AgregarProductoAlCarrito(item.Producto, limpiarBusqueda: true);
+        }
+
+        // Agrega un producto al carrito. limpiarBusqueda=true después de un agregado exitoso (por código de
+        // barras o por selección del combo): deja la barra de búsqueda lista para la próxima búsqueda/escaneo
         private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false)
         {
             try
@@ -214,61 +292,10 @@ namespace cantinaPadel.UI
                 if (limpiarBusqueda)
                 {
                     txtBuscarProducto.Clear();
-                    dgvResultadosBusqueda.DataSource = null;
+                    LimpiarCombo();
                     txtBuscarProducto.Focus();
                 }
             }
-        }
-
-        // Repinta dgvResultadosBusqueda a partir de _ultimosResultados (sin volver a consultar bs), mostrando
-        // "stock disponible" = stock real - lo que ya hay de ese producto en el carrito. Se llama después de cualquier cambio
-        // en el carrito para que el número se actualice en el momento
-        private void ActualizarGrillaResultados()
-        {
-            dgvResultadosBusqueda.DataSource = _ultimosResultados.Select(p => new FilaResultadoUI
-            {
-                IdProducto = p.IdProducto,
-                Nombre = p.Nombre,
-                Marca = p.Marca?.Nombre ?? "-",
-                CodigoBarras = p.CodigoBarras,
-                PrecioConIva = p.PrecioConIva,
-                StockDisponible = Math.Max(0, p.StockActual - _logicaCarrito.ObtenerCantidadEnCarrito(p.IdProducto))
-            }).ToList();
-        }
-
-        // Doble click en un resultado también agrega al carrito, como atajo
-        private void dgvResultadosBusqueda_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0) return;
-            AgregarSeleccionDeResultadosAlCarrito();
-        }
-
-        private void btnAgregarAlCarrito_Click(object sender, EventArgs e)
-        {
-            AgregarSeleccionDeResultadosAlCarrito();
-        }
-
-        private void AgregarSeleccionDeResultadosAlCarrito()
-        {
-            if (dgvResultadosBusqueda.CurrentRow == null)
-            {
-                MessageBox.Show("Seleccione un producto de la lista para agregar.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var celda = dgvResultadosBusqueda.CurrentRow.Cells["IdProducto"];
-            if (celda?.Value == null || !int.TryParse(celda.Value.ToString(), out int idProducto))
-            {
-                MessageBox.Show("No se pudo determinar el producto seleccionado.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            Producto? producto = _logicaProducto.ObtenerPorId(idProducto);
-            if (producto == null) return;
-
-            AgregarProductoAlCarrito(producto);
         }
 
         // Carrito
@@ -289,13 +316,11 @@ namespace cantinaPadel.UI
             lblTotal.Text = $"Total: {_logicaCarrito.Total:C2}";
         }
 
-        // Refresca las tres cosas que dependen del estado del carrito: la grilla del carrito, el total, y el "stock disponible" que se ve en los
-        // resultados de búsqueda. Se llama después de cualquier cambio al carrito
+        // Refresca lo que depende del estado del carrito: la grilla del carrito y el total
         private void RefrescarUI()
         {
             ActualizarGrillaCarrito();
             ActualizarLabelTotal();
-            ActualizarGrillaResultados();
         }
 
         // Bloquea que se tipee cualquier cosa que no sea un dígito en la celda
@@ -315,7 +340,7 @@ namespace cantinaPadel.UI
         private void CantidadTextBox_KeyPress(object? sender, KeyPressEventArgs e)
         {
             // Se permiten dígitos y teclas de control (Backspace, Delete, etc.)
-            // Nada de "-", ",", "." ni letras: la cantidad es un entero positivo
+            // No permite "-", "," ni letras: la cantidad es un entero positivo
             if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
                 e.Handled = true;
         }
@@ -442,14 +467,19 @@ namespace cantinaPadel.UI
         public decimal Subtotal { get; set; }
     }
 
-    // Fila de UI para dgvResultadosBusqueda. StockDisponible ya viene calculado (stock real del producto - lo que ya está en el carrito)
-    public class FilaResultadoUI
+    // Item de cmbResultados: envuelve el Producto encontrado
+    public class ProductoComboItem
     {
-        public int IdProducto { get; set; }
-        public string Nombre { get; set; } = string.Empty;
-        public string Marca { get; set; } = string.Empty;
-        public string? CodigoBarras { get; set; }
-        public decimal PrecioConIva { get; set; }
-        public int StockDisponible { get; set; }
+        public Producto Producto { get; }
+        public int IdProducto => Producto.IdProducto;
+        public string Descripcion { get; }
+
+        public ProductoComboItem(Producto producto, int stockDisponible)
+        {
+            Producto = producto;
+            Descripcion = producto.Nombre;
+        }
+
+        public override string ToString() => Descripcion;
     }
 }
