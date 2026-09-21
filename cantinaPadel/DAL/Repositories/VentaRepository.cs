@@ -39,11 +39,12 @@ public class VentaRepository : IVentaRepository
         ctx.SaveChanges();
 
         // Si la venta quedó a Cuenta Corriente, se deja un registro de
-        // auditoría (Cargo). El saldo del cliente (que solo representa
-        // saldo a favor) no se toca acá: la deuda en sí vive en las filas
-        // de detalles_venta con Pagado = false.
+        // auditoría (Cargo). La deuda en sí vive en las filas de
+        // detalles_venta con Pagado = false. Si el cliente ya tenía crédito
+        // suficiente para cubrir alguna unidad, se aplica en el momento.
         if (venta.FormaPago == "Cuenta Corriente")
         {
+            ConciliacionCuentaCorriente.ConciliarClientes(ctx, new[] { idCliente });
             var cliente = ctx.Clientes.Find(idCliente);
             ctx.MovimientosCuentaCorriente.Add(new MovimientoCuentaCorriente
             {

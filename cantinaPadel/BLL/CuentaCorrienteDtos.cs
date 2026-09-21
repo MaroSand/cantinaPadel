@@ -13,6 +13,22 @@ public class ItemDeudaCliente
     public decimal Monto { get; set; }
 }
 
+// Estado actual de la cuenta corriente de un cliente.
+public class ResumenCuentaCorriente
+{
+    public List<ItemDeudaCliente> Pendientes { get; init; } = new();
+
+    // Plata entregada que todavía no saldó por completo la próxima unidad.
+    public decimal Credito { get; init; }
+
+    public decimal DeudaBruta => Pendientes.Sum(p => p.Monto);
+    public decimal DeudaNeta => CalculadorCuentaCorriente.CalcularDeudaNeta(DeudaBruta, Credito);
+    public decimal SaldoAFavor => CalculadorCuentaCorriente.CalcularSaldoAFavor(DeudaBruta, Credito);
+
+    // Parte del crédito que ya está descontada de lo que se debe.
+    public decimal PagosParcialesAcreditados => Math.Min(Credito, DeudaBruta);
+}
+
 // Resultado de aplicar un pago (parcial o total) a la cuenta corriente de
 // un cliente.
 public class ResultadoPagoCuentaCorriente
@@ -23,8 +39,9 @@ public class ResultadoPagoCuentaCorriente
     public decimal MontoAplicado => ItemsPagados.Sum(i => i.Monto);
     public decimal DeudaPendiente => ItemsPendientes.Sum(i => i.Monto);
 
-    // Lo que sobra del pago (más el saldo a favor que ya tuviera el
-    // cliente) una vez cubiertos todos los productos completos que
-    // alcanzó a pagar. Se guarda como saldo a favor para el próximo pago.
-    public decimal SaldoFavorResultante { get; set; }
+    // Lo entregado que no alcanzó a saldar por completo la próxima unidad.
+    // Queda acreditado y se descuenta de esa unidad; NO es saldo a favor.
+    public decimal CreditoResultante { get; set; }
+
+    public decimal SaldoAFavor => CalculadorCuentaCorriente.CalcularSaldoAFavor(DeudaPendiente, CreditoResultante);
 }

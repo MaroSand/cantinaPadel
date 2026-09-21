@@ -8,9 +8,9 @@ namespace cantinaPadel.UI;
 // - Muestra el detalle de los productos que el cliente tiene pendientes de
 //   pago (una fila por unidad, ya actualizada si el precio del producto
 //   cambió mientras estaba pendiente).
-// - Permite registrar un pago (total o parcial): el sistema calcula cuántos
-//   productos completos alcanza a cubrir y los marca como pagados; lo que
-//   sobra queda como saldo a favor del cliente.
+// - Permite registrar un pago (total o parcial), nunca mayor a la deuda: el
+//   sistema salda solo los productos que alcanza a cubrir completos; lo que
+//   sobra queda acreditado y se descuenta del próximo producto pendiente.
 public class FrmCuentaCorriente : Form
 {
     private readonly LogicaCuentaCorriente _logica;
@@ -19,14 +19,13 @@ public class FrmCuentaCorriente : Form
     private readonly DataGridView _dgvClientes = new();
     private readonly DataGridView _dgvDeuda = new();
     private readonly Label _lblClienteSeleccionado = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Ningún cliente seleccionado" };
-    private readonly Label _lblSaldoFavor = new() { AutoSize = true, Text = "Saldo a favor: $0,00" };
-    private readonly Label _lblDeudaTotal = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Total adeudado: $0,00" };
+    private readonly Label _lblCredito = new() { AutoSize = true };
+    private readonly Label _lblDeudaTotal = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Total a cobrar: $0,00" };
     private readonly NumericUpDown _nudMonto = new() { DecimalPlaces = 2, Maximum = 99999999, Minimum = 0, Width = 140 };
     private readonly Button _btnRegistrarPago = new() { Text = "Registrar pago", AutoSize = true, BackColor = Color.PaleGreen };
 
     private List<Cliente> _clientesEncontrados = new();
     private Cliente? _clienteSeleccionado;
-    private List<ItemDeudaCliente> _pendientes = new();
 
     public FrmCuentaCorriente() : this(new LogicaCuentaCorriente()) { }
 
@@ -64,8 +63,8 @@ public class FrmCuentaCorriente : Form
 
         var encabezadoCuenta = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Padding = new Padding(0, 10, 0, 4) };
         encabezadoCuenta.Controls.Add(_lblClienteSeleccionado);
-        _lblSaldoFavor.Margin = new Padding(24, 4, 0, 0);
-        encabezadoCuenta.Controls.Add(_lblSaldoFavor);
+        _lblCredito.Margin = new Padding(24, 4, 0, 0);
+        encabezadoCuenta.Controls.Add(_lblCredito);
         layout.Controls.Add(encabezadoCuenta, 0, 2);
 
         ConfigurarGrillaDeuda();
@@ -141,9 +140,10 @@ public class FrmCuentaCorriente : Form
     {
         if (_clienteSeleccionado == null) return;
 
+        ResumenCuentaCorriente resumen;
         try
         {
-            _pendientes = _logica.ObtenerPendientes(_clienteSeleccionado.IdCliente);
+            resumen = _logica.ObtenerResumen(_clienteSeleccionado.IdCliente);
         }
         catch (Exception ex)
         {
@@ -152,12 +152,28 @@ public class FrmCuentaCorriente : Form
         }
 
         _lblClienteSeleccionado.Text = $"{_clienteSeleccionado.Persona.Apellido}, {_clienteSeleccionado.Persona.Nombre} (DNI {_clienteSeleccionado.Persona.Dni})";
-        _lblSaldoFavor.Text = $"Saldo a favor: {Math.Max(_clienteSeleccionado.SaldoCuentaCorriente, 0m):C2}";
-        _dgvDeuda.DataSource = _pendientes.ToList();
-        decimal total = _pendientes.Sum(p => p.Monto);
-        _lblDeudaTotal.Text = $"Total adeudado: {total:C2}";
-        _nudMonto.Maximum = Math.Max(total, 1);
+        _lblCredito.Text = DescribirCredito(resumen);
+        _dgvDeuda.DataSource = resumen.Pendientes.ToList();
+        _lblDeudaTotal.Text = $"Total a cobrar: {resumen.DeudaNeta:C2}";
+
+        // No se puede cobrar más de lo que se debe (evita generar un saldo a
+        // favor que no corresponde).
+        bool hayDeuda = resumen.DeudaNeta > 0m;
         _nudMonto.Value = 0;
+        _nudMonto.Maximum = resumen.DeudaNeta;
+        _nudMonto.Enabled = hayDeuda;
+        _btnRegistrarPago.Enabled = hayDeuda;
+    }
+
+    // "Saldo a favor" solo aparece si el cliente pagó de más. Si debe algo, lo
+    // que ya entregó para el próximo producto se muestra como pago parcial.
+    private static string DescribirCredito(ResumenCuentaCorriente resumen)
+    {
+        if (resumen.SaldoAFavor > 0m)
+            return $"Saldo a favor: {resumen.SaldoAFavor:C2}";
+        if (resumen.PagosParcialesAcreditados > 0m)
+            return $"Ya entregó a cuenta: {resumen.PagosParcialesAcreditados:C2} (descontado del total)";
+        return string.Empty;
     }
 
     private void btnRegistrarPago_Click(object? sender, EventArgs e)
@@ -180,9 +196,6 @@ public class FrmCuentaCorriente : Form
             var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario);
             MostrarResumenPago(resultado);
 
-            // El pago ya devuelve el saldo a favor resultante: no hace falta
-            // volver a consultar la base para refrescar la pantalla.
-            _clienteSeleccionado.SaldoCuentaCorriente = resultado.SaldoFavorResultante;
             CargarCuenta();
         }
         catch (ArgumentException ex)
@@ -200,8 +213,7 @@ public class FrmCuentaCorriente : Form
     }
 
     // Comprobante simple del pago: qué productos quedaron saldados y cuánto
-    // saldo a favor le queda al cliente (lo pedido: "mostrar el saldo a favor
-    // en el ticket/comprobante").
+    // queda pendiente.
     private void MostrarResumenPago(ResultadoPagoCuentaCorriente resultado)
     {
         var texto = new System.Text.StringBuilder();
@@ -221,7 +233,12 @@ public class FrmCuentaCorriente : Form
 
         texto.AppendLine();
         texto.AppendLine($"Productos que siguen pendientes: {resultado.ItemsPendientes.Count} ({resultado.DeudaPendiente:C2})");
-        texto.AppendLine($"Saldo a favor del cliente: {resultado.SaldoFavorResultante:C2}");
+
+        decimal acreditado = Math.Min(resultado.CreditoResultante, resultado.DeudaPendiente);
+        if (acreditado > 0m)
+            texto.AppendLine($"Entregado a cuenta del próximo producto: {acreditado:C2} (falta {resultado.DeudaPendiente - acreditado:C2})");
+        if (resultado.SaldoAFavor > 0m)
+            texto.AppendLine($"Saldo a favor del cliente: {resultado.SaldoAFavor:C2}");
 
         MessageBox.Show(this, texto.ToString(), "Comprobante de pago - Cuenta Corriente", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }

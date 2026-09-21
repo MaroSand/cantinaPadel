@@ -95,33 +95,43 @@ namespace cantinaPadel.DAL.Repositories
             }
 
             ctx.SaveChanges();
-            ActualizarDeudaPendientePorCambioDePrecio(ctx, productos);
-            ctx.SaveChanges();
+            ReajustarDeudaPendientePorCambioDePrecio(ctx, productos);
             transaccion.Commit();
         }
 
-        // US-16: si un producto que todavía tiene unidades pendientes de pago
-        // (cuenta corriente) cambia de precio, el monto adeudado por esas
-        // unidades se actualiza al nuevo precio. Las unidades ya pagadas no
-        // se tocan: son historial de una venta ya cobrada.
-        private static void ActualizarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IEnumerable<Producto> productosActualizados)
+        // Si un producto que todavía tiene unidades impagas (cuenta corriente)
+        // cambia de precio, todas esas unidades pasan al precio nuevo, ya sea
+        // que el precio suba o baje. Las unidades pagadas por completo no se
+        // tocan: son historial de una venta ya cobrada.
+        //
+        // Después de reprecificar se reaplica el crédito de los clientes
+        // afectados, porque con un precio menor el crédito que ya tenían puede
+        // alcanzar para saldar una unidad.
+        //
+        // Guarda los cambios con SaveChanges; el llamador maneja la transacción.
+        private static void ReajustarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IReadOnlyCollection<Producto> productosActualizados)
         {
-            var idsProductos = productosActualizados.Select(p => p.IdProducto).ToList();
-            if (idsProductos.Count == 0) return;
+            if (productosActualizados.Count == 0) return;
 
-            var preciosConIvaPorProducto = productosActualizados
-                .ToDictionary(p => p.IdProducto, p => Math.Round(p.PrecioVenta * 1.21m, 2));
+            var precioConIvaPorProducto = productosActualizados.ToDictionary(p => p.IdProducto, p => p.PrecioConIva);
+            var idsProductos = precioConIvaPorProducto.Keys.ToList();
 
-            var detallesPendientes = ctx.DetallesVenta
-                .Where(d => d.IdProducto != null && idsProductos.Contains(d.IdProducto.Value) && !d.Pagado)
+            var detallesPendientes = (from d in ctx.DetallesVenta
+                                      join v in ctx.Ventas on d.IdVenta equals v.IdVenta
+                                      where d.IdProducto != null && idsProductos.Contains(d.IdProducto.Value) && !d.Pagado
+                                      select new { Detalle = d, v.IdCliente })
                 .ToList();
 
-            foreach (var detalle in detallesPendientes)
+            foreach (var pendiente in detallesPendientes)
             {
-                decimal nuevoPrecioConIva = preciosConIvaPorProducto[detalle.IdProducto!.Value];
-                detalle.PrecioUnitario = nuevoPrecioConIva;
-                detalle.Subtotal = nuevoPrecioConIva; // 1 fila = 1 unidad
+                decimal nuevoPrecio = precioConIvaPorProducto[pendiente.Detalle.IdProducto!.Value];
+                pendiente.Detalle.PrecioUnitario = nuevoPrecio;
+                pendiente.Detalle.Subtotal = nuevoPrecio; // 1 fila = 1 unidad
             }
+            ctx.SaveChanges();
+
+            ConciliacionCuentaCorriente.ConciliarClientes(ctx, detallesPendientes.Select(x => x.IdCliente));
+            ctx.SaveChanges();
         }
 
         // Usado por el lector de código de barras: escaneás y busca al toque
@@ -184,8 +194,7 @@ namespace cantinaPadel.DAL.Repositories
             using var transaccion = ctx.Database.BeginTransaction();
             ctx.Productos.Update(producto);
             ctx.SaveChanges();
-            ActualizarDeudaPendientePorCambioDePrecio(ctx, new[] { producto });
-            ctx.SaveChanges();
+            ReajustarDeudaPendientePorCambioDePrecio(ctx, new[] { producto });
             transaccion.Commit();
         }
 

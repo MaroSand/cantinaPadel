@@ -74,6 +74,9 @@ public class LogicaCuentaCorrienteTests
 
         public List<ItemDeudaCliente> ObtenerPendientes(int idCliente) => Pendientes;
 
+        public ResumenCuentaCorriente ObtenerResumen(int idCliente)
+            => new() { Pendientes = Pendientes, Credito = 0m };
+
         public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado)
         {
             IdClienteRecibido = idCliente;

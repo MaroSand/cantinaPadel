@@ -18,6 +18,10 @@ namespace cantinaPadel.Models
         [Required]
         public string Email { get; set; }
 
+        // Crédito del cliente: plata entregada que todavía no saldó por
+        // completo la próxima unidad impaga (o, si no debe nada, saldo a favor).
+        // Solo lo modifican los pagos y las ventas de cuenta corriente; la
+        // edición de datos del cliente no lo toca.
         [Column("saldo_cuenta_corriente")]
         public decimal SaldoCuentaCorriente { get; set; }
 
