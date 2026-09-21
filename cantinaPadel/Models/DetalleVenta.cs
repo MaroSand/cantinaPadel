@@ -19,9 +19,9 @@ public class DetalleVenta
     [Column("id_turno")]
     public int? IdTurno { get; set; }
 
-    [Column("cantidad")]
-    public int Cantidad { get; set; }
-
+    // ya no existe "cantidad". Cada fila representa una única unidad
+    // vendida (si se venden 5 cocas, se insertan 5 filas), para poder llevar
+    // el estado de pago producto por producto en cuenta corriente.
     [Column("precio_unitario")]
     public decimal PrecioUnitario { get; set; }
 

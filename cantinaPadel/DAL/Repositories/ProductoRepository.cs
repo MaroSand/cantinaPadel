@@ -81,6 +81,7 @@ namespace cantinaPadel.DAL.Repositories
             if (preciosNuevos == null || preciosNuevos.Count == 0) return;
 
             using var ctx = new AppDbContext();
+            using var transaccion = ctx.Database.BeginTransaction();
             var ids = preciosNuevos.Keys.ToList();
 
             var productos = ctx.Productos
@@ -94,6 +95,33 @@ namespace cantinaPadel.DAL.Repositories
             }
 
             ctx.SaveChanges();
+            ActualizarDeudaPendientePorCambioDePrecio(ctx, productos);
+            ctx.SaveChanges();
+            transaccion.Commit();
+        }
+
+        // US-16: si un producto que todavía tiene unidades pendientes de pago
+        // (cuenta corriente) cambia de precio, el monto adeudado por esas
+        // unidades se actualiza al nuevo precio. Las unidades ya pagadas no
+        // se tocan: son historial de una venta ya cobrada.
+        private static void ActualizarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IEnumerable<Producto> productosActualizados)
+        {
+            var idsProductos = productosActualizados.Select(p => p.IdProducto).ToList();
+            if (idsProductos.Count == 0) return;
+
+            var preciosConIvaPorProducto = productosActualizados
+                .ToDictionary(p => p.IdProducto, p => Math.Round(p.PrecioVenta * 1.21m, 2));
+
+            var detallesPendientes = ctx.DetallesVenta
+                .Where(d => d.IdProducto != null && idsProductos.Contains(d.IdProducto.Value) && !d.Pagado)
+                .ToList();
+
+            foreach (var detalle in detallesPendientes)
+            {
+                decimal nuevoPrecioConIva = preciosConIvaPorProducto[detalle.IdProducto!.Value];
+                detalle.PrecioUnitario = nuevoPrecioConIva;
+                detalle.Subtotal = nuevoPrecioConIva; // 1 fila = 1 unidad
+            }
         }
 
         // Usado por el lector de código de barras: escaneás y busca al toque
@@ -153,8 +181,12 @@ namespace cantinaPadel.DAL.Repositories
         public void Modificar(Producto producto)
         {
             using var ctx = new AppDbContext();
+            using var transaccion = ctx.Database.BeginTransaction();
             ctx.Productos.Update(producto);
             ctx.SaveChanges();
+            ActualizarDeudaPendientePorCambioDePrecio(ctx, new[] { producto });
+            ctx.SaveChanges();
+            transaccion.Commit();
         }
 
         // Baja/alta lógica: no se borra un producto, se alterna su estado.

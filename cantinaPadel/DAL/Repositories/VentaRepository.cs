@@ -5,24 +5,30 @@ namespace cantinaPadel.DAL.Repositories;
 
 public class VentaRepository : IVentaRepository
 {
-    public Venta Registrar(Venta venta, IReadOnlyCollection<DetalleVenta> detalles)
+    public Venta Registrar(Venta venta, IReadOnlyCollection<DetalleVenta> detalles, int idCliente)
     {
         using var ctx = new AppDbContext();
         using var transaccion = ctx.Database.BeginTransaction();
 
-        var idsProductos = detalles.Select(d => d.IdProducto!.Value).Distinct().ToList();
+        // US-16: ya no hay "cantidad" por fila; se agrupa por producto para
+        // saber cuántas unidades se están vendiendo de cada uno.
+        var cantidadPorProducto = detalles
+            .GroupBy(d => d.IdProducto!.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        var idsProductos = cantidadPorProducto.Keys.ToList();
         var productos = ctx.Productos.Where(p => idsProductos.Contains(p.IdProducto)).ToDictionary(p => p.IdProducto);
 
-        foreach (var detalle in detalles)
+        foreach (var (idProducto, cantidad) in cantidadPorProducto)
         {
-            if (!productos.TryGetValue(detalle.IdProducto!.Value, out var producto) || !producto.Activo)
+            if (!productos.TryGetValue(idProducto, out var producto) || !producto.Activo)
                 throw new InvalidOperationException("Uno de los productos ya no se encuentra disponible.");
-            if (producto.StockActual < detalle.Cantidad)
+            if (producto.StockActual < cantidad)
                 throw new InvalidOperationException($"Stock insuficiente para '{producto.Nombre}'. Disponible: {producto.StockActual}.");
         }
 
-        foreach (var detalle in detalles)
-            productos[detalle.IdProducto!.Value].StockActual -= detalle.Cantidad;
+        foreach (var (idProducto, cantidad) in cantidadPorProducto)
+            productos[idProducto].StockActual -= cantidad;
 
         ctx.Ventas.Add(venta);
         ctx.SaveChanges();
@@ -31,6 +37,28 @@ public class VentaRepository : IVentaRepository
             detalle.IdVenta = venta.IdVenta;
         ctx.DetallesVenta.AddRange(detalles);
         ctx.SaveChanges();
+
+        // Si la venta quedó a Cuenta Corriente, se deja un registro de
+        // auditoría (Cargo). El saldo del cliente (que solo representa
+        // saldo a favor) no se toca acá: la deuda en sí vive en las filas
+        // de detalles_venta con Pagado = false.
+        if (venta.FormaPago == "Cuenta Corriente")
+        {
+            var cliente = ctx.Clientes.Find(idCliente);
+            ctx.MovimientosCuentaCorriente.Add(new MovimientoCuentaCorriente
+            {
+                IdCliente = idCliente,
+                IdCaja = venta.IdCaja,
+                IdVenta = venta.IdVenta,
+                IdEmpleado = venta.IdEmpleado,
+                Fecha = venta.FechaVenta,
+                Tipo = MovimientoCuentaCorriente.TipoCargo,
+                Monto = venta.Total,
+                SaldoPosterior = cliente?.SaldoCuentaCorriente ?? 0m
+            });
+            ctx.SaveChanges();
+        }
+
         transaccion.Commit();
         return venta;
     }

@@ -84,16 +84,23 @@ public class LogicaVenta
             Total = total,
             FormaPago = pago.FormaPago
         };
-        var detalles = items.Select(i => new DetalleVenta
-        {
-            IdProducto = i.Producto.IdProducto,
-            Cantidad = i.Cantidad,
-            PrecioUnitario = i.PrecioUnitario,
-            Subtotal = i.Subtotal,
-            Pagado = true
-        }).ToList();
+        // cada unidad vendida es su propia fila de detalles_venta (ya
+        // no existe "cantidad"). Si se paga con Cuenta Corriente, las filas
+        // quedan sin pagar (Pagado = false) hasta que el cliente las cancele
+        // desde la pantalla de Cuenta Corriente; con cualquier otro método
+        // quedan pagadas en el momento.
+        bool pagadoAlMomento = pago.Metodo != MetodoPago.CuentaCorriente;
+        var detalles = items
+            .SelectMany(i => Enumerable.Range(0, i.Cantidad).Select(_ => new DetalleVenta
+            {
+                IdProducto = i.Producto.IdProducto,
+                PrecioUnitario = i.PrecioUnitario,
+                Subtotal = i.PrecioUnitario,
+                Pagado = pagadoAlMomento
+            }))
+            .ToList();
 
-        return _ventas.Registrar(venta, detalles);
+        return _ventas.Registrar(venta, detalles, cliente.IdCliente);
     }
 
     public void ActualizarTipoComprobante(int idVenta, TipoComprobante tipo)

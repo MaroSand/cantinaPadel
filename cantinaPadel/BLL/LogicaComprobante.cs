@@ -29,6 +29,10 @@ namespace cantinaPadel.BLL
         public string NombreCliente { get; set; } = "Consumidor Final";
         public string? EmailCliente { get; set; }
         public string MetodoPago { get; set; } = string.Empty;
+
+        // US-16: saldo a favor del cliente en cuenta corriente al momento de
+        // emitir el comprobante (0 si no tiene crédito a favor).
+        public decimal SaldoFavor { get; set; }
     }
 
     public class LogicaComprobante
@@ -118,6 +122,9 @@ namespace cantinaPadel.BLL
             if (!string.IsNullOrWhiteSpace(datos.MetodoPago))
                 sb.AppendLine($"Método de pago: {datos.MetodoPago}");
             sb.AppendLine($"TOTAL: {comprobante.Total:C}");
+
+            if (datos.SaldoFavor > 0)
+                sb.AppendLine($"Saldo a favor en cuenta corriente: {datos.SaldoFavor:C}");
 
             return sb.ToString();
         }
