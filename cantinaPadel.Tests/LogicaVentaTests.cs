@@ -22,8 +22,10 @@ public class LogicaVentaTests
         Assert.AreEqual(200m, venta.Subtotal);
         Assert.AreEqual(42m, venta.Iva);
         Assert.AreEqual("Efectivo", venta.FormaPago);
-        Assert.AreEqual(1, repoVentas.Detalles.Count);
-        Assert.AreEqual(2, repoVentas.Detalles[0].Cantidad);
+        // US-16: cada unidad vendida es su propia fila (2 cocas => 2 filas), y
+        // al no ser Cuenta Corriente quedan pagadas en el momento.
+        Assert.AreEqual(2, repoVentas.Detalles.Count);
+        Assert.IsTrue(repoVentas.Detalles.All(d => d.Pagado));
     }
 
     [TestMethod]
@@ -62,6 +64,8 @@ public class LogicaVentaTests
         var venta = logica.ConfirmarVenta(items, cliente, new PagoVenta { Metodo = MetodoPago.CuentaCorriente }, 5);
 
         Assert.AreEqual("Cuenta Corriente", venta.FormaPago);
+        // Queda pendiente de pago: no se marca como pagada al momento de vender.
+        Assert.IsTrue(repoVentas.Detalles.All(d => !d.Pagado));
     }
 
     private static Producto CrearProducto(int id, decimal precioVenta) => new() { IdProducto = id, Nombre = "Producto", PrecioVenta = precioVenta, StockActual = 10, Activo = true };
@@ -71,7 +75,7 @@ public class LogicaVentaTests
     {
         public Venta? VentaRegistrada { get; private set; }
         public List<DetalleVenta> Detalles { get; } = new();
-        public Venta Registrar(Venta venta, IReadOnlyCollection<DetalleVenta> detalles)
+        public Venta Registrar(Venta venta, IReadOnlyCollection<DetalleVenta> detalles, int idCliente)
         {
             venta.IdVenta = 10;
             VentaRegistrada = venta;

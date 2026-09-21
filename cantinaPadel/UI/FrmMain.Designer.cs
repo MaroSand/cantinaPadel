@@ -33,6 +33,7 @@
             btnCerrarSesion = new Button();
             pnlNav = new Panel();
             btnReportes = new Button();
+            btnCuentaCorriente = new Button();
             btnCaja = new Button();
             btnCanchas = new Button();
             btnTurnos = new Button();
@@ -111,6 +112,7 @@
             pnlNav.Controls.Add(btnPuntoVenta);
             pnlNav.Controls.Add(btnProveedores);
             pnlNav.Controls.Add(btnEmpleados);
+            pnlNav.Controls.Add(btnCuentaCorriente);
             pnlNav.Controls.Add(btnClientes);
             pnlNav.Controls.Add(btnInicio);
             pnlNav.Dock = DockStyle.Fill;
@@ -136,6 +138,23 @@
             btnReportes.TextAlign = ContentAlignment.MiddleLeft;
             btnReportes.UseVisualStyleBackColor = false;
             btnReportes.Click += btnReportes_Click;
+            // 
+            // btnCuentaCorriente
+            // 
+            btnCuentaCorriente.BackColor = Color.White;
+            btnCuentaCorriente.Dock = DockStyle.Top;
+            btnCuentaCorriente.FlatAppearance.BorderSize = 0;
+            btnCuentaCorriente.FlatStyle = FlatStyle.Flat;
+            btnCuentaCorriente.Location = new Point(0, 120);
+            btnCuentaCorriente.Margin = new Padding(3, 4, 3, 4);
+            btnCuentaCorriente.Name = "btnCuentaCorriente";
+            btnCuentaCorriente.Padding = new Padding(11, 0, 0, 0);
+            btnCuentaCorriente.Size = new Size(229, 60);
+            btnCuentaCorriente.TabIndex = 11;
+            btnCuentaCorriente.Text = "Cuenta Corriente";
+            btnCuentaCorriente.TextAlign = ContentAlignment.MiddleLeft;
+            btnCuentaCorriente.UseVisualStyleBackColor = false;
+            btnCuentaCorriente.Click += btnCuentaCorriente_Click;
             // 
             // btnCaja
             // 
@@ -423,6 +442,7 @@
         private System.Windows.Forms.Panel pnlNav;
         private Button btnInicio;
         private Button btnProveedores;
+        private Button btnCuentaCorriente;
         private Button btnCaja;
         private Button btnCanchas;
         private Button btnTurnos;

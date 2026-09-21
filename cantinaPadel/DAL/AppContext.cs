@@ -24,6 +24,7 @@ namespace cantinaPadel.DAL
         public DbSet<Comprobante> Comprobantes { get; set; }
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
+        public DbSet<MovimientoCuentaCorriente> MovimientosCuentaCorriente { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)

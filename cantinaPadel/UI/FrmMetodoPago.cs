@@ -80,6 +80,14 @@ public class FrmMetodoPago : Form
             chk.CheckedChanged += (sender, _) => SeleccionarMetodoUnico((CheckBox)sender!);
             flujoPagos.Controls.Add(chk);
         }
+        // Cuenta Corriente requiere cliente identificado: si todavía no se
+        // eligió ninguno, se pide primero (en vez de dejar avanzar y recién
+        // avisar al confirmar).
+        _chkCuentaCorriente.CheckedChanged += (_, _) =>
+        {
+            if (_chkCuentaCorriente.Checked && _clienteSeleccionado == null)
+                _txtBuscarCliente.Focus();
+        };
         pagos.Controls.Add(flujoPagos);
         layout.Controls.Add(pagos, 0, 3);
 
@@ -199,7 +207,8 @@ public class FrmMetodoPago : Form
                 NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
                 EmailCliente = cliente.Email,
                 MetodoPago = pago.FormaPago,
-                Items = _items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList()
+                Items = _items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList(),
+                SaldoFavor = Math.Max(cliente.SaldoCuentaCorriente, 0m)
             };
 
             using var comprobante = new FrmSeleccionComprobante(datos);
