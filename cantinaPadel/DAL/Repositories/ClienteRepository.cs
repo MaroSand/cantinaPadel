@@ -1,4 +1,4 @@
-﻿using cantinaPadel.Models;
+using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 namespace cantinaPadel.DAL.Repositories
 {
@@ -55,6 +55,12 @@ namespace cantinaPadel.DAL.Repositories
         {
             using var context = new AppDbContext();
             context.Clientes.Update(cliente);
+
+            // El saldo lo mueven únicamente los pagos y las ventas de cuenta
+            // corriente. El objeto que llega del formulario puede tener un
+            // valor viejo, y guardarlo pisaría el saldo real.
+            context.Entry(cliente).Property(c => c.SaldoCuentaCorriente).IsModified = false;
+
             context.SaveChanges();
         }
         public void Bajalogica(int id)

@@ -6,6 +6,7 @@ namespace cantinaPadel.UI;
 public class FrmMetodoPago : Form
 {
     private readonly LogicaVenta _logicaVenta;
+    private readonly LogicaCuentaCorriente _logicaCuentaCorriente;
     private readonly IReadOnlyCollection<ItemCarrito> _items;
     private readonly decimal _total;
     private readonly TextBox _txtBuscarCliente = new() { Width = 260 };
@@ -26,8 +27,9 @@ public class FrmMetodoPago : Form
     public FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, Cliente? clientePreseleccionado = null)
         : this(items, new LogicaVenta(), clientePreseleccionado) { }
 
-    internal FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, LogicaVenta logicaVenta, Cliente? clientePreseleccionado = null)
+    internal FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, LogicaVenta logicaVenta, Cliente? clientePreseleccionado = null, LogicaCuentaCorriente? logicaCuentaCorriente = null)
     {
+        _logicaCuentaCorriente = logicaCuentaCorriente ?? new LogicaCuentaCorriente();
         _items = items?.ToList() ?? throw new ArgumentException("Los ítems de venta son obligatorios.");
         _total = Math.Round(_items.Sum(i => i.Subtotal), 2);
         _logicaVenta = logicaVenta;
@@ -186,6 +188,21 @@ public class FrmMetodoPago : Form
         _lblCliente.Text = $"Cliente seleccionado: {cliente.Persona.Nombre} {cliente.Persona.Apellido}";
     }
 
+    // Saldo a favor real (el cliente pagó de más), leído de la base porque el
+    // objeto Cliente de la pantalla puede estar desactualizado. La venta ya
+    // quedó registrada, así que un fallo acá no debe impedir emitir el comprobante.
+    private decimal ObtenerSaldoAFavor(Cliente cliente)
+    {
+        try
+        {
+            return _logicaCuentaCorriente.ObtenerResumen(cliente.IdCliente).SaldoAFavor;
+        }
+        catch (Exception)
+        {
+            return 0m;
+        }
+    }
+
     private void btnConfirmar_Click(object? sender, EventArgs e)
     {
         try
@@ -208,7 +225,7 @@ public class FrmMetodoPago : Form
                 EmailCliente = cliente.Email,
                 MetodoPago = pago.FormaPago,
                 Items = _items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList(),
-                SaldoFavor = Math.Max(cliente.SaldoCuentaCorriente, 0m)
+                SaldoFavor = ObtenerSaldoAFavor(cliente)
             };
 
             using var comprobante = new FrmSeleccionComprobante(datos);

@@ -1,5 +1,6 @@
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace cantinaPadel.DAL.Repositories;
 
@@ -8,13 +9,34 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
     public List<ItemDeudaCliente> ObtenerPendientes(int idCliente)
     {
         using var ctx = new AppDbContext();
-        return ConsultarPendientes(ctx, idCliente);
+        return ConciliacionCuentaCorriente.ConsultarPendientes(ctx, idCliente)
+            .Select(p => p.Item)
+            .ToList();
+    }
+
+    public ResumenCuentaCorriente ObtenerResumen(int idCliente)
+    {
+        using var ctx = new AppDbContext();
+
+        // Se lee el saldo de la base (no del objeto que tenga la pantalla) para
+        // no mostrar un valor desactualizado.
+        var cliente = ctx.Clientes.AsNoTracking().FirstOrDefault(c => c.IdCliente == idCliente)
+            ?? throw new InvalidOperationException("No se encontró el cliente.");
+
+        return new ResumenCuentaCorriente
+        {
+            Pendientes = ConciliacionCuentaCorriente.ConsultarPendientes(ctx, idCliente)
+                .Select(p => p.Item)
+                .ToList(),
+            Credito = Math.Max(cliente.SaldoCuentaCorriente, 0m)
+        };
     }
 
     public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado)
     {
         if (monto <= 0)
             throw new ArgumentException("El monto a cobrar debe ser mayor a cero.");
+        monto = Math.Round(monto, 2);
 
         using var ctx = new AppDbContext();
         using var transaccion = ctx.Database.BeginTransaction();
@@ -22,47 +44,13 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         var cliente = ctx.Clientes.Find(idCliente)
             ?? throw new InvalidOperationException("No se encontró el cliente.");
 
-        // Detalles pendientes, de más viejo a más nuevo (FIFO): lo lógico es
-        // saldar primero lo que se debe hace más tiempo.
-        var pendientes = ctx.DetallesVenta
-            .Join(ctx.Ventas, d => d.IdVenta, v => v.IdVenta, (d, v) => new { Detalle = d, Venta = v })
-            .Where(x => x.Venta.IdCliente == idCliente && x.Detalle.IdProducto != null && !x.Detalle.Pagado)
-            .OrderBy(x => x.Venta.FechaVenta).ThenBy(x => x.Detalle.IdDetalle)
-            .ToList();
+        var pendientes = ConciliacionCuentaCorriente.ConsultarPendientes(ctx, idCliente);
+        ValidarQueNoSuperaLaDeuda(monto, pendientes, cliente);
 
-        // El saldo a favor que ya tuviera el cliente se suma al pago
-        // recibido, así un pago chico puede terminar de cubrir un producto
-        // gracias a un crédito previo.
-        decimal disponible = monto + Math.Max(cliente.SaldoCuentaCorriente, 0m);
-
-        var resultado = new ResultadoPagoCuentaCorriente { MontoRecibido = monto };
-
-        foreach (var x in pendientes)
-        {
-            var item = new ItemDeudaCliente
-            {
-                IdDetalle = x.Detalle.IdDetalle,
-                IdVenta = x.Venta.IdVenta,
-                FechaVenta = x.Venta.FechaVenta,
-                Monto = x.Detalle.Subtotal
-            };
-
-            if (disponible >= x.Detalle.Subtotal)
-            {
-                x.Detalle.Pagado = true;
-                disponible -= x.Detalle.Subtotal;
-                resultado.ItemsPagados.Add(item);
-            }
-            else
-            {
-                resultado.ItemsPendientes.Add(item);
-            }
-        }
-
-        // Lo que sobra (no alcanzó para cubrir el próximo producto completo,
-        // o ya no quedan productos pendientes) queda como saldo a favor.
-        cliente.SaldoCuentaCorriente = disponible;
-        resultado.SaldoFavorResultante = disponible;
+        // El pago se suma al crédito previo y se aplica a las unidades más
+        // viejas: solo se saldan las que quedan cubiertas por completo.
+        cliente.SaldoCuentaCorriente = Math.Max(cliente.SaldoCuentaCorriente, 0m) + monto;
+        var (saldados, siguenPendientes) = ConciliacionCuentaCorriente.Aplicar(cliente, pendientes);
 
         ctx.MovimientosCuentaCorriente.Add(new MovimientoCuentaCorriente
         {
@@ -76,48 +64,31 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         });
 
         ctx.SaveChanges();
-
-        // Nombres de producto para el resultado (para no dejar el join de
-        // productos activo mientras se resuelve la lógica de arriba).
-        CompletarNombres(ctx, resultado);
-
         transaccion.Commit();
-        return resultado;
+
+        return new ResultadoPagoCuentaCorriente
+        {
+            MontoRecibido = monto,
+            ItemsPagados = saldados,
+            ItemsPendientes = siguenPendientes,
+            CreditoResultante = cliente.SaldoCuentaCorriente
+        };
     }
 
-    private static List<ItemDeudaCliente> ConsultarPendientes(AppDbContext ctx, int idCliente)
+    // Cobrar más de lo que se debe generaría un "saldo a favor" que no
+    // corresponde. La pantalla ya limita el monto, pero la regla se valida
+    // acá porque la deuda pudo cambiar (otra terminal, cambio de precio).
+    private static void ValidarQueNoSuperaLaDeuda(decimal monto, IReadOnlyList<PendienteCliente> pendientes, Cliente cliente)
     {
-        var pendientes = (from d in ctx.DetallesVenta
-                           join v in ctx.Ventas on d.IdVenta equals v.IdVenta
-                           join p in ctx.Productos on d.IdProducto equals (int?)p.IdProducto
-                           where v.IdCliente == idCliente && !d.Pagado && d.IdProducto != null
-                           orderby v.FechaVenta, d.IdDetalle
-                           select new ItemDeudaCliente
-                           {
-                               IdDetalle = d.IdDetalle,
-                               IdVenta = v.IdVenta,
-                               FechaVenta = v.FechaVenta,
-                               NombreProducto = p.Nombre,
-                               Monto = d.Subtotal
-                           }).ToList();
-        return pendientes;
-    }
+        decimal deudaNeta = CalculadorCuentaCorriente.CalcularDeudaNeta(
+            pendientes.Sum(p => p.Item.Monto),
+            Math.Max(cliente.SaldoCuentaCorriente, 0m));
 
-    private static void CompletarNombres(AppDbContext ctx, ResultadoPagoCuentaCorriente resultado)
-    {
-        var idsDetalle = resultado.ItemsPagados.Select(i => i.IdDetalle)
-            .Concat(resultado.ItemsPendientes.Select(i => i.IdDetalle))
-            .ToList();
-        if (idsDetalle.Count == 0) return;
+        if (deudaNeta == 0m)
+            throw new InvalidOperationException("El cliente no tiene deuda pendiente en cuenta corriente.");
 
-        var nombresPorDetalle = (from d in ctx.DetallesVenta
-                                  join p in ctx.Productos on d.IdProducto equals (int?)p.IdProducto
-                                  where idsDetalle.Contains(d.IdDetalle)
-                                  select new { d.IdDetalle, p.Nombre })
-            .ToDictionary(x => x.IdDetalle, x => x.Nombre);
-
-        foreach (var item in resultado.ItemsPagados.Concat(resultado.ItemsPendientes))
-            if (nombresPorDetalle.TryGetValue(item.IdDetalle, out var nombre))
-                item.NombreProducto = nombre;
+        if (monto > deudaNeta)
+            throw new InvalidOperationException(
+                $"El monto ({monto:C2}) supera la deuda pendiente del cliente ({deudaNeta:C2}).");
     }
 }

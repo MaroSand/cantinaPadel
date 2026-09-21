@@ -25,6 +25,8 @@ public class LogicaCuentaCorriente
 
     public List<ItemDeudaCliente> ObtenerPendientes(int idCliente) => _cuentaCorriente.ObtenerPendientes(idCliente);
 
+    public ResumenCuentaCorriente ObtenerResumen(int idCliente) => _cuentaCorriente.ObtenerResumen(idCliente);
+
     public ResultadoPagoCuentaCorriente RegistrarPago(Cliente cliente, decimal monto, int idEmpleado)
     {
         if (cliente == null)
