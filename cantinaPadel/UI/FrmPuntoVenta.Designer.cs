@@ -40,6 +40,10 @@
             panel4 = new Panel();
             btnConfirmarVenta = new Button();
             lblTotal = new Label();
+            btnAgregarCliente = new Button();
+            btnAgregarTurno = new Button();
+            lblClienteVenta = new Label();
+            btnQuitarCliente = new Button();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
@@ -177,6 +181,48 @@
             lblTotal.TabIndex = 0;
             lblTotal.Text = "Total: $0,00";
             // 
+            // btnAgregarCliente
+            // 
+            btnAgregarCliente.BackColor = Color.Gold;
+            btnAgregarCliente.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnAgregarCliente.Location = new Point(440, 60);
+            btnAgregarCliente.Name = "btnAgregarCliente";
+            btnAgregarCliente.Size = new Size(200, 40);
+            btnAgregarCliente.TabIndex = 10;
+            btnAgregarCliente.Text = "Agregar Cliente";
+            btnAgregarCliente.UseVisualStyleBackColor = false;
+            // 
+            // btnAgregarTurno
+            // 
+            btnAgregarTurno.BackColor = Color.Goldenrod;
+            btnAgregarTurno.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnAgregarTurno.Location = new Point(440, 110);
+            btnAgregarTurno.Name = "btnAgregarTurno";
+            btnAgregarTurno.Size = new Size(200, 40);
+            btnAgregarTurno.TabIndex = 11;
+            btnAgregarTurno.Text = "Agregar Turno";
+            btnAgregarTurno.UseVisualStyleBackColor = false;
+            // 
+            // lblClienteVenta
+            // 
+            lblClienteVenta.AutoEllipsis = true;
+            lblClienteVenta.BackColor = Color.Transparent;
+            lblClienteVenta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblClienteVenta.Location = new Point(660, 69);
+            lblClienteVenta.Name = "lblClienteVenta";
+            lblClienteVenta.Size = new Size(390, 40);
+            lblClienteVenta.TabIndex = 12;
+            lblClienteVenta.Text = "Cliente: Consumidor Final";
+            // 
+            // btnQuitarCliente
+            // 
+            btnQuitarCliente.Location = new Point(660, 110);
+            btnQuitarCliente.Name = "btnQuitarCliente";
+            btnQuitarCliente.Size = new Size(200, 40);
+            btnQuitarCliente.TabIndex = 13;
+            btnQuitarCliente.Text = "Quitar Cliente";
+            btnQuitarCliente.UseVisualStyleBackColor = true;
+            // 
             // FrmPuntoVenta
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -184,6 +230,10 @@
             AutoScroll = true;
             BackColor = Color.FromArgb(255, 255, 192);
             ClientSize = new Size(1172, 849);
+            Controls.Add(btnQuitarCliente);
+            Controls.Add(lblClienteVenta);
+            Controls.Add(btnAgregarTurno);
+            Controls.Add(btnAgregarCliente);
             Controls.Add(panel4);
             Controls.Add(panel3);
             Controls.Add(panel2);
@@ -213,5 +263,9 @@
         private Label lblTotal;
         private Button btnVaciarCarrito;
         private ComboBox cmbResultados;
+        private Button btnAgregarCliente;
+        private Button btnAgregarTurno;
+        private Label lblClienteVenta;
+        private Button btnQuitarCliente;
     }
 }

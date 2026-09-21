@@ -31,6 +31,10 @@ namespace cantinaPadel.UI
         private int _idClienteSeleccionado;
         private System.Windows.Forms.Timer _debounceBusquedaCliente = null!;
 
+        // Id del cliente del último alquiler registrado en este formulario (0 si no se registró ninguno)
+        // El punto de venta lo usa para cargar ese cliente en la venta que se está armando
+        public int IdClienteUltimoAlquiler { get; private set; }
+
         public FrmAlquilerDia()
         {
             _logica = new LogicaTurnoDia();
@@ -375,6 +379,8 @@ namespace cantinaPadel.UI
                     _horaInicioSeleccionada.Value,
                     _horaFinSeleccionada.Value,
                     ObtenerModalidadSeleccionada());
+
+                IdClienteUltimoAlquiler = _idClienteSeleccionado;
 
                 MessageBox.Show("Alquiler registrado correctamente. Queda pendiente para el cobro.", "Exito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 RefrescarDatos();

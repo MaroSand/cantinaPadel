@@ -11,6 +11,10 @@ namespace cantinaPadel.UI
     {
         private readonly LogicaPersonaRoles _logicaPersonaRoles;
         private Cliente? _clienteEdicion;
+
+        // Id del cliente que quedó guardado (alta o modificación). Sirve para que quien abrió el formulario
+        // (por ejemplo el punto de venta) sepa qué cliente se acaba de crear. Es 0 si no se guardó nada
+        public int IdClienteGuardado { get; private set; }
         private CheckBox chkEsProveedor = null!;
         private CheckBox chkEsEmpleado = null!;
         private Label lblNombreEmpresa = null!;
@@ -197,6 +201,7 @@ namespace cantinaPadel.UI
                     : null;
 
                 _logicaPersonaRoles.GuardarRoles(persona, cliente, proveedor, empleado);
+                IdClienteGuardado = cliente.IdCliente;
 
                 MessageBox.Show("Cliente guardado correctamente.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);

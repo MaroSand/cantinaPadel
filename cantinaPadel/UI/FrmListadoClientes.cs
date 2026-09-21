@@ -17,16 +17,70 @@ namespace cantinaPadel.UI
         private readonly LogicaCliente _logica;
         private List<Cliente>? _listaOriginal;
 
-        public FrmListadoClientes()
+        // false = pantalla de administración de clientes (menú Clientes), como siempre
+        // true  = selector de cliente para otra pantalla (por ejemplo el punto de venta)
+        private readonly bool _modoSeleccion;
+
+        // Cliente elegido en modo selección (existente o recién creado). Queda en null si se cancela
+        public Cliente? ClienteSeleccionado { get; private set; }
+
+        public FrmListadoClientes() : this(false) { }
+
+        public FrmListadoClientes(bool modoSeleccion)
         {
             InitializeComponent();
             _logica = new LogicaCliente();
+            _modoSeleccion = modoSeleccion;
+            ConfigurarModo();
+        }
+
+        // En modo normal, btnSeleccionar y btnCancelar no se ven y la pantalla queda idéntica a la de siempre
+        // En modo selección se ocultan las acciones de administración (Modificar, Activar/Desactivar y el filtro de estado): en medio de una venta
+        // no corresponde dar de baja ni editar clientes, y solo se pueden elegir clientes activos (una venta a un cliente inactivo se rechaza)
+        private void ConfigurarModo()
+        {
+            btnSeleccionar.Visible = _modoSeleccion;
+            btnCancelar.Visible = _modoSeleccion;
+            if (!_modoSeleccion) return;
+
+            Text = "Seleccionar cliente";
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            StartPosition = FormStartPosition.CenterScreen;
+            ShowInTaskbar = false;
+            MinimizeBox = false;
+            MaximizeBox = false;
+
+            btnModificar.Visible = false;
+            btnBajaLogica.Visible = false;
+            cmbEstado.Visible = false;   // el filtro queda en "Activos", que se fija en ConfigurarGrilla
+            label2.Visible = false;
+
+            // Los botones de selección ocupan el lugar de los que se ocultaron
+            btnSeleccionar.Location = btnModificar.Location;
+            btnCancelar.Location = btnBajaLogica.Location;
+            btnCancelar.DialogResult = DialogResult.Cancel;
+            CancelButton = btnCancelar;
+
+            ActiveControl = txtBuscar; // se puede empezar a escribir para buscar apenas se abre
         }
 
         private void FrmListadoClientes_Load(object sender, EventArgs e)
         {
             ConfigurarGrilla();
             dgvClientes.SelectionChanged += dgvClientes_SelectionChanged;
+
+            if (_modoSeleccion)
+            {
+                dgvClientes.CellDoubleClick += dgvClientes_CellDoubleClick;
+                btnSeleccionar.Click += btnSeleccionar_Click;
+
+                // Se asegura que la ventana entre en pantalla (el diseño está pensado para ir embebido en el panel principal)
+                var area = Screen.FromControl(this).WorkingArea;
+                Width = Math.Min(Width, area.Width - 40);
+                Height = Math.Min(Height, area.Height - 40);
+                CenterToScreen();
+            }
+
             CargarDatos();
         }
         // Configura las propiedades de la grilla de clientes
@@ -147,9 +201,62 @@ namespace cantinaPadel.UI
 
         private void btnNuevo_Click(object sender, EventArgs e)
         {
-            var frm = new FrmCRUDCliente();
-            frm.ShowDialog();
+            using var frm = new FrmCRUDCliente();
+            bool seGuardo = frm.ShowDialog() == DialogResult.OK;
+
+            // En modo selección, el cliente recién creado queda elegido directamente, sin tener que buscarlo en la lista
+            if (_modoSeleccion && seGuardo && frm.IdClienteGuardado > 0)
+            {
+                try
+                {
+                    var creado = _logica.ObtenerPorId(frm.IdClienteGuardado);
+                    if (creado != null)
+                    {
+                        ClienteSeleccionado = creado;
+                        DialogResult = DialogResult.OK;
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"El cliente se guardó, pero no se pudo cargar: {ex.Message}. Buscalo en la lista.",
+                        "Error de Conexion", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
             CargarDatos();
+        }
+
+        // Modo selección: doble clic sobre un cliente o botón "Seleccionar cliente"
+        private void dgvClientes_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0) ConfirmarSeleccion();
+        }
+
+        private void btnSeleccionar_Click(object? sender, EventArgs e) => ConfirmarSeleccion();
+
+        private void ConfirmarSeleccion()
+        {
+            if (dgvClientes.CurrentRow?.Cells[0].Value is not int idCliente)
+            {
+                MessageBox.Show("Seleccioná un cliente de la lista, o creá uno nuevo.", "Aviso",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var cliente = _listaOriginal?.FirstOrDefault(c => c.IdCliente == idCliente);
+            if (cliente == null) return;
+
+            // Red de seguridad: el filtro de estado está fijo en "Activos", pero igual no se deja elegir un cliente inactivo
+            if (!cliente.Persona.Activo)
+            {
+                MessageBox.Show("El cliente está inactivo y no puede usarse en una venta.", "Aviso",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            ClienteSeleccionado = cliente;
+            DialogResult = DialogResult.OK;
         }
 
         private void cmbEstado_SelectedIndexChanged(object sender, EventArgs e)

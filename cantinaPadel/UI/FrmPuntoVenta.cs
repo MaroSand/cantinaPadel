@@ -12,6 +12,7 @@ namespace cantinaPadel.UI
         // Se declaran las variables globales
         private readonly LogicaProducto _logicaProducto;
         private readonly LogicaCarrito _logicaCarrito;
+        private readonly LogicaCliente _logicaCliente;
 
         // Timer de debounce para el autocompletado cada tecla reinicia el timer de 300ms, recién cuando el usuario deja de tipear por ese tiempo,
         // se dispara la búsqueda real
@@ -22,11 +23,16 @@ namespace cantinaPadel.UI
         // Sin esta bandera, repoblar el combo dispararía un "agregado al carrito" falso
         private bool _actualizandoComboResultados;
 
+        // Cliente de la venta que se está armando. null = Consumidor Final (el valor por defecto de la venta)
+        // Se carga desde "Agregar cliente" o al registrar un turno, y se pasa a FrmMetodoPago al confirmar
+        private Cliente? _clienteVenta;
+
         public FrmPuntoVenta()
         {
             InitializeComponent();
             _logicaProducto = new LogicaProducto();
             _logicaCarrito = new LogicaCarrito();
+            _logicaCliente = new LogicaCliente();
 
             this.Load += FrmPuntoVenta_Load;
         }
@@ -44,9 +50,13 @@ namespace cantinaPadel.UI
             dgvCarrito.CellEndEdit += dgvCarrito_CellEndEdit;
             dgvCarrito.EditingControlShowing += dgvCarrito_EditingControlShowing;
             btnConfirmarVenta.Click += btnConfirmarVenta_Click;
+            btnAgregarCliente.Click += btnAgregarCliente_Click;
+            btnAgregarTurno.Click += btnAgregarTurno_Click;
+            btnQuitarCliente.Click += btnQuitarCliente_Click;
             _debounceBusqueda.Tick += _debounceBusqueda_Tick;
 
             ActualizarLabelTotal();
+            ActualizarLabelCliente();
             txtBuscarProducto.Focus();
         }
 
@@ -98,7 +108,7 @@ namespace cantinaPadel.UI
         // dispara cuando el lector termina de tipear, sin necesidad de que el lector mande un Enter. Si el texto
         // ingresado coincide exacto con el código de barras de un producto, se lo agrega directo al carrito
         // si no, se muestran las coincidencias por nombre en cmbResultados
-        
+
         // Con las flechas Arriba/Abajo se navega el combo sin sacar el foco del textbox
         // Enter agrega la opción resaltada, si no hay ninguna resaltada, busca ya mismo
         private void txtBuscarProducto_KeyDown(object sender, KeyEventArgs e)
@@ -438,13 +448,87 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            using var frmMetodoPago = new FrmMetodoPago(_logicaCarrito.Items);
+            using var frmMetodoPago = new FrmMetodoPago(_logicaCarrito.Items, _clienteVenta);
             if (frmMetodoPago.ShowDialog(this) == DialogResult.OK)
             {
                 _logicaCarrito.Vaciar();
+                _clienteVenta = null; // la venta terminó: la próxima arranca de nuevo con Consumidor Final
+                ActualizarLabelCliente();
                 RefrescarUI();
                 txtBuscarProducto.Focus();
             }
+        }
+
+        // Clientes y turnos desde el punto de venta
+        // Todas las fichas se abren con ShowDialog (modal) por encima del POS, en vez de reemplazar el contenido del panel con AbrirEnPanel
+        // (que hace Controls.Clear() y destruiría este formulario junto con el carrito). Como este formulario sigue vivo mientras el diálogo está
+        // abierto, _logicaCarrito y la grilla no se tocan: la venta en armado se conserva
+
+        // Muestra en pantalla el cliente que va a llevar la venta
+        private void ActualizarLabelCliente()
+        {
+            lblClienteVenta.Text = _clienteVenta == null
+                ? "Cliente: Consumidor Final"
+                : $"Cliente: {_clienteVenta.Persona.Nombre} {_clienteVenta.Persona.Apellido}";
+            btnQuitarCliente.Enabled = _clienteVenta != null;
+        }
+
+        // Reutiliza el listado de clientes en modo selección: permite elegir uno que ya existe o dar de alta uno nuevo
+        // (que queda elegido al guardarlo). Ver FrmListadoClientes.ConfigurarModo
+        private void btnAgregarCliente_Click(object? sender, EventArgs e)
+        {
+            using var frmClientes = new FrmListadoClientes(modoSeleccion: true);
+
+            if (frmClientes.ShowDialog(this) == DialogResult.OK && frmClientes.ClienteSeleccionado != null)
+            {
+                _clienteVenta = frmClientes.ClienteSeleccionado;
+                ActualizarLabelCliente();
+            }
+
+            txtBuscarProducto.Focus();
+        }
+
+        private void btnQuitarCliente_Click(object? sender, EventArgs e)
+        {
+            _clienteVenta = null;
+            ActualizarLabelCliente();
+            txtBuscarProducto.Focus();
+        }
+
+        // FrmAlquilerDia está pensado para ir embebido (Dock = Fill), por eso al abrirlo como ventana se le da un tamaño acorde a la pantalla
+        // Si dentro se registró un alquiler, el cliente de ese alquiler pasa a ser el cliente de la venta
+        private void btnAgregarTurno_Click(object? sender, EventArgs e)
+        {
+            var area = Screen.FromControl(this).WorkingArea;
+
+            using var frmTurno = new FrmAlquilerDia
+            {
+                StartPosition = FormStartPosition.CenterScreen,
+                ShowInTaskbar = false,
+                MinimizeBox = false,
+                Size = new Size(Math.Min(1200, area.Width - 40), Math.Min(800, area.Height - 40))
+            };
+            frmTurno.ShowDialog(this);
+
+            if (frmTurno.IdClienteUltimoAlquiler > 0)
+            {
+                try
+                {
+                    var cliente = _logicaCliente.ObtenerPorId(frmTurno.IdClienteUltimoAlquiler);
+                    if (cliente != null)
+                    {
+                        _clienteVenta = cliente;
+                        ActualizarLabelCliente();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"El turno se registró, pero no se pudo cargar el cliente en la venta: {ex.Message}",
+                        "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+
+            txtBuscarProducto.Focus();
         }
 
         protected override void OnFormClosed(FormClosedEventArgs e)

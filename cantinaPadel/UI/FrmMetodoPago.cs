@@ -21,15 +21,20 @@ public class FrmMetodoPago : Form
     private Cliente? _clienteSeleccionado;
     private List<Cliente> _clientesEncontrados = new();
 
-    public FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items)
-        : this(items, new LogicaVenta()) { }
+    // clientePreseleccionado: cliente que ya se eligió en el punto de venta. Si viene, arranca seleccionado (y visible en la
+    // grilla); si es null, se mantiene el comportamiento de siempre (Consumidor Final por defecto)
+    public FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, Cliente? clientePreseleccionado = null)
+        : this(items, new LogicaVenta(), clientePreseleccionado) { }
 
-    internal FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, LogicaVenta logicaVenta)
+    internal FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, LogicaVenta logicaVenta, Cliente? clientePreseleccionado = null)
     {
         _items = items?.ToList() ?? throw new ArgumentException("Los ítems de venta son obligatorios.");
         _total = Math.Round(_items.Sum(i => i.Subtotal), 2);
         _logicaVenta = logicaVenta;
         InicializarComponentes();
+
+        if (clientePreseleccionado != null)
+            PrecargarCliente(clientePreseleccionado);
     }
 
     private void InicializarComponentes()
@@ -140,14 +145,28 @@ public class FrmMetodoPago : Form
         try
         {
             _clientesEncontrados = _logicaVenta.BuscarClientes(_txtBuscarCliente.Text);
-            _dgvClientes.DataSource = _clientesEncontrados
-                .Select(c => new { c.IdCliente, Nombre = $"{c.Persona.Nombre} {c.Persona.Apellido}", c.Persona.Dni, c.Email })
-                .ToList();
+            MostrarClientesEnGrilla();
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "No se pudo buscar clientes", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void MostrarClientesEnGrilla()
+    {
+        _dgvClientes.DataSource = _clientesEncontrados
+            .Select(c => new { c.IdCliente, Nombre = $"{c.Persona.Nombre} {c.Persona.Apellido}", c.Persona.Dni, c.Email })
+            .ToList();
+    }
+
+    // Deja el cliente elegido en el punto de venta ya seleccionado y visible, sin que haya que buscarlo de nuevo
+    private void PrecargarCliente(Cliente cliente)
+    {
+        _clienteSeleccionado = cliente;
+        _clientesEncontrados = new List<Cliente> { cliente };
+        MostrarClientesEnGrilla();
+        _lblCliente.Text = $"Cliente seleccionado: {cliente.Persona.Nombre} {cliente.Persona.Apellido}";
     }
 
     private void SeleccionarCliente()
