@@ -100,12 +100,6 @@ namespace cantinaPadel
             cantinaPadel.UI.FrmPuntoVenta frm = new cantinaPadel.UI.FrmPuntoVenta();
             AbrirEnPanel(frm);
         }
-        private void btnCuentaCorriente_Click(object sender, EventArgs e)
-        {
-            Navegar("Cuenta Corriente");
-            cantinaPadel.UI.FrmCuentaCorriente frm = new cantinaPadel.UI.FrmCuentaCorriente();
-            AbrirEnPanel(frm);
-        }
         private void btnStock_Click(object sender, EventArgs e)
         {
             Navegar("Stock");

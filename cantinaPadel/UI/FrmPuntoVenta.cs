@@ -13,6 +13,13 @@ namespace cantinaPadel.UI
         private readonly LogicaProducto _logicaProducto;
         private readonly LogicaCarrito _logicaCarrito;
         private readonly LogicaCliente _logicaCliente;
+        private readonly LogicaVenta _logicaVenta;
+        private readonly LogicaCuentaCorriente _logicaCuentaCorriente;
+
+        // Punto 2 y 3: reemplaza al modal FrmMetodoPago (US-14). Los checks se comportan como selección
+        // única (tipo radio buttons), igual que hacía el modal viejo — ver SeleccionarMetodoPagoUnico
+        private List<CheckBox> _checksMetodoPago = new();
+        private bool _actualizandoChecksMetodoPago;
 
         // Timer de debounce para el autocompletado cada tecla reinicia el timer de 300ms, recién cuando el usuario deja de tipear por ese tiempo,
         // se dispara la búsqueda real
@@ -24,15 +31,26 @@ namespace cantinaPadel.UI
         private bool _actualizandoComboResultados;
 
         // Cliente de la venta que se está armando. null = Consumidor Final (el valor por defecto de la venta)
-        // Se carga desde "Agregar cliente" o al registrar un turno, y se pasa a FrmMetodoPago al confirmar
+        // Se carga desde "Agregar cliente" o al registrar un turno, y se usa directo al confirmar la venta
+        // (ver btnConfirmarVenta_Click; ya no hay modal de método de pago que lo vuelva a pedir)
         private Cliente? _clienteVenta;
 
-        public FrmPuntoVenta()
+        // true cuando FrmPuntoVenta se abre directo en la pestaña de Cuenta Corriente (acceso desde el
+        // menú lateral de FrmMain, ver Punto 1). Se guarda en un campo y se aplica recién en el Load porque
+        // tabsPrincipal.SelectedTab no tiene efecto confiable hasta que el control ya está mostrado
+        private readonly bool _abrirEnCuentaCorriente;
+
+        public FrmPuntoVenta() : this(abrirEnCuentaCorriente: false) { }
+
+        public FrmPuntoVenta(bool abrirEnCuentaCorriente)
         {
             InitializeComponent();
             _logicaProducto = new LogicaProducto();
             _logicaCarrito = new LogicaCarrito();
             _logicaCliente = new LogicaCliente();
+            _logicaVenta = new LogicaVenta();
+            _logicaCuentaCorriente = new LogicaCuentaCorriente();
+            _abrirEnCuentaCorriente = abrirEnCuentaCorriente;
 
             this.Load += FrmPuntoVenta_Load;
         }
@@ -53,11 +71,119 @@ namespace cantinaPadel.UI
             btnAgregarCliente.Click += btnAgregarCliente_Click;
             btnAgregarTurno.Click += btnAgregarTurno_Click;
             btnQuitarCliente.Click += btnQuitarCliente_Click;
+            btnVerCuentaCorriente.Click += btnVerCuentaCorriente_Click;
             _debounceBusqueda.Tick += _debounceBusqueda_Tick;
+
+            ConfigurarMetodoPago();
 
             ActualizarLabelTotal();
             ActualizarLabelCliente();
-            txtBuscarProducto.Focus();
+
+            if (_abrirEnCuentaCorriente)
+            {
+                tabsPrincipal.SelectedTab = tabCuentaCorriente;
+                if (_clienteVenta != null)
+                    cuentaCorrienteControl1.CargarCliente(_clienteVenta);
+            }
+            else
+            {
+                txtBuscarProducto.Focus();
+            }
+        }
+
+        // Punto 1, Paso 3: si ya hay un cliente elegido para la venta, se lo pasa directo a la cuenta
+        // corriente (evita buscarlo dos veces). Si todavía es Consumidor Final, igual se cambia de pestaña
+        // y el usuario busca ahí al cliente que quiera consultar
+        private void btnVerCuentaCorriente_Click(object? sender, EventArgs e)
+        {
+            if (_clienteVenta != null)
+                cuentaCorrienteControl1.CargarCliente(_clienteVenta);
+
+            tabsPrincipal.SelectedTab = tabCuentaCorriente;
+        }
+
+        // Punto 2 y 3: método de pago embebido en la pantalla (reemplaza al modal FrmMetodoPago, US-14).
+        // Los checks se comportan como radio buttons (selección única), igual que hacía el modal viejo
+        private void ConfigurarMetodoPago()
+        {
+            _checksMetodoPago = new List<CheckBox> { chkEfectivo, chkTransferencia, chkTarjeta, chkBilleteraVirtual, chkCuentaCorriente };
+            foreach (var chk in _checksMetodoPago)
+                chk.CheckedChanged += (sender, _) => SeleccionarMetodoPagoUnico((CheckBox)sender!);
+
+            // Cuenta Corriente requiere cliente identificado: si todavía no se eligió ninguno (sigue en
+            // Consumidor Final), se avisa al tildarlo y se vuelve a Efectivo, en vez de dejar avanzar y
+            // recién cortar en btnConfirmarVenta_Click
+            chkCuentaCorriente.CheckedChanged += (_, _) =>
+            {
+                if (chkCuentaCorriente.Checked && _clienteVenta == null)
+                {
+                    MessageBox.Show(this,
+                        "Cuenta Corriente requiere un cliente. Usá \"Agregar Cliente\" o \"Agregar Turno\" primero.",
+                        "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    chkEfectivo.Checked = true;
+                }
+            };
+        }
+
+        private void SeleccionarMetodoPagoUnico(CheckBox seleccionado)
+        {
+            if (_actualizandoChecksMetodoPago) return; // evita reentrancia: los cambios de abajo no deben re-disparar este handler
+            _actualizandoChecksMetodoPago = true;
+            try
+            {
+                if (!seleccionado.Checked)
+                {
+                    seleccionado.Checked = true; // no se permite dejar todo destildado
+                    return;
+                }
+
+                foreach (var chk in _checksMetodoPago.Where(chk => chk != seleccionado))
+                    chk.Checked = false;
+            }
+            finally
+            {
+                _actualizandoChecksMetodoPago = false;
+            }
+        }
+
+        private MetodoPago ObtenerMetodoPagoSeleccionado()
+        {
+            if (chkTransferencia.Checked) return MetodoPago.Transferencia;
+            if (chkTarjeta.Checked) return MetodoPago.Tarjeta;
+            if (chkBilleteraVirtual.Checked) return MetodoPago.BilleteraVirtual;
+            if (chkCuentaCorriente.Checked) return MetodoPago.CuentaCorriente;
+            return MetodoPago.Efectivo;
+        }
+
+        // Vuelve el panel de método de pago a su estado por defecto (Efectivo), para la próxima venta
+        private void ResetearMetodoPago()
+        {
+            _actualizandoChecksMetodoPago = true;
+            try
+            {
+                foreach (var chk in _checksMetodoPago)
+                    chk.Checked = false;
+                chkEfectivo.Checked = true;
+            }
+            finally
+            {
+                _actualizandoChecksMetodoPago = false;
+            }
+        }
+
+        // Saldo a favor real (el cliente pagó de más), leído de la base porque el objeto Cliente de la
+        // pantalla puede estar desactualizado. La venta ya quedó registrada, así que un fallo acá no debe
+        // impedir emitir el comprobante (mismo criterio que tenía FrmMetodoPago)
+        private decimal ObtenerSaldoAFavor(Cliente cliente)
+        {
+            try
+            {
+                return _logicaCuentaCorriente.ObtenerResumen(cliente.IdCliente).SaldoAFavor;
+            }
+            catch (Exception)
+            {
+                return 0m;
+            }
         }
 
         private void ConfigurarGrillaCarrito()
@@ -416,7 +542,8 @@ namespace cantinaPadel.UI
             RefrescarUI();
         }
 
-        // Confirmar venta (handoff a FrmMetodoPago — US-14, Facundo G.)
+        // Confirmar venta (Punto 2 y 3: ya no abre FrmMetodoPago — el método de pago se elige en el
+        // checklist embebido de esta misma pantalla, y el cliente viene de _clienteVenta)
         private void btnConfirmarVenta_Click(object sender, EventArgs e)
         {
             if (_logicaCarrito.CantidadItems == 0)
@@ -448,14 +575,52 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            using var frmMetodoPago = new FrmMetodoPago(_logicaCarrito.Items, _clienteVenta);
-            if (frmMetodoPago.ShowDialog(this) == DialogResult.OK)
+            var metodo = ObtenerMetodoPagoSeleccionado();
+            if (metodo == MetodoPago.CuentaCorriente && _clienteVenta == null)
             {
+                MessageBox.Show(this, "Cuenta Corriente requiere un cliente. Usá \"Agregar Cliente\" o \"Agregar Turno\" primero.",
+                    "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                var pago = new PagoVenta { Metodo = metodo };
+                var venta = _logicaVenta.ConfirmarVenta(_logicaCarrito.Items, _clienteVenta, pago, Sesion.IdUsuario);
+                var cliente = _clienteVenta ?? _logicaVenta.ObtenerConsumidorFinal();
+                var datos = new DatosVentaParaComprobante
+                {
+                    IdVenta = venta.IdVenta,
+                    Total = venta.Total,
+                    NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
+                    EmailCliente = cliente.Email,
+                    MetodoPago = pago.FormaPago,
+                    Items = _logicaCarrito.Items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList(),
+                    SaldoFavor = ObtenerSaldoAFavor(cliente)
+                };
+
+                using var comprobante = new FrmSeleccionComprobante(datos);
+                if (comprobante.ShowDialog(this) == DialogResult.OK && comprobante.ComprobanteGenerado != null)
+                    _logicaVenta.ActualizarTipoComprobante(venta.IdVenta, comprobante.ComprobanteGenerado.Tipo);
+
                 _logicaCarrito.Vaciar();
                 _clienteVenta = null; // la venta terminó: la próxima arranca de nuevo con Consumidor Final
                 ActualizarLabelCliente();
+                ResetearMetodoPago();
                 RefrescarUI();
                 txtBuscarProducto.Focus();
+            }
+            catch (ArgumentException ex)
+            {
+                MessageBox.Show(this, ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(this, ex.Message, "No se pudo confirmar la venta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Ocurrió un error al registrar la venta: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

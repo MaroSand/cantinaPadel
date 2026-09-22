@@ -1,17 +1,9 @@
-using cantinaPadel.BLL;
+﻿using cantinaPadel.BLL;
 using cantinaPadel.Models;
 
 namespace cantinaPadel.UI;
 
-// US-16: pantalla de Cuenta Corriente.
-// - Busca clientes por DNI, apellido o nombre.
-// - Muestra el detalle de los productos que el cliente tiene pendientes de
-//   pago (una fila por unidad, ya actualizada si el precio del producto
-//   cambió mientras estaba pendiente).
-// - Permite registrar un pago (total o parcial), nunca mayor a la deuda: el
-//   sistema salda solo los productos que alcanza a cubrir completos; lo que
-//   sobra queda acreditado y se descuenta del próximo producto pendiente.
-public class FrmCuentaCorriente : Form
+public class CuentaCorrienteControl : UserControl
 {
     private readonly LogicaCuentaCorriente _logica;
 
@@ -21,15 +13,25 @@ public class FrmCuentaCorriente : Form
     private readonly Label _lblClienteSeleccionado = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Ningún cliente seleccionado" };
     private readonly Label _lblCredito = new() { AutoSize = true };
     private readonly Label _lblDeudaTotal = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Total a cobrar: $0,00" };
+
+    private readonly Label _lblEstadoVacio = new()
+    {
+        AutoSize = false,
+        Dock = DockStyle.Fill,
+        TextAlign = ContentAlignment.MiddleCenter,
+        ForeColor = Color.DimGray,
+        Font = new Font("Segoe UI", 10, FontStyle.Italic),
+        Text = "Buscá un cliente por DNI, apellido o nombre para ver su cuenta corriente."
+    };
     private readonly NumericUpDown _nudMonto = new() { DecimalPlaces = 2, Maximum = 99999999, Minimum = 0, Width = 140 };
     private readonly Button _btnRegistrarPago = new() { Text = "Registrar pago", AutoSize = true, BackColor = Color.PaleGreen };
 
     private List<Cliente> _clientesEncontrados = new();
     private Cliente? _clienteSeleccionado;
 
-    public FrmCuentaCorriente() : this(new LogicaCuentaCorriente()) { }
+    public CuentaCorrienteControl() : this(new LogicaCuentaCorriente()) { }
 
-    internal FrmCuentaCorriente(LogicaCuentaCorriente logica)
+    internal CuentaCorrienteControl(LogicaCuentaCorriente logica)
     {
         _logica = logica;
         InicializarComponentes();
@@ -37,9 +39,8 @@ public class FrmCuentaCorriente : Form
 
     private void InicializarComponentes()
     {
-        Text = "Cuenta Corriente";
-        StartPosition = FormStartPosition.CenterParent;
-        ClientSize = new Size(820, 620);
+        Dock = DockStyle.Fill;
+        BackColor = Color.FromArgb(255, 255, 192);
 
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(18), ColumnCount = 1, RowCount = 5 };
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -68,7 +69,11 @@ public class FrmCuentaCorriente : Form
         layout.Controls.Add(encabezadoCuenta, 0, 2);
 
         ConfigurarGrillaDeuda();
-        layout.Controls.Add(_dgvDeuda, 0, 3);
+        // Estado vacío y grilla comparten lugar: se alterna la visibilidad según haya o no cliente elegido
+        var contenedorDeuda = new Panel { Dock = DockStyle.Fill };
+        contenedorDeuda.Controls.Add(_dgvDeuda);
+        contenedorDeuda.Controls.Add(_lblEstadoVacio);
+        layout.Controls.Add(contenedorDeuda, 0, 3);
 
         var panelPago = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Padding = new Padding(0, 10, 0, 0) };
         panelPago.Controls.Add(_lblDeudaTotal);
@@ -81,6 +86,16 @@ public class FrmCuentaCorriente : Form
         layout.Controls.Add(panelPago, 0, 4);
 
         Controls.Add(layout);
+
+        MostrarEstadoVacio();
+    }
+
+    private void MostrarEstadoVacio()
+    {
+        _lblEstadoVacio.Visible = true;
+        _dgvDeuda.Visible = false;
+        _nudMonto.Enabled = false;
+        _btnRegistrarPago.Enabled = false;
     }
 
     private void ConfigurarGrillaClientes()
@@ -136,6 +151,23 @@ public class FrmCuentaCorriente : Form
         CargarCuenta();
     }
 
+    // Punto de entrada para integrarse con Punto de Venta: si el cajero ya eligió un cliente para la
+    // venta, "Ver Cuenta Corriente" llama a este método y evita que el cliente se tenga que buscar dos
+    // veces (ver punto 5 de las correcciones: el modal de método de pago no debería obligar a re-elegirlo).
+    public void CargarCliente(Cliente cliente)
+    {
+        if (cliente == null) return;
+
+        _clienteSeleccionado = cliente;
+        _clientesEncontrados = new List<Cliente> { cliente };
+        _txtBuscarCliente.Text = $"{cliente.Persona.Apellido}, {cliente.Persona.Nombre}";
+        _dgvClientes.DataSource = _clientesEncontrados
+            .Select(c => new { c.IdCliente, c.Persona.Dni, c.Persona.Apellido, c.Persona.Nombre, c.Email })
+            .ToList();
+
+        CargarCuenta();
+    }
+
     private void CargarCuenta()
     {
         if (_clienteSeleccionado == null) return;
@@ -151,16 +183,24 @@ public class FrmCuentaCorriente : Form
             return;
         }
 
+        _lblEstadoVacio.Visible = false;
+        _dgvDeuda.Visible = true;
+
         _lblClienteSeleccionado.Text = $"{_clienteSeleccionado.Persona.Apellido}, {_clienteSeleccionado.Persona.Nombre} (DNI {_clienteSeleccionado.Persona.Dni})";
         _lblCredito.Text = DescribirCredito(resumen);
         _dgvDeuda.DataSource = resumen.Pendientes.ToList();
-        _lblDeudaTotal.Text = $"Total a cobrar: {resumen.DeudaNeta:C2}";
+
+        // Von Restorff / visibilidad del estado del sistema: si hay deuda se resalta en rojo, si está
+        // saldada se muestra en verde. El monto por sí solo no siempre se nota a simple vista en una
+        // pantalla con mucha información (grilla de deuda arriba, panel de pago abajo).
+        bool hayDeuda = resumen.DeudaNeta > 0m;
+        _lblDeudaTotal.ForeColor = hayDeuda ? Color.Firebrick : Color.ForestGreen;
+        _lblDeudaTotal.Text = hayDeuda ? $"Total a cobrar: {resumen.DeudaNeta:C2}" : "Sin deuda pendiente";
 
         // No se puede cobrar más de lo que se debe (evita generar un saldo a
         // favor que no corresponde).
-        bool hayDeuda = resumen.DeudaNeta > 0m;
         _nudMonto.Value = 0;
-        _nudMonto.Maximum = resumen.DeudaNeta;
+        _nudMonto.Maximum = hayDeuda ? resumen.DeudaNeta : 0;
         _nudMonto.Enabled = hayDeuda;
         _btnRegistrarPago.Enabled = hayDeuda;
     }
@@ -212,8 +252,16 @@ public class FrmCuentaCorriente : Form
         }
     }
 
+    private void InitializeComponent()
+    {
+
+    }
+
     // Comprobante simple del pago: qué productos quedaron saldados y cuánto
     // queda pendiente.
+    // TODO (punto 9 de las correcciones, pendiente de otra iteración): esto todavía no registra un
+    // Comprobante real en la base -- solo informa en pantalla. Se resuelve junto con la regla de
+    // remito/factura (puntos 6, 7 y 9).
     private void MostrarResumenPago(ResultadoPagoCuentaCorriente resultado)
     {
         var texto = new System.Text.StringBuilder();
