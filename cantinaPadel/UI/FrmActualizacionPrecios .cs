@@ -14,7 +14,6 @@ namespace cantinaPadel.UI
 
         private static readonly CultureInfo _culturaPesos = CrearCulturaPesos();
 
-        // Crea una cultura clonada de la actual, pero con símbolo de moneda "$"
         private static CultureInfo CrearCulturaPesos()
         {
             var cultura = (CultureInfo)CultureInfo.CurrentCulture.Clone();
@@ -205,8 +204,8 @@ namespace cantinaPadel.UI
                     }
                 }
 
-                // Salvaguarda: sin categoría ni marca elegida ("Todas" en ambas),
-                // no tildamos nada por default. El usuario tiene que elegir a
+                // sin categoría ni marca elegida ("Todas" en ambas),
+                // no tilda nada por defecto. El usuario tiene que elegir a
                 // mano qué productos actualizar en vez de arrastrar el catálogo entero.
                 if (!idCategoria.HasValue && !idMarca.HasValue)
                 {
