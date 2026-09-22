@@ -44,7 +44,13 @@ namespace cantinaPadel.Tests
             var repo = new ComprobanteRepositoryFake();
             repo.Cargar(new Comprobante { Tipo = TipoComprobante.Ticket, PuntoVenta = 1, Numero = 50 });
             var logica = new LogicaComprobante(repo);
-            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m };
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 500m,
+                CondicionIvaCliente = "Responsable Inscripto",
+                CuitCliente = "20-12345678-9"
+            };
 
             var facturaA = logica.ConfirmarEmision(datos, TipoComprobante.FacturaA, FormaEntrega.NoEmitir);
 
@@ -100,6 +106,87 @@ namespace cantinaPadel.Tests
             var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
 
             Assert.AreEqual(TipoComprobante.Remito, comprobante.Tipo);
+        }
+
+        [TestMethod]
+        public void ConfirmarEmision_FacturaAConsumidorFinal_LanzaExcepcion()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m, NombreCliente = "Consumidor Final" };
+
+            Assert.ThrowsExactly<ArgumentException>(
+                () => logica.ConfirmarEmision(datos, TipoComprobante.FacturaA, FormaEntrega.NoEmitir));
+        }
+
+        [DataTestMethod]
+        [DataRow("Monotributista")]
+        [DataRow("IVA Exento")]
+        [DataRow(null)]
+        public void ConfirmarEmision_FacturaAClienteNoResponsableInscripto_LanzaExcepcion(string? condicionIva)
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 500m,
+                NombreCliente = "Juan Pérez",
+                CondicionIvaCliente = condicionIva,
+                CuitCliente = "20-12345678-9"
+            };
+
+            Assert.ThrowsExactly<ArgumentException>(
+                () => logica.ConfirmarEmision(datos, TipoComprobante.FacturaA, FormaEntrega.NoEmitir));
+        }
+
+        [TestMethod]
+        public void ConfirmarEmision_FacturaAResponsableInscriptoSinCuit_LanzaExcepcion()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 500m,
+                NombreCliente = "Juan Pérez",
+                CondicionIvaCliente = "Responsable Inscripto",
+                CuitCliente = null
+            };
+
+            Assert.ThrowsExactly<ArgumentException>(
+                () => logica.ConfirmarEmision(datos, TipoComprobante.FacturaA, FormaEntrega.NoEmitir));
+        }
+
+        [TestMethod]
+        public void ConfirmarEmision_FacturaAResponsableInscriptoConCuit_Permite()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 500m,
+                NombreCliente = "Juan Pérez",
+                CondicionIvaCliente = "Responsable Inscripto",
+                CuitCliente = "20-12345678-9"
+            };
+
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.FacturaA, FormaEntrega.NoEmitir);
+
+            Assert.AreEqual(TipoComprobante.FacturaA, comprobante.Tipo);
+        }
+
+        [TestMethod]
+        public void ConfirmarEmision_FacturaBConsumidorFinal_Permite()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m, NombreCliente = "Consumidor Final" };
+
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.FacturaB, FormaEntrega.NoEmitir);
+
+            Assert.AreEqual(TipoComprobante.FacturaB, comprobante.Tipo);
         }
 
         [TestMethod]

@@ -224,6 +224,8 @@ public class FrmMetodoPago : Form
                 NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
                 EmailCliente = cliente.Email,
                 MetodoPago = pago.FormaPago,
+                CuitCliente = cliente.Persona.Cuit,
+                CondicionIvaCliente = cliente.Persona.CondicionIva,
                 Items = _items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList(),
                 SaldoFavor = ObtenerSaldoAFavor(cliente)
             };

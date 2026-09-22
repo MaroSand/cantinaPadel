@@ -12,6 +12,11 @@ namespace cantinaPadel.UI
 {
     public partial class FrmSeleccionComprobante : Form
     {
+        // Mismo texto que usa PagoVenta.FormaPago (LogicaVenta.cs) y
+        // LogicaComprobante para Cuenta Corriente. Comparación sin
+        // distinguir mayúsculas, igual que en LogicaComprobante.
+        private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
+
         private readonly LogicaComprobante _logica;
         private readonly DatosVentaParaComprobante _datos;
 
@@ -43,6 +48,28 @@ namespace cantinaPadel.UI
             lblTotalValor.Text = _datos.Total.ToString("C");
 
             btnCancelar.Click += btnCancelar_Click;
+
+            // Punto 4: una venta pagada con Cuenta Corriente no se factura,
+            // como máximo se emite un remito. Se deja Remito preseleccionado
+            // y fijo, y se deshabilitan el resto de las opciones para que el
+            // empleado no pueda elegirlas (la validación de fondo también
+            // vive en LogicaComprobante.ConfirmarEmision, por si algo llega
+            // a este form con el radio mal seteado).
+            // OJO: rbRemito se deja Enabled = true a propósito. Un
+            // RadioButton ya marcado no se desmarca haciendo clic de nuevo
+            // (no es un checkbox), así que no hace falta deshabilitarlo
+            // para "fijarlo"; y si lo deshabilitamos, WinForms lo pinta en
+            // gris junto con los demás y el empleado no distingue de un
+            // vistazo que Remito sigue marcado.
+            if (string.Equals(_datos.MetodoPago, MetodoPagoCuentaCorriente, StringComparison.OrdinalIgnoreCase))
+            {
+                rbTicket.Enabled = false;
+                rbFacturaA.Enabled = false;
+                rbFacturaB.Enabled = false;
+                rbFacturaC.Enabled = false;
+
+                rbRemito.Checked = true;
+            }
         }
 
         private void panelCuerpo_Paint(object sender, PaintEventArgs e)
@@ -93,6 +120,7 @@ namespace cantinaPadel.UI
             if (rbFacturaA.Checked) return TipoComprobante.FacturaA;
             if (rbFacturaB.Checked) return TipoComprobante.FacturaB;
             if (rbFacturaC.Checked) return TipoComprobante.FacturaC;
+            if (rbRemito.Checked) return TipoComprobante.Remito;
             return null;
         }
 

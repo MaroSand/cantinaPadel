@@ -30,6 +30,13 @@ namespace cantinaPadel.BLL
         public string? EmailCliente { get; set; }
         public string MetodoPago { get; set; } = string.Empty;
 
+        // Punto 2a: datos impositivos del cliente, necesarios para decidir
+        // si se le puede emitir Factura A. Se toman de Persona.Cuit y
+        // Persona.CondicionIva (ver Models/Persona.cs). Quedan null/vacíos
+        // para Consumidor Final, que no tiene por qué tener CUIT cargado.
+        public string? CuitCliente { get; set; }
+        public string? CondicionIvaCliente { get; set; }
+
         // US-16: saldo a favor del cliente en cuenta corriente al momento de
         // emitir el comprobante (0 si no tiene crédito a favor).
         public decimal SaldoFavor { get; set; }
@@ -44,6 +51,12 @@ namespace cantinaPadel.BLL
         // Texto exacto que usa PagoVenta.FormaPago (LogicaVenta.cs) para Cuenta
         // Corriente. Se compara sin distinguir mayúsculas por las dudas.
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
+
+        // Texto exacto de Persona.CondicionIvaValidas (Models/Persona.cs).
+        // Punto 2a: en Argentina, Factura A solo se le puede emitir a un
+        // cliente Responsable Inscripto (con CUIT); a Consumidor Final, o a
+        // cualquier otra condición de IVA, corresponde Factura B o C.
+        private const string CondicionIvaResponsableInscripto = "Responsable Inscripto";
 
         private readonly IComprobanteRepository _repo;
         // US-14 no requiere una tabla de comprobantes. Se conserva el
@@ -84,6 +97,18 @@ namespace cantinaPadel.BLL
             bool esFactura = tipo is TipoComprobante.FacturaA or TipoComprobante.FacturaB or TipoComprobante.FacturaC;
             if (esVentaCuentaCorriente && esFactura)
                 throw new ArgumentException("Una venta pagada con Cuenta Corriente no se puede facturar. Como máximo se emite un remito; la factura corresponde recién cuando el cliente cancela la deuda.");
+
+            // Punto 2a: Factura A requiere un cliente Responsable Inscripto
+            // con CUIT válido cargado. No alcanza con que el nombre no sea
+            // literalmente "Consumidor Final": cualquier otra condición de
+            // IVA (Monotributista, IVA Exento, etc.) tampoco habilita
+            // Factura A, y sin CUIT no hay a quién facturarle A.
+            if (tipo == TipoComprobante.FacturaA)
+            {
+                bool esResponsableInscripto = string.Equals(datos.CondicionIvaCliente, CondicionIvaResponsableInscripto, StringComparison.OrdinalIgnoreCase);
+                if (!esResponsableInscripto || string.IsNullOrWhiteSpace(datos.CuitCliente))
+                    throw new ArgumentException("Para emitir Factura A el cliente debe estar cargado como Responsable Inscripto con CUIT. Elegí Factura B/C o cargá esos datos en la ficha del cliente.");
+            }
 
             if (formaEntrega == FormaEntrega.Email && string.IsNullOrWhiteSpace(datos.EmailCliente))
                 throw new ArgumentException("Para enviar el comprobante por email hace falta el email del cliente.");

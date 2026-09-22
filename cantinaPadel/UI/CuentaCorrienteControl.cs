@@ -234,7 +234,7 @@ public class CuentaCorrienteControl : UserControl
         try
         {
             var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario);
-            MostrarResumenPago(resultado);
+            MostrarComprobantePago(resultado, _clienteSeleccionado);
 
             CargarCuenta();
         }
@@ -257,37 +257,48 @@ public class CuentaCorrienteControl : UserControl
 
     }
 
-    // Comprobante simple del pago: qué productos quedaron saldados y cuánto
-    // queda pendiente.
-    // TODO (punto 9 de las correcciones, pendiente de otra iteración): esto todavía no registra un
-    // Comprobante real en la base -- solo informa en pantalla. Se resuelve junto con la regla de
-    // remito/factura (puntos 6, 7 y 9).
-    private void MostrarResumenPago(ResultadoPagoCuentaCorriente resultado)
+    // Punto 6/7: al cobrar cuenta corriente se abre la misma pantalla de
+    // comprobante que usa el punto de venta. El empleado ahí elige si
+    // imprime, manda por email o no emite nada — así se decide "si se
+    // quiere imprimir un remito" sin agregar una pantalla nueva.
+    // Punto 7: si todavía queda deuda pendiente después de este pago, se
+    // fuerza Remito (mismo patrón que el punto 4/6: MetodoPago = "Cuenta
+    // Corriente" hace que FrmSeleccionComprobante preseleccione Remito y
+    // bloquee Ticket/Factura A/B/C, y que LogicaComprobante rechace
+    // Factura igual si algo se la salta). Si el pago cubre toda la deuda
+    // (DeudaPendiente == 0), no se fuerza nada: el empleado puede elegir
+    // Factura (sigue valiendo la validación de Responsable Inscripto +
+    // CUIT de LogicaComprobante para Factura A).
+    // OJO / limitación conocida (punto 9, pendiente): un pago puede saldar
+    // unidades de varias ventas distintas, pero Comprobante.IdVenta es un
+    // único id. Por ahora se usa la primera venta saldada (o 0 si el pago
+    // no saldó ninguna unidad completa) — se revisa cuando se conecte el
+    // comprobante a una tabla real.
+    private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente)
     {
-        var texto = new System.Text.StringBuilder();
-        texto.AppendLine($"Pago recibido: {resultado.MontoRecibido:C2}");
-        texto.AppendLine();
+        bool quedaDeudaPendiente = resultado.DeudaPendiente > 0m;
 
-        if (resultado.ItemsPagados.Count > 0)
+        var datos = new DatosVentaParaComprobante
         {
-            texto.AppendLine($"Productos saldados ({resultado.ItemsPagados.Count}):");
-            foreach (var item in resultado.ItemsPagados)
-                texto.AppendLine($"  - {item.NombreProducto} ({item.Monto:C2})");
-        }
-        else
-        {
-            texto.AppendLine("El pago no alcanzó a cubrir ningún producto completo.");
-        }
+            IdVenta = resultado.ItemsPagados.Count > 0 ? resultado.ItemsPagados[0].IdVenta : 0,
+            Total = resultado.MontoRecibido,
+            NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
+            EmailCliente = cliente.Email,
+            // Texto exacto "Cuenta Corriente" únicamente cuando todavía
+            // queda deuda: es el que compara FrmSeleccionComprobante y
+            // LogicaComprobante para forzar/bloquear. Con la deuda saldada
+            // se usa otro texto (informativo nomás) para no disparar esa
+            // regla y dejar elegir Factura.
+            MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : "Cuenta Corriente (saldada)",
+            CuitCliente = cliente.Persona.Cuit,
+            CondicionIvaCliente = cliente.Persona.CondicionIva,
+            Items = resultado.ItemsPagados
+                .Select(item => new DetalleComprobante { Nombre = item.NombreProducto, Cantidad = 1, PrecioUnitario = item.Monto })
+                .ToList(),
+            SaldoFavor = resultado.SaldoAFavor
+        };
 
-        texto.AppendLine();
-        texto.AppendLine($"Productos que siguen pendientes: {resultado.ItemsPendientes.Count} ({resultado.DeudaPendiente:C2})");
-
-        decimal acreditado = Math.Min(resultado.CreditoResultante, resultado.DeudaPendiente);
-        if (acreditado > 0m)
-            texto.AppendLine($"Entregado a cuenta del próximo producto: {acreditado:C2} (falta {resultado.DeudaPendiente - acreditado:C2})");
-        if (resultado.SaldoAFavor > 0m)
-            texto.AppendLine($"Saldo a favor del cliente: {resultado.SaldoAFavor:C2}");
-
-        MessageBox.Show(this, texto.ToString(), "Comprobante de pago - Cuenta Corriente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        using var comprobante = new FrmSeleccionComprobante(datos);
+        comprobante.ShowDialog(FindForm());
     }
 }
