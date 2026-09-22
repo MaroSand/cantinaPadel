@@ -78,7 +78,7 @@ namespace cantinaPadel.UI
             dgvProductos.ReadOnly = true;
             dgvProductos.MultiSelect = false;
 
-            // Columnas: Name es clave para Cells["..."], DataPropertyName bindea con el objeto anónimo
+            // Se definen las columnas de la grilla, con sus propiedades y estilos
             dgvProductos.Columns.Clear();
             dgvProductos.Columns.Add(new DataGridViewTextBoxColumn
             { Name = "IdProducto", DataPropertyName = "IdProducto", Visible = false });
@@ -169,9 +169,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Vuelve a consultar la base con los filtros actuales. A diferencia de otros listados,
-        // Producto expone un único método "Buscar" que ya combina texto + categoría + marca,
-        // por lo que no hace falta mantener una lista completa en memoria para filtrar.
+        // Actualiza el listado de productos en la grilla según los filtros aplicados
         private void ActualizarListado()
         {
             try
@@ -214,9 +212,7 @@ namespace cantinaPadel.UI
         private void txtBuscar_TextChanged(object sender, EventArgs e) => ActualizarListado();
         private void Filtro_SelectedIndexChanged(object sender, EventArgs e) => ActualizarListado();
 
-        // Soporte para lector de código de barras (HID): el lector "tipea" el código
-        // y termina enviando Enter. Se anula el "beep"/efecto por defecto y, si el
-        // filtro dejó un único resultado, se lo selecciona en la grilla al toque.
+        // Evento para manejar la tecla Enter en el cuadro de búsqueda
         private void txtBuscar_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode != Keys.Enter) return;

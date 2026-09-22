@@ -187,7 +187,6 @@ namespace cantinaPadel.UI
                         
                         
                         // Se guarda el cambio en la base de datos usando la lógica unificada
-                        //TODO VER SI REEMPLAZAR ESTA LLAMADA POR EL REFACTOR DE LogicaPersonaRoles.GuardarRoles
                         _logicaEmpleado.RegistrarOGuardar(empleado);
 
                         MessageBox.Show($"Estado del empleado actualizado con éxito.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);

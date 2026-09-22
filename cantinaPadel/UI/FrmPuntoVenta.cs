@@ -16,8 +16,7 @@ namespace cantinaPadel.UI
         private readonly LogicaVenta _logicaVenta;
         private readonly LogicaCuentaCorriente _logicaCuentaCorriente;
 
-        // Punto 2 y 3: reemplaza al modal FrmMetodoPago (US-14). Los checks se comportan como selección
-        // única (tipo radio buttons), igual que hacía el modal viejo — ver SeleccionarMetodoPagoUnico
+        // Lista de los checks de método de pago, para poder recorrerlos y mantener la selección única
         private List<CheckBox> _checksMetodoPago = new();
         private bool _actualizandoChecksMetodoPago;
 
@@ -25,18 +24,13 @@ namespace cantinaPadel.UI
         // se dispara la búsqueda real
         private readonly System.Windows.Forms.Timer _debounceBusqueda = new() { Interval = 300 };
 
-        // Se usa para distinguir cuando el combo cambia de selección porque el usuario eligió una opción,
-        // de cuando cambia porque lo estamos repoblando (DataSource, SelectedIndex = -1, etc.)
-        // Sin esta bandera, repoblar el combo dispararía un "agregado al carrito" falso
+        // Evita reentrancia: cuando se repuebla cmbResultados, SelectedIndex cambia y dispara SelectionChangeCommitted, que a su vez llama a AgregarProductoAlCarrito
         private bool _actualizandoComboResultados;
 
-        // Cliente de la venta que se está armando. null = Consumidor Final (el valor por defecto de la venta)
-        // Se carga desde "Agregar cliente" o al registrar un turno, y se usa directo al confirmar la venta
+        // Cliente elegido para la venta. Si es null, se asume Consumidor Final
         private Cliente? _clienteVenta;
 
-        // true cuando FrmPuntoVenta se abre directo en la pestaña de Cuenta Corriente (acceso desde el
-        // menú lateral de FrmMain, ver Punto 1). Se guarda en un campo y se aplica recién en el Load porque
-        // tabsPrincipal.SelectedTab no tiene efecto confiable hasta que el control ya está mostrado
+        // Indica si la pantalla se abrió desde la pestaña de Cuenta Corriente (true) o desde la de Punto de Venta (false)
         private readonly bool _abrirEnCuentaCorriente;
 
         public FrmPuntoVenta() : this(abrirEnCuentaCorriente: false) { }
@@ -101,17 +95,14 @@ namespace cantinaPadel.UI
             tabsPrincipal.SelectedTab = tabCuentaCorriente;
         }
 
-        // Punto 2 y 3: método de pago embebido en la pantalla (reemplaza al modal FrmMetodoPago, US-14).
-        // Los checks se comportan como radio buttons (selección única), igual que hacía el modal viejo
+        // Configura los checkboxes de método de pago para que solo se pueda elegir uno a la vez
         private void ConfigurarMetodoPago()
         {
             _checksMetodoPago = new List<CheckBox> { chkEfectivo, chkTransferencia, chkTarjeta, chkBilleteraVirtual, chkCuentaCorriente };
             foreach (var chk in _checksMetodoPago)
                 chk.CheckedChanged += (sender, _) => SeleccionarMetodoPagoUnico((CheckBox)sender!);
 
-            // Cuenta Corriente requiere cliente identificado: si todavía no se eligió ninguno (sigue en
-            // Consumidor Final), se avisa al tildarlo y se vuelve a Efectivo, en vez de dejar avanzar y
-            // recién cortar en btnConfirmarVenta_Click
+            //  si el usuario tilda Cuenta Corriente sin haber elegido un cliente, se le avisa y se vuelve a Efectivo
             chkCuentaCorriente.CheckedChanged += (_, _) =>
             {
                 if (chkCuentaCorriente.Checked && _clienteVenta == null)
@@ -126,7 +117,7 @@ namespace cantinaPadel.UI
 
         private void SeleccionarMetodoPagoUnico(CheckBox seleccionado)
         {
-            if (_actualizandoChecksMetodoPago) return; // evita reentrancia: los cambios de abajo no deben re-disparar este handler
+            if (_actualizandoChecksMetodoPago) return; //los cambios de abajo no deben re-disparar este handler
             _actualizandoChecksMetodoPago = true;
             try
             {
@@ -170,9 +161,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Saldo a favor real (el cliente pagó de más), leído de la base porque el objeto Cliente de la
-        // pantalla puede estar desactualizado. La venta ya quedó registrada, así que un fallo acá no debe
-        // impedir emitir el comprobante (mismo criterio que tenía FrmMetodoPago)
+        //  si el cliente elegido tiene saldo a favor, se lo muestra en el comprobante
         private decimal ObtenerSaldoAFavor(Cliente cliente)
         {
             try
@@ -228,14 +217,7 @@ namespace cantinaPadel.UI
             });
         }
 
-        // Barra de búsqueda por nombre y por código de barras
-        // El lector HID "tipea" el código muy rápido, como cada tecla reinicia el debounce, la búsqueda recién se
-        // dispara cuando el lector termina de tipear, sin necesidad de que el lector mande un Enter. Si el texto
-        // ingresado coincide exacto con el código de barras de un producto, se lo agrega directo al carrito
-        // si no, se muestran las coincidencias por nombre en cmbResultados
-
-        // Con las flechas Arriba/Abajo se navega el combo sin sacar el foco del textbox
-        // Enter agrega la opción resaltada, si no hay ninguna resaltada, busca ya mismo
+        // El usuario presiona Enter o flechas en la barra de búsqueda: se busca o se agrega el producto resaltado
         private void txtBuscarProducto_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
@@ -249,7 +231,7 @@ namespace cantinaPadel.UI
             {
                 e.SuppressKeyPress = true;
 
-                // Si ya hay una opción resaltada en el combo (se llegó con las flechas), Enter la agrega directo
+                // Si hay un producto resaltado en el combo, se agrega al carrito. Si no, se hace la búsqueda por nombre (que puede mostrar un mensaje de "no encontrado")
                 if (cmbResultados.SelectedItem is ProductoComboItem resaltado)
                 {
                     AgregarProductoAlCarrito(resaltado.Producto, limpiarBusqueda: true);
@@ -261,9 +243,8 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Mueve la selección resaltada del combo un paso hacia arriba o abajo (direccion = 1 o -1), sin pasarse de los límites
-        // Como esto pasa por asignación directa de SelectedIndex, no dispara SelectionChangeCommitted, así que pasear
-        // con las flechas nunca agrega nada al carrito por sí solo, solo lo hace un Enter posterior o un click
+
+        // Mueve la selección del combo de resultados hacia arriba o abajo según la dirección indicada (1 = abajo, -1 = arriba)
         private void MoverSeleccionCombo(int direccion)
         {
             if (cmbResultados.Items.Count == 0) return;
@@ -273,8 +254,7 @@ namespace cantinaPadel.UI
             cmbResultados.SelectedIndex = nuevoIndice;
         }
 
-        // Autocompletado en tiempo real, cada tecla reinicia el timer de debounce
-        // Con menos de 2 caracteres no se busca y se limpia el combo de resultados
+        // Cada vez que se tipea algo en la barra de búsqueda, se reinicia el timer de debounce. Si el texto tiene menos de 2 caracteres, se limpia el combo y no se hace la búsqueda
         private void txtBuscarProducto_TextChanged(object sender, EventArgs e)
         {
             _debounceBusqueda.Stop();
@@ -294,9 +274,8 @@ namespace cantinaPadel.UI
             BuscarProductosPorNombre();
         }
 
-        // Se separó en dos pasos la consulta a la base (try/catch propio, con el mensaje
-        // "Error de conexión" que corresponde) de todo lo que toca el ComboBox (otro try/catch,
-        // con un mensaje distinto)
+
+        // Busca productos por nombre y los muestra en cmbResultados. Si avisarSiNoHayResultados es true y no hay resultados, se muestra un mensaje de aviso
         private void BuscarProductosPorNombre(bool avisarSiNoHayResultados = false)
         {
             string? texto = string.IsNullOrWhiteSpace(txtBuscarProducto.Text)
@@ -348,19 +327,14 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Repuebla cmbResultados con las coincidencias por nombre. StockDisponible se calcula al momento de la búsqueda
-        // Se usa Items.Add en vez de DataSource: enlazar una lista vacía como DataSource puede tirar
-        // ArgumentOutOfRangeException desde el binding interno de WinForms, y acá la lista de resultados
-        // cambia todo el tiempo (cada tecla), incluso llegando a 0 elementos con cualquier texto que no matchee
+
+        // Muestra los resultados de la búsqueda en cmbResultados, con el stock disponible descontando lo que ya está en el carrito
         private void MostrarResultadosEnCombo(List<Producto> resultados)
         {
             _actualizandoComboResultados = true;
             try
             {
-                // Se cierra el desplegable antes de tocar Items/SelectedIndex. Si Items.Clear()
-                // se ejecuta con el combo todavía desplegado (DroppedDown = true), el control nativo de Windows queda
-                // desincronizado con la lista managed recién vaciada y tira un ArgumentOutOfRangeException ("index (0) must be less than 0")
-                // Por eso primero se achica, y recién al final se decide si corresponde volver a desplegar
+                // Se limpia el combo antes de agregar los resultados, para que no queden residuos de búsquedas anteriores
                 cmbResultados.DroppedDown = false;
                 cmbResultados.SelectedIndex = -1;
                 cmbResultados.Items.Clear();
@@ -371,8 +345,7 @@ namespace cantinaPadel.UI
                     cmbResultados.Items.Add(new ProductoComboItem(p, stockDisponible));
                 }
 
-                // Se deja resaltada la primera opción así alcanza con Enter para agregar el resultado más relevante, y las flechas quedan solo
-                // para bajar a otra opción si hace falta
+                // Si hay resultados, se selecciona el primero para que el usuario pueda agregarlo con Enter sin tener que mover la selección
                 cmbResultados.SelectedIndex = cmbResultados.Items.Count > 0 ? 0 : -1;
 
                 cmbResultados.DroppedDown = cmbResultados.Items.Count > 0;
@@ -398,9 +371,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // El usuario elige una opción del combo con el mouse -> se agrega directo al carrito
-        // Usamos SelectionChangeCommitted: este evento solo se dispara ante una interacción del usuario con el control
-        // (click o flechas usadas directamente sobre el combo), no cuando movemos la selección por código desde MoverSeleccionCombo
+        // El usuario selecciona un producto del combo de resultados: se agrega al carrito y se limpia la barra de búsqueda
         private void cmbResultados_SelectionChangeCommitted(object sender, EventArgs e)
         {
             if (_actualizandoComboResultados) return;
@@ -409,8 +380,7 @@ namespace cantinaPadel.UI
             AgregarProductoAlCarrito(item.Producto, limpiarBusqueda: true);
         }
 
-        // Agrega un producto al carrito. limpiarBusqueda=true después de un agregado exitoso (por código de
-        // barras o por selección del combo): deja la barra de búsqueda lista para la próxima búsqueda/escaneo
+        // Agrega un producto al carrito y refresca la UI. Si limpiarBusqueda es true, se limpia la barra de búsqueda y el combo de resultados
         private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false)
         {
             try
@@ -458,9 +428,7 @@ namespace cantinaPadel.UI
             ActualizarLabelTotal();
         }
 
-        // Bloquea que se tipee cualquier cosa que no sea un dígito en la celda
-        // "Cantidad" del carrito. El control de edición de un DataGridView se reutiliza entre celdas, por eso se saca el handler antes de
-        // agregarlo de nuevo (si no, quedaría suscripto una vez por cada celda editada)
+        // Se asegura de que la celda "Cantidad" solo acepte números enteros positivos, y no permita "-" ni "," ni letras
         private void dgvCarrito_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
             if (dgvCarrito.CurrentCell?.OwningColumn?.Name != "Cantidad") return;
@@ -541,8 +509,7 @@ namespace cantinaPadel.UI
             RefrescarUI();
         }
 
-        // Confirmar venta (Punto 2 y 3: ya no abre FrmMetodoPago — el método de pago se elige en el
-        // checklist embebido de esta misma pantalla, y el cliente viene de _clienteVenta)
+        // El usuario confirma la venta: se valida stock, método de pago y cliente, se registra la venta y se abre el formulario de selección de comprobante
         private void btnConfirmarVenta_Click(object sender, EventArgs e)
         {
             if (_logicaCarrito.CantidadItems == 0)
@@ -552,9 +519,8 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            // Revalidación final contra stock "fresco" de la base: el carrito vive en memoria mientras se arma la venta, así que el stock pudo
-            // haber cambiado desde que se agregó cada ítem
-            // Si algo ya no alcanza, se avisa y se corta acá
+
+            // Antes de confirmar la venta, se valida que el stock de cada producto no haya cambiado desde que se agregó al carrito
             var faltantes = new System.Text.StringBuilder();
             foreach (var item in _logicaCarrito.Items)
             {
@@ -637,12 +603,8 @@ namespace cantinaPadel.UI
             return detalle.ToString();
         }
 
-        // Clientes y turnos desde el punto de venta
-        // Todas las fichas se abren con ShowDialog (modal) por encima del POS, en vez de reemplazar el contenido del panel con AbrirEnPanel
-        // (que hace Controls.Clear() y destruiría este formulario junto con el carrito). Como este formulario sigue vivo mientras el diálogo está
-        // abierto, _logicaCarrito y la grilla no se tocan: la venta en armado se conserva
 
-        // Muestra en pantalla el cliente que va a llevar la venta
+        // Actualiza el label que muestra el cliente elegido para la venta, o "Consumidor Final" si no hay ninguno. También habilita o deshabilita el botón de quitar cliente según corresponda
         private void ActualizarLabelCliente()
         {
             lblClienteVenta.Text = _clienteVenta == null
@@ -651,8 +613,8 @@ namespace cantinaPadel.UI
             btnQuitarCliente.Enabled = _clienteVenta != null;
         }
 
-        // Reutiliza el listado de clientes en modo selección: permite elegir uno que ya existe o dar de alta uno nuevo
-        // (que queda elegido al guardarlo). Ver FrmListadoClientes.ConfigurarModo
+
+        // Abre el formulario de listado de clientes en modo selección. Si el usuario elige uno, se guarda como cliente de la venta
         private void btnAgregarCliente_Click(object? sender, EventArgs e)
         {
             using var frmClientes = new FrmListadoClientes(modoSeleccion: true);
@@ -673,8 +635,7 @@ namespace cantinaPadel.UI
             txtBuscarProducto.Focus();
         }
 
-        // FrmAlquilerDia está pensado para ir embebido (Dock = Fill), por eso al abrirlo como ventana se le da un tamaño acorde a la pantalla
-        // Si dentro se registró un alquiler, el cliente de ese alquiler pasa a ser el cliente de la venta
+        // Abre el formulario de registro de turno. Si el usuario confirma un turno, se intenta cargar el cliente del último alquiler y asignarlo a la venta
         private void btnAgregarTurno_Click(object? sender, EventArgs e)
         {
             var area = Screen.FromControl(this).WorkingArea;
@@ -717,9 +678,7 @@ namespace cantinaPadel.UI
         }
     }
 
-    // Fila de UI para dgvCarrito. Se usa una clase (y no un tipo anónimo) a propósito: los tipos anónimos generan propiedades de solo lectura
-    // (sin "set"), y como la columna "Cantidad" es editable, el DataGridView necesita poder escribir el valor nuevo de vuelta en el objeto de
-    // origen al confirmar la edición de la celda
+    // Clase auxiliar para mostrar los items del carrito en la grilla
     public class FilaCarritoUI
     {
         public int IdProducto { get; set; }

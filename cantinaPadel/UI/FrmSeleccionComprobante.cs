@@ -12,22 +12,16 @@ namespace cantinaPadel.UI
 {
     public partial class FrmSeleccionComprobante : Form
     {
-        // Mismo texto que usa PagoVenta.FormaPago (LogicaVenta.cs) y
-        // LogicaComprobante para Cuenta Corriente. Comparación sin
-        // distinguir mayúsculas, igual que en LogicaComprobante.
+        // Constantes para los nombres de los métodos de pago que requieren un tratamiento especial
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
 
         private readonly LogicaComprobante _logica;
         private readonly DatosVentaParaComprobante _datos;
 
-        // Se completa recién al confirmar; la pantalla que abrió este form
-        // (FrmMetodoPago, US-14) la puede leer después de que ShowDialog()
-        // devuelva DialogResult.OK.
+        // Propiedad pública para acceder al comprobante generado después de la confirmación
         public Comprobante? ComprobanteGenerado { get; private set; }
 
-        // Constructor sin parámetros: lo pide el Diseñador de Windows Forms
-        // para poder abrir este form en modo diseño. No usar en tiempo de
-        // ejecución real; para eso está el constructor de abajo.
+        // Constructor por defecto que inicializa el formulario con datos de venta vacíos
         public FrmSeleccionComprobante()
             : this(new DatosVentaParaComprobante())
         {
@@ -49,18 +43,7 @@ namespace cantinaPadel.UI
 
             btnCancelar.Click += btnCancelar_Click;
 
-            // Punto 4: una venta pagada con Cuenta Corriente no se factura,
-            // como máximo se emite un remito. Se deja Remito preseleccionado
-            // y fijo, y se deshabilitan el resto de las opciones para que el
-            // empleado no pueda elegirlas (la validación de fondo también
-            // vive en LogicaComprobante.ConfirmarEmision, por si algo llega
-            // a este form con el radio mal seteado).
-            // OJO: rbRemito se deja Enabled = true a propósito. Un
-            // RadioButton ya marcado no se desmarca haciendo clic de nuevo
-            // (no es un checkbox), así que no hace falta deshabilitarlo
-            // para "fijarlo"; y si lo deshabilitamos, WinForms lo pinta en
-            // gris junto con los demás y el empleado no distingue de un
-            // vistazo que Remito sigue marcado.
+            // Deshabilitar opciones de comprobante según el método de pago
             if (string.Equals(_datos.MetodoPago, MetodoPagoCuentaCorriente, StringComparison.OrdinalIgnoreCase))
             {
                 rbTicket.Enabled = false;
@@ -77,6 +60,7 @@ namespace cantinaPadel.UI
 
         }
 
+        // Evento del botón "Confirmar" que valida la selección de tipo de comprobante y forma de entrega, y genera el comprobante
         private void btnConfirmar_Click(object sender, EventArgs e)
         {
             TipoComprobante? tipo = ObtenerTipoSeleccionado();
@@ -87,6 +71,8 @@ namespace cantinaPadel.UI
                 return;
             }
 
+
+            // Validar la selección de la forma de entrega
             FormaEntrega? formaEntrega = ObtenerFormaEntregaSeleccionada();
             if (formaEntrega == null)
             {
@@ -107,13 +93,14 @@ namespace cantinaPadel.UI
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
+        // Evento del botón "Cancelar" que cierra el formulario sin generar un comprobante
         private void btnCancelar_Click(object? sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
             Close();
         }
 
+        // Método privado que obtiene el tipo de comprobante seleccionado por el usuario
         private TipoComprobante? ObtenerTipoSeleccionado()
         {
             if (rbTicket.Checked) return TipoComprobante.Ticket;
