@@ -22,8 +22,7 @@ public class FrmMetodoPago : Form
     private Cliente? _clienteSeleccionado;
     private List<Cliente> _clientesEncontrados = new();
 
-    // clientePreseleccionado: cliente que ya se eligió en el punto de venta. Si viene, arranca seleccionado (y visible en la
-    // grilla); si es null, se mantiene el comportamiento de siempre (Consumidor Final por defecto)
+    // Constructor principal: recibe los ítems de venta y opcionalmente un cliente preseleccionado.
     public FrmMetodoPago(IReadOnlyCollection<ItemCarrito> items, Cliente? clientePreseleccionado = null)
         : this(items, new LogicaVenta(), clientePreseleccionado) { }
 
@@ -82,9 +81,8 @@ public class FrmMetodoPago : Form
             chk.CheckedChanged += (sender, _) => SeleccionarMetodoUnico((CheckBox)sender!);
             flujoPagos.Controls.Add(chk);
         }
-        // Cuenta Corriente requiere cliente identificado: si todavía no se
-        // eligió ninguno, se pide primero (en vez de dejar avanzar y recién
-        // avisar al confirmar).
+
+        // Si el usuario tilda Cuenta Corriente, y no hay cliente seleccionado, se enfoca el textbox de búsqueda.
         _chkCuentaCorriente.CheckedChanged += (_, _) =>
         {
             if (_chkCuentaCorriente.Checked && _clienteSeleccionado == null)
@@ -108,13 +106,13 @@ public class FrmMetodoPago : Form
     // Los checks se comportan como selección única (tipo radio buttons).
     private void SeleccionarMetodoUnico(CheckBox seleccionado)
     {
-        if (_actualizandoChecks) return; // evita reentrancia: los cambios de abajo no deben re-disparar este handler
+        if (_actualizandoChecks) return; 
         _actualizandoChecks = true;
         try
         {
             if (!seleccionado.Checked)
             {
-                seleccionado.Checked = true; // no se permite dejar todo destildado
+                seleccionado.Checked = true;
                 return;
             }
 
@@ -188,9 +186,8 @@ public class FrmMetodoPago : Form
         _lblCliente.Text = $"Cliente seleccionado: {cliente.Persona.Nombre} {cliente.Persona.Apellido}";
     }
 
-    // Saldo a favor real (el cliente pagó de más), leído de la base porque el
-    // objeto Cliente de la pantalla puede estar desactualizado. La venta ya
-    // quedó registrada, así que un fallo acá no debe impedir emitir el comprobante.
+
+    // Obtiene el saldo a favor del cliente seleccionado, si es que tiene uno. Si ocurre un error, devuelve 0.
     private decimal ObtenerSaldoAFavor(Cliente cliente)
     {
         try
