@@ -32,7 +32,6 @@ namespace cantinaPadel.UI
 
         // Cliente de la venta que se está armando. null = Consumidor Final (el valor por defecto de la venta)
         // Se carga desde "Agregar cliente" o al registrar un turno, y se usa directo al confirmar la venta
-        // (ver btnConfirmarVenta_Click; ya no hay modal de método de pago que lo vuelva a pedir)
         private Cliente? _clienteVenta;
 
         // true cuando FrmPuntoVenta se abre directo en la pestaña de Cuenta Corriente (acceso desde el
@@ -578,7 +577,7 @@ namespace cantinaPadel.UI
             var metodo = ObtenerMetodoPagoSeleccionado();
             if (metodo == MetodoPago.CuentaCorriente && _clienteVenta == null)
             {
-                MessageBox.Show(this, "Cuenta Corriente requiere un cliente. Usá \"Agregar Cliente\" o \"Agregar Turno\" primero.",
+                MessageBox.Show(this, "Cuenta Corriente requiere un cliente. Seleccionar \"Agregar Cliente\" .",
                     "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
@@ -620,8 +619,20 @@ namespace cantinaPadel.UI
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, $"Ocurrió un error al registrar la venta: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(this, $"Ocurrió un error al registrar la venta: {DescribirError(ex)}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private static string DescribirError(Exception ex)
+        {
+            var detalle = new System.Text.StringBuilder(ex.Message);
+            var interna = ex.InnerException;
+            while (interna != null)
+            {
+                detalle.Append(" -> ").Append(interna.Message);
+                interna = interna.InnerException;
+            }
+            return detalle.ToString();
         }
 
         // Clientes y turnos desde el punto de venta

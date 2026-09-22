@@ -76,6 +76,32 @@ namespace cantinaPadel.Tests
             Assert.AreEqual(FormaEntrega.NoEmitir, repo.Agregados[0].FormaEntrega);
         }
 
+        [DataTestMethod]
+        [DataRow(TipoComprobante.FacturaA)]
+        [DataRow(TipoComprobante.FacturaB)]
+        [DataRow(TipoComprobante.FacturaC)]
+        public void ConfirmarEmision_CuentaCorrienteConFactura_LanzaExcepcion(TipoComprobante tipoFactura)
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m, MetodoPago = "Cuenta Corriente" };
+
+            Assert.ThrowsExactly<ArgumentException>(
+                () => logica.ConfirmarEmision(datos, tipoFactura, FormaEntrega.NoEmitir));
+        }
+
+        [TestMethod]
+        public void ConfirmarEmision_CuentaCorrienteConRemito_Permite()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 500m, MetodoPago = "Cuenta Corriente" };
+
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
+
+            Assert.AreEqual(TipoComprobante.Remito, comprobante.Tipo);
+        }
+
         [TestMethod]
         public void ConfirmarEmision_Confirmada_UsaNumeroFormateadoConPuntoDeVenta()
         {

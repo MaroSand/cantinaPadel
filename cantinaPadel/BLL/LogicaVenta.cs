@@ -21,7 +21,7 @@ public sealed class PagoVenta
         MetodoPago.Efectivo => "Efectivo",
         MetodoPago.Transferencia => "Transferencia",
         MetodoPago.Tarjeta => "Tarjeta",
-        MetodoPago.BilleteraVirtual => "Billetera Virtual",
+        MetodoPago.BilleteraVirtual => "MercadoPago",
         MetodoPago.CuentaCorriente => "Cuenta Corriente",
         _ => string.Empty
     };
@@ -103,6 +103,18 @@ public class LogicaVenta
         return _ventas.Registrar(venta, detalles, cliente.IdCliente);
     }
 
-    public void ActualizarTipoComprobante(int idVenta, TipoComprobante tipo)
-        => _ventas.ActualizarTipoComprobante(idVenta, tipo == TipoComprobante.FacturaA ? "A" : "B");
+    // Guarda en ventas.tipo_comprobante (CHAR(1), ver
+    // database/US_punto4_tipo_comprobante_remito.sql) qué se terminó
+    // emitiendo. Antes este mapeo solo distinguía FacturaA de "todo lo
+    // demás" y volcaba Ticket/FacturaC/Remito como si fueran Factura B;
+    // ahora cada tipo tiene su propia letra.
+    public void ActualizarTipoComprobante(int idVenta, TipoComprobante tipo) => _ventas.ActualizarTipoComprobante(idVenta, tipo switch
+    {
+        TipoComprobante.Ticket => "T",
+        TipoComprobante.FacturaA => "A",
+        TipoComprobante.FacturaB => "B",
+        TipoComprobante.FacturaC => "C",
+        TipoComprobante.Remito => "R",
+        _ => throw new ArgumentOutOfRangeException(nameof(tipo), tipo, "Tipo de comprobante desconocido.")
+    });
 }

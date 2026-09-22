@@ -38,6 +38,7 @@
             rbFacturaA = new RadioButton();
             rbFacturaB = new RadioButton();
             rbFacturaC = new RadioButton();
+            rbRemito = new RadioButton();
             grpEntrega = new GroupBox();
             rbImprimir = new RadioButton();
             rbNoEmitir = new RadioButton();
@@ -82,7 +83,7 @@
             panelCuerpo.Dock = DockStyle.Fill;
             panelCuerpo.Location = new Point(0, 50);
             panelCuerpo.Name = "panelCuerpo";
-            panelCuerpo.Size = new Size(404, 391);
+            panelCuerpo.Size = new Size(404, 431);
             panelCuerpo.TabIndex = 1;
             panelCuerpo.Paint += panelCuerpo_Paint;
             // 
@@ -107,13 +108,14 @@
             // 
             // grpTipo
             // 
+            grpTipo.Controls.Add(rbRemito);
             grpTipo.Controls.Add(rbFacturaC);
             grpTipo.Controls.Add(rbFacturaB);
             grpTipo.Controls.Add(rbFacturaA);
             grpTipo.Controls.Add(rbTicket);
             grpTipo.Location = new Point(44, 79);
             grpTipo.Name = "grpTipo";
-            grpTipo.Size = new Size(275, 100);
+            grpTipo.Size = new Size(275, 140);
             grpTipo.TabIndex = 2;
             grpTipo.TabStop = false;
             grpTipo.Text = "Tipo de comprobante";
@@ -162,12 +164,23 @@
             rbFacturaC.Text = "Factura C";
             rbFacturaC.UseVisualStyleBackColor = true;
             // 
+            // rbRemito
+            // 
+            rbRemito.AutoSize = true;
+            rbRemito.Location = new Point(18, 108);
+            rbRemito.Name = "rbRemito";
+            rbRemito.Size = new Size(66, 19);
+            rbRemito.TabIndex = 3;
+            rbRemito.TabStop = true;
+            rbRemito.Text = "Remito";
+            rbRemito.UseVisualStyleBackColor = true;
+            // 
             // grpEntrega
             // 
             grpEntrega.Controls.Add(rbEmail);
             grpEntrega.Controls.Add(rbNoEmitir);
             grpEntrega.Controls.Add(rbImprimir);
-            grpEntrega.Location = new Point(44, 212);
+            grpEntrega.Location = new Point(44, 252);
             grpEntrega.Name = "grpEntrega";
             grpEntrega.Size = new Size(275, 100);
             grpEntrega.TabIndex = 3;
@@ -212,7 +225,7 @@
             panel1.Controls.Add(btnConfirmar);
             panel1.Controls.Add(btnCancelar);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(0, 331);
+            panel1.Location = new Point(0, 371);
             panel1.Name = "panel1";
             panel1.Size = new Size(404, 60);
             panel1.TabIndex = 4;
@@ -241,7 +254,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(404, 441);
+            ClientSize = new Size(404, 481);
             Controls.Add(panelCuerpo);
             Controls.Add(panelHeader);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -274,6 +287,7 @@
         private RadioButton rbFacturaB;
         private RadioButton rbFacturaA;
         private RadioButton rbTicket;
+        private RadioButton rbRemito;
         private GroupBox grpEntrega;
         private RadioButton rbEmail;
         private RadioButton rbNoEmitir;

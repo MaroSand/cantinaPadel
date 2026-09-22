@@ -9,7 +9,15 @@ namespace cantinaPadel.Models
         Ticket,
         FacturaA,
         FacturaB,
-        FacturaC
+        FacturaC,
+        // Punto 4/5: única opción válida cuando la venta se paga con Cuenta
+        // Corriente (no se factura hasta que el cliente cancele la deuda).
+        // Se agrega al FINAL del enum a propósito: EF Core guarda los enums
+        // como su valor ordinal (int), así que insertarlo en el medio
+        // corriería los números de los tipos que ya existan en la tabla
+        // "comprobantes" el día que se conecte el repositorio real en vez
+        // del repositorio en memoria que se usa hoy.
+        Remito
     }
 
     public enum FormaEntrega

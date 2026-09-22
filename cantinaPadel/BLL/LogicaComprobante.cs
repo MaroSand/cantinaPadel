@@ -41,6 +41,10 @@ namespace cantinaPadel.BLL
         // hay más de una, esto deja de ser una constante.
         private const int PUNTO_VENTA = 1;
 
+        // Texto exacto que usa PagoVenta.FormaPago (LogicaVenta.cs) para Cuenta
+        // Corriente. Se compara sin distinguir mayúsculas por las dudas.
+        private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
+
         private readonly IComprobanteRepository _repo;
         // US-14 no requiere una tabla de comprobantes. Se conserva el
         // correlativo mientras la aplicación está abierta para imprimir o
@@ -69,6 +73,17 @@ namespace cantinaPadel.BLL
         {
             if (datos == null)
                 throw new ArgumentException("Los datos de la venta son obligatorios.");
+
+            // Punto 4: una venta pagada con Cuenta Corriente no se factura;
+            // como máximo se emite un remito (queda pendiente de facturar
+            // hasta que el cliente cancele la deuda). Esta validación es el
+            // resguardo de fondo: la UI (FrmSeleccionComprobante) ya debería
+            // impedir elegir Factura A/B/C en ese caso, pero la regla vive
+            // acá para que valga sin importar quién llame a este método.
+            bool esVentaCuentaCorriente = string.Equals(datos.MetodoPago, MetodoPagoCuentaCorriente, StringComparison.OrdinalIgnoreCase);
+            bool esFactura = tipo is TipoComprobante.FacturaA or TipoComprobante.FacturaB or TipoComprobante.FacturaC;
+            if (esVentaCuentaCorriente && esFactura)
+                throw new ArgumentException("Una venta pagada con Cuenta Corriente no se puede facturar. Como máximo se emite un remito; la factura corresponde recién cuando el cliente cancela la deuda.");
 
             if (formaEntrega == FormaEntrega.Email && string.IsNullOrWhiteSpace(datos.EmailCliente))
                 throw new ArgumentException("Para enviar el comprobante por email hace falta el email del cliente.");
@@ -135,6 +150,7 @@ namespace cantinaPadel.BLL
             TipoComprobante.FacturaA => "Factura A",
             TipoComprobante.FacturaB => "Factura B",
             TipoComprobante.FacturaC => "Factura C",
+            TipoComprobante.Remito => "Remito",
             _ => tipo.ToString()
         };
 

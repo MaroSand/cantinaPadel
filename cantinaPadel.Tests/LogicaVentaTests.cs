@@ -38,7 +38,7 @@ public class LogicaVentaTests
 
         var venta = logica.ConfirmarVenta(items, cliente, new PagoVenta { Metodo = MetodoPago.BilleteraVirtual }, 5);
 
-        Assert.AreEqual("Billetera Virtual", venta.FormaPago);
+        Assert.AreEqual("MercadoPago", venta.FormaPago);
     }
 
     [TestMethod]
@@ -68,6 +68,22 @@ public class LogicaVentaTests
         Assert.IsTrue(repoVentas.Detalles.All(d => !d.Pagado));
     }
 
+    [DataTestMethod]
+    [DataRow(TipoComprobante.Ticket, "T")]
+    [DataRow(TipoComprobante.FacturaA, "A")]
+    [DataRow(TipoComprobante.FacturaB, "B")]
+    [DataRow(TipoComprobante.FacturaC, "C")]
+    [DataRow(TipoComprobante.Remito, "R")]
+    public void ActualizarTipoComprobante_CadaTipo_GuardaSuPropiaLetra(TipoComprobante tipo, string letraEsperada)
+    {
+        var repoVentas = new VentaRepositoryFake();
+        var logica = new LogicaVenta(repoVentas, new ClienteRepositoryFake(CrearCliente(1, "Test", "Test")), new CajaRepositoryFake());
+
+        logica.ActualizarTipoComprobante(10, tipo);
+
+        Assert.AreEqual(letraEsperada, repoVentas.UltimoTipoComprobanteGuardado);
+    }
+
     private static Producto CrearProducto(int id, decimal precioVenta) => new() { IdProducto = id, Nombre = "Producto", PrecioVenta = precioVenta, StockActual = 10, Activo = true };
     private static Cliente CrearCliente(int id, string nombre, string apellido) => new() { IdCliente = id, Email = "cliente@test.com", Persona = new Persona { Nombre = nombre, Apellido = apellido, Activo = true } };
 
@@ -82,7 +98,8 @@ public class LogicaVentaTests
             Detalles.AddRange(detalles);
             return venta;
         }
-        public void ActualizarTipoComprobante(int idVenta, string tipoComprobante) { }
+        public string? UltimoTipoComprobanteGuardado { get; private set; }
+        public void ActualizarTipoComprobante(int idVenta, string tipoComprobante) => UltimoTipoComprobanteGuardado = tipoComprobante;
     }
 
     private sealed class ClienteRepositoryFake(params Cliente[] clientes) : IClienteRepository
