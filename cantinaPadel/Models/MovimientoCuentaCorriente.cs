@@ -13,6 +13,10 @@ public class MovimientoCuentaCorriente
 {
     public const string TipoCargo = "Cargo";
     public const string TipoPago = "Pago";
+    public const string TipoPagoEfectivo = "Efectivo";
+    public const string TipoPagoTransferencia = "Transferencia";
+    public const string TipoPagoTarjeta = "Tarjeta";
+    public const string TipoPagoMercadoPago = "MercadoPago";
 
     [Key]
     [Column("id_movimiento")]
@@ -38,6 +42,9 @@ public class MovimientoCuentaCorriente
 
     [Column("tipo")]
     public string Tipo { get; set; } = TipoCargo;
+
+    [Column("tipodepago")]
+    public string? TipoDePago { get; set; }
 
     [Column("monto")]
     public decimal Monto { get; set; }

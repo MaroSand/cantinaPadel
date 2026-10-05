@@ -26,16 +26,28 @@ public class LogicaCuentaCorriente
 
     public ResumenCuentaCorriente ObtenerResumen(int idCliente) => _cuentaCorriente.ObtenerResumen(idCliente);
 
-    public ResultadoPagoCuentaCorriente RegistrarPago(Cliente cliente, decimal monto, int idEmpleado)
+    public ResultadoPagoCuentaCorriente RegistrarPago(
+        Cliente cliente,
+        decimal monto,
+        int idEmpleado,
+        string tipoPago = MovimientoCuentaCorriente.TipoPagoEfectivo)
     {
         if (cliente == null)
             throw new ArgumentException("Debe seleccionar un cliente.");
         if (monto <= 0)
             throw new ArgumentException("El monto a cobrar debe ser mayor a cero.");
+        if (!EsTipoPagoValido(tipoPago))
+            throw new ArgumentException("Seleccione un tipo de pago válido.");
 
         var caja = _cajas.ObtenerCajaAbierta(idEmpleado)
             ?? throw new InvalidOperationException("No hay una caja abierta para el empleado actual.");
 
-        return _cuentaCorriente.RegistrarPago(cliente.IdCliente, monto, caja.IdCaja, idEmpleado);
+        return _cuentaCorriente.RegistrarPago(cliente.IdCliente, monto, caja.IdCaja, idEmpleado, tipoPago);
     }
+
+    public static bool EsTipoPagoValido(string? tipoPago)
+        => tipoPago is MovimientoCuentaCorriente.TipoPagoEfectivo
+            or MovimientoCuentaCorriente.TipoPagoTransferencia
+            or MovimientoCuentaCorriente.TipoPagoTarjeta
+            or MovimientoCuentaCorriente.TipoPagoMercadoPago;
 }

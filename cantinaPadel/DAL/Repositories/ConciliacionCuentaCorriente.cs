@@ -36,7 +36,7 @@ internal static class ConciliacionCuentaCorriente
     }
 
     // Marca como pagadas las unidades que el crédito del cliente cubre por completo y deja en su saldo lo que sobra
-    public static (List<ItemDeudaCliente> Saldados, List<ItemDeudaCliente> Pendientes) Aplicar(
+    public static (List<PendienteCliente> Saldados, List<PendienteCliente> Pendientes) Aplicar(
         Cliente cliente, IReadOnlyList<PendienteCliente> pendientes)
     {
         var aplicacion = CalculadorCuentaCorriente.AplicarCredito(
@@ -49,8 +49,8 @@ internal static class ConciliacionCuentaCorriente
         cliente.SaldoCuentaCorriente = aplicacion.CreditoRemanente;
 
         return (
-            pendientes.Take(aplicacion.CantidadSaldada).Select(p => p.Item).ToList(),
-            pendientes.Skip(aplicacion.CantidadSaldada).Select(p => p.Item).ToList());
+            pendientes.Take(aplicacion.CantidadSaldada).ToList(),
+            pendientes.Skip(aplicacion.CantidadSaldada).ToList());
     }
 
     // Reaplica el crédito de los clientes indicados. Se usa cuando cambió la deuda por fuera de un pago (nueva venta, cambio de precio)
@@ -65,6 +65,22 @@ internal static class ConciliacionCuentaCorriente
             .ToList();
 
         foreach (var cliente in conCredito)
-            Aplicar(cliente, ConsultarPendientes(ctx, cliente.IdCliente));
+        {
+            var (saldados, _) = Aplicar(cliente, ConsultarPendientes(ctx, cliente.IdCliente));
+            ActualizarVentasPagadas(ctx, saldados.Select(s => s.Item.IdVenta));
+        }
+    }
+
+    public static void ActualizarVentasPagadas(AppDbContext ctx, IEnumerable<int> idsVentas)
+    {
+        var ids = idsVentas.Distinct().ToList();
+        if (ids.Count == 0) return;
+
+        var ventas = ctx.Ventas.Where(v => ids.Contains(v.IdVenta)).ToList();
+        foreach (var venta in ventas)
+        {
+            var detalles = ctx.DetallesVenta.Where(d => d.IdVenta == venta.IdVenta).ToList();
+            venta.Pagado = detalles.Count > 0 && detalles.All(d => d.Pagado);
+        }
     }
 }

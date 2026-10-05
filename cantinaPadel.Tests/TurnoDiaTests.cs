@@ -399,6 +399,14 @@ namespace cantinaPadel.Tests
                     _horarios.Add(horario);
             }
 
+            // Igual que TurnoDíaRepository: cada instancia queda vinculada a su turno y a su franja,
+            // que es lo que después usa ObtenerHorarios para marcar qué está ocupado
+            for (int i = 0; i < instancias.Count; i++)
+            {
+                instancias[i].TurnoReservado = turno;
+                instancias[i].HorarioCancha = horarios[i];
+            }
+
             _instancias.AddRange(instancias);
         }
 

@@ -45,6 +45,7 @@ public class LogicaCuentaCorrienteTests
         Assert.AreEqual(1, repo.IdClienteRecibido);
         Assert.AreEqual(150m, repo.MontoRecibido);
         Assert.AreEqual(4, repo.IdCajaRecibido); // caja abierta simulada
+        Assert.AreEqual(MovimientoCuentaCorriente.TipoPagoEfectivo, repo.TipoPagoRecibido);
         Assert.AreSame(repo.ResultadoAEntregar, resultado);
     }
 
@@ -70,6 +71,7 @@ public class LogicaCuentaCorrienteTests
         public int? IdClienteRecibido { get; private set; }
         public decimal? MontoRecibido { get; private set; }
         public int? IdCajaRecibido { get; private set; }
+        public string? TipoPagoRecibido { get; private set; }
         public ResultadoPagoCuentaCorriente ResultadoAEntregar { get; } = new();
 
         public List<ItemDeudaCliente> ObtenerPendientes(int idCliente) => Pendientes;
@@ -77,11 +79,12 @@ public class LogicaCuentaCorrienteTests
         public ResumenCuentaCorriente ObtenerResumen(int idCliente)
             => new() { Pendientes = Pendientes, Credito = 0m };
 
-        public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado)
+        public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado, string tipoPago)
         {
             IdClienteRecibido = idCliente;
             MontoRecibido = monto;
             IdCajaRecibido = idCaja;
+            TipoPagoRecibido = tipoPago;
             return ResultadoAEntregar;
         }
     }

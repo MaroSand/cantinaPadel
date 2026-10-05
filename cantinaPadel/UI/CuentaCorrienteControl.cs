@@ -27,6 +27,7 @@ public class CuentaCorrienteControl : UserControl
         Text = "Buscá un cliente por DNI, apellido o nombre para ver su cuenta corriente."
     };
     private readonly NumericUpDown _nudMonto = new() { DecimalPlaces = 2, Maximum = 99999999, Minimum = 0, Width = 140 };
+    private readonly ComboBox _cmbTipoPago = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 150 };
     private readonly Button _btnRegistrarPago = new() { Text = "Registrar pago", AutoSize = true, BackColor = Color.PaleGreen };
 
     private List<Cliente> _clientesEncontrados = new();
@@ -95,6 +96,17 @@ public class CuentaCorrienteControl : UserControl
         panelPago.Controls.Add(espaciador);
         panelPago.Controls.Add(new Label { Text = "Monto a cobrar", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
         panelPago.Controls.Add(_nudMonto);
+        _cmbTipoPago.DisplayMember = "Texto";
+        _cmbTipoPago.ValueMember = "Valor";
+        _cmbTipoPago.DataSource = new[]
+        {
+            new { Texto = "Efectivo", Valor = MovimientoCuentaCorriente.TipoPagoEfectivo },
+            new { Texto = "Transferencia", Valor = MovimientoCuentaCorriente.TipoPagoTransferencia },
+            new { Texto = "Tarjeta", Valor = MovimientoCuentaCorriente.TipoPagoTarjeta },
+            new { Texto = "MercadoPago", Valor = MovimientoCuentaCorriente.TipoPagoMercadoPago }
+        };
+        panelPago.Controls.Add(new Label { Text = "Tipo de pago", AutoSize = true, Margin = new Padding(12, 7, 6, 0) });
+        panelPago.Controls.Add(_cmbTipoPago);
         _btnRegistrarPago.Click += btnRegistrarPago_Click;
         panelPago.Controls.Add(_btnRegistrarPago);
         layout.Controls.Add(panelPago, 0, 4);
@@ -109,6 +121,7 @@ public class CuentaCorrienteControl : UserControl
         _lblEstadoVacio.Visible = true;
         _dgvDeuda.Visible = false;
         _nudMonto.Enabled = false;
+        _cmbTipoPago.Enabled = false;
         _btnRegistrarPago.Enabled = false;
     }
 
@@ -218,6 +231,7 @@ public class CuentaCorrienteControl : UserControl
         _nudMonto.Value = 0;
         _nudMonto.Maximum = hayDeuda ? resumen.DeudaNeta : 0;
         _nudMonto.Enabled = hayDeuda;
+        _cmbTipoPago.Enabled = hayDeuda;
         _btnRegistrarPago.Enabled = hayDeuda;
     }
 
@@ -250,14 +264,15 @@ public class CuentaCorrienteControl : UserControl
         // Crédito previo que tenía el cliente antes de este pago
         // Se guarda acá porque CargarCuenta() lo va a pisar después de registrar el pago, y se necesita tanto para el preview como para el ticket
         decimal creditoPrevio = _resumenActual?.PagosParcialesAcreditados ?? 0m;
+        string tipoPago = _cmbTipoPago.SelectedValue as string ?? MovimientoCuentaCorriente.TipoPagoEfectivo;
 
-        if (!ConfirmarPago(monto, creditoPrevio))
+        if (!ConfirmarPago(monto, creditoPrevio, tipoPago))
             return;
 
         try
         {
-            var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario);
-            MostrarComprobantePago(resultado, _clienteSeleccionado, creditoPrevio);
+            var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario, tipoPago);
+            MostrarComprobantePago(resultado, _clienteSeleccionado, creditoPrevio, tipoPago);
 
             CargarCuenta();
         }
@@ -282,7 +297,7 @@ public class CuentaCorrienteControl : UserControl
 
     // Preview de confirmación: antes de mandar el pago a la bd, se muestra al cajero qué va a pasar con la plata:
     // cuánto se suma al crédito previo, cuántas unidades se terminan saldando, y si queda algo de crédito para la próxima vez
-    private bool ConfirmarPago(decimal monto, decimal creditoPrevio)
+    private bool ConfirmarPago(decimal monto, decimal creditoPrevio, string tipoPago)
     {
         if (_resumenActual == null) return true;
 
@@ -292,6 +307,7 @@ public class CuentaCorrienteControl : UserControl
 
         var texto = new System.Text.StringBuilder();
         texto.AppendLine($"Vas a registrar un pago de {monto:C2}.");
+        texto.AppendLine($"Tipo de pago: {tipoPago}.");
 
         if (creditoPrevio > 0m)
         {
@@ -320,19 +336,19 @@ public class CuentaCorrienteControl : UserControl
     // Al cobrar cuenta corriente se abre la misma pantalla de comprobante que usa el punto de venta
     // El empleado ahí elige si imprime, manda por email o no emite nada
     // Si todavía queda deuda pendiente después de este pago, se fuerza Remito
-    private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio)
+    private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio, string tipoPago)
     {
         bool quedaDeudaPendiente = resultado.DeudaPendiente > 0m;
 
         var datos = new DatosVentaParaComprobante
         {
-            IdVenta = resultado.ItemsPagados.Count > 0 ? resultado.ItemsPagados[0].IdVenta : 0,
+            IdVenta = resultado.IdVentaPago ?? (resultado.ItemsPagados.Count > 0 ? resultado.ItemsPagados[0].IdVenta : 0),
             Total = resultado.MontoRecibido,
             NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
             EmailCliente = cliente.Email,
             // Se muestra msj en "Cuenta Corriente" solo cuando todavía queda deuda
             // Con la deuda saldada se usa un texto informativo para no disparar esa regla y dejar elegir Factura
-            MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : "Cuenta Corriente (saldada)",
+            MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : tipoPago,
             CuitCliente = cliente.Persona.Cuit,
             CondicionIvaCliente = cliente.Persona.CondicionIva,
             Items = resultado.ItemsPagados

@@ -14,7 +14,6 @@ namespace cantinaPadel.UI
 
         private static readonly CultureInfo _culturaPesos = CrearCulturaPesos();
 
-        // Crea una cultura clonada de la actual, pero con símbolo de moneda "$"
         private static CultureInfo CrearCulturaPesos()
         {
             var cultura = (CultureInfo)CultureInfo.CurrentCulture.Clone();

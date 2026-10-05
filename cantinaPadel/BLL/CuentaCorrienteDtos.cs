@@ -30,6 +30,8 @@ public class ResumenCuentaCorriente
 // Resultado de aplicar un pago (parcial o total) a la cuenta corriente de un cliente
 public class ResultadoPagoCuentaCorriente
 {
+    public int? IdMovimiento { get; set; }
+    public int? IdVentaPago { get; set; }
     public List<ItemDeudaCliente> ItemsPagados { get; set; } = new();
     public List<ItemDeudaCliente> ItemsPendientes { get; set; } = new();
     public decimal MontoRecibido { get; set; }

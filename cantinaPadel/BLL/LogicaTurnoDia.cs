@@ -175,7 +175,9 @@ namespace cantinaPadel.BLL
             if (cancha == null || !cancha.Activa)
                 throw new ArgumentException("La cancha seleccionada no existe o está inactiva.");
 
-            ValidarFranja(idCancha, fechaInicio, horaInicio, horaFin);
+            // Si la franja cae en la madrugada de una banda que cruza medianoche, queda expresada igual que la devuelve
+            // ObtenerHorarios (ej: 01:30 -> 25:30), así validación, solapamientos y persistencia usan la misma representación
+            (horaInicio, horaFin) = ValidarFranja(idCancha, fechaInicio, horaInicio, horaFin);
 
             var fechas = GenerarFechasReserva(modalidad, fechaInicio);
             var fechasOcupadas = fechas
@@ -269,7 +271,10 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("No se pueden registrar turnos en fechas pasadas.");
         }
 
-        private void ValidarFranja(int idCancha, DateTime fecha, TimeSpan horaInicio, TimeSpan horaFin)
+        // Valida la franja contra las bandas configuradas y la devuelve normalizada
+        // Una banda que cruza medianoche (ej: Domingo 08:00-03:00) se maneja como 08:00-27:00, por lo que un turno de madrugada
+        // pedido con hora de reloj (01:30-02:30) se corre +24hs (25:30-26:30) para que coincida con lo que ofrece ObtenerHorarios
+        private (TimeSpan Inicio, TimeSpan Fin) ValidarFranja(int idCancha, DateTime fecha, TimeSpan horaInicio, TimeSpan horaFin)
         {
             if (horaFin <= horaInicio)
                 throw new ArgumentException("La hora de fin debe ser posterior a la hora de inicio.");
@@ -277,10 +282,15 @@ namespace cantinaPadel.BLL
             ValidarDuracionTurno(horaFin - horaInicio);
 
             var bandas = ObtenerBandasHorarias(idCancha, fecha);
-            bool entraEnAlgunaBanda = bandas.Any(b => horaInicio >= b.Inicio && horaFin <= b.Fin);
 
-            if (!entraEnAlgunaBanda)
-                throw new ArgumentException("La banda horaria está fuera del horario configurado para esa cancha ese día.");
+            if (bandas.Any(b => horaInicio >= b.Inicio && horaFin <= b.Fin))
+                return (horaInicio, horaFin);
+
+            var dia = TimeSpan.FromHours(24);
+            if (horaInicio < dia && bandas.Any(b => horaInicio + dia >= b.Inicio && horaFin + dia <= b.Fin))
+                return (horaInicio + dia, horaFin + dia);
+
+            throw new ArgumentException("La banda horaria está fuera del horario configurado para esa cancha ese día.");
         }
 
         // Solo se permite alquilar turnos de 1 hora exacta
