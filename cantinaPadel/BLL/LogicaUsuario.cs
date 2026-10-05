@@ -4,6 +4,15 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.BLL
 {
+    // Resultado detallado del intento de login, para que la UI pueda mostrar un mensaje claro y específico según lo que falló
+    public enum ResultadoLogin
+    {
+        Ok,
+        UsuarioNoEncontrado,
+        ContrasenaIncorrecta,
+        ErrorConexion
+    }
+
     public class LogicaUsuario
     {
         private readonly IEmpleadoRepository _repo;
@@ -13,28 +22,31 @@ namespace cantinaPadel.BLL
             _repo = new EmpleadoRepository();
         }
 
-        public bool ValidarCredenciales(string usuario, string contrasena, out int idUsuario, out string? rol)
+        public ResultadoLogin ValidarCredenciales(string usuario, string contrasena, out int idUsuario, out string? rol)
         {
             idUsuario = 0;
             rol = null;
 
             try
             {
-                // Busca en la base de datos usando el método del repositorio
-                Empleado? empleado = _repo.ObtenerPorCredenciales(usuario, contrasena);
+                // Primero se busca solo por usuario, para poder distinguir "no existe ese usuario" de "la contraseña incorrecta"
+                Empleado? empleado = _repo.ObtenerPorUsuario(usuario);
 
                 if (empleado == null)
-                    return false;
+                    return ResultadoLogin.UsuarioNoEncontrado;
 
-                // Si lo encuentra, asigna las variables de salida para la sesión
+                if (empleado.Contrasena != contrasena)
+                    return ResultadoLogin.ContrasenaIncorrecta;
+
+                // Credenciales correctas: asigna las variables de salida para la sesión
                 idUsuario = empleado.IdEmpleado;
                 rol = empleado.Rol;
-                return true;
+                return ResultadoLogin.Ok;
             }
             catch (Exception)
             {
-                // Si falla la conexión a la base de datos, manejamos el error de forma segura
-                return false;
+                // Si falla la conexión a la base de datos, se maneja el error de forma segura
+                return ResultadoLogin.ErrorConexion;
             }
         }
     }

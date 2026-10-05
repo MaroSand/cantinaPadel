@@ -34,12 +34,11 @@
             txtBuscar = new TextBox();
             label1 = new Label();
             panelAcciones = new Panel();
+            btnCancelar = new Button();
             btnBajaLogica = new Button();
             btnModificar = new Button();
             btnNuevo = new Button();
             dgvClientes = new DataGridView();
-            btnSeleccionar = new Button();
-            btnCancelar = new Button();
             panelFiltros.SuspendLayout();
             panelAcciones.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvClientes).BeginInit();
@@ -101,7 +100,6 @@
             // 
             panelAcciones.BackColor = SystemColors.Info;
             panelAcciones.Controls.Add(btnCancelar);
-            panelAcciones.Controls.Add(btnSeleccionar);
             panelAcciones.Controls.Add(btnBajaLogica);
             panelAcciones.Controls.Add(btnModificar);
             panelAcciones.Controls.Add(btnNuevo);
@@ -111,6 +109,15 @@
             panelAcciones.Name = "panelAcciones";
             panelAcciones.Size = new Size(882, 67);
             panelAcciones.TabIndex = 1;
+            // 
+            // btnCancelar
+            // 
+            btnCancelar.Location = new Point(639, 12);
+            btnCancelar.Name = "btnCancelar";
+            btnCancelar.Size = new Size(159, 39);
+            btnCancelar.TabIndex = 4;
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.UseVisualStyleBackColor = true;
             // 
             // btnBajaLogica
             // 
@@ -165,24 +172,6 @@
             dgvClientes.Size = new Size(882, 306);
             dgvClientes.TabIndex = 2;
             // 
-            // btnSeleccionar
-            // 
-            btnSeleccionar.Location = new Point(399, 12);
-            btnSeleccionar.Name = "btnSeleccionar";
-            btnSeleccionar.Size = new Size(161, 39);
-            btnSeleccionar.TabIndex = 3;
-            btnSeleccionar.Text = "Seleccionar cliente";
-            btnSeleccionar.UseVisualStyleBackColor = true;
-            // 
-            // btnCancelar
-            // 
-            btnCancelar.Location = new Point(639, 12);
-            btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(159, 39);
-            btnCancelar.TabIndex = 4;
-            btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = true;
-            // 
             // FrmListadoClientes
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -215,6 +204,5 @@
         private Label label2;
         private ComboBox cmbEstado;
         private Button btnCancelar;
-        private Button btnSeleccionar;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
@@ -16,7 +17,7 @@ namespace cantinaPadel.UI
         private readonly LogicaVenta _logicaVenta;
         private readonly LogicaCuentaCorriente _logicaCuentaCorriente;
 
-        // Lista de los checks de método de pago, para poder recorrerlos y mantener la selección única
+        // Reemplaza al modal FrmMetodoPago. Los checks se comportan como selección única (tipo radio buttons)
         private List<CheckBox> _checksMetodoPago = new();
         private bool _actualizandoChecksMetodoPago;
 
@@ -58,8 +59,7 @@ namespace cantinaPadel.UI
             cmbResultados.SelectionChangeCommitted += cmbResultados_SelectionChangeCommitted;
             btnQuitarDelCarrito.Click += btnQuitarDelCarrito_Click;
             btnVaciarCarrito.Click += btnVaciarCarrito_Click;
-            dgvCarrito.CellEndEdit += dgvCarrito_CellEndEdit;
-            dgvCarrito.EditingControlShowing += dgvCarrito_EditingControlShowing;
+            nudCantidad.KeyDown += nudCantidad_KeyDown;
             btnConfirmarVenta.Click += btnConfirmarVenta_Click;
             btnAgregarCliente.Click += btnAgregarCliente_Click;
             btnAgregarTurno.Click += btnAgregarTurno_Click;
@@ -84,9 +84,8 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Punto 1, Paso 3: si ya hay un cliente elegido para la venta, se lo pasa directo a la cuenta
-        // corriente (evita buscarlo dos veces). Si todavía es Consumidor Final, igual se cambia de pestaña
-        // y el usuario busca ahí al cliente que quiera consultar
+        // Si ya hay un cliente elegido para la venta, se lo pasa directo a la cuenta corriente (evita buscarlo dos veces)
+        // Si todavía es Consumidor Final, igual se cambia de pestaña y el usuario busca ahí al cliente que quiera consultar
         private void btnVerCuentaCorriente_Click(object? sender, EventArgs e)
         {
             if (_clienteVenta != null)
@@ -95,14 +94,16 @@ namespace cantinaPadel.UI
             tabsPrincipal.SelectedTab = tabCuentaCorriente;
         }
 
-        // Configura los checkboxes de método de pago para que solo se pueda elegir uno a la vez
+        // Método de pago embebido en la pantalla
+        // Los checks se comportan como radio buttons (selección única)
         private void ConfigurarMetodoPago()
         {
             _checksMetodoPago = new List<CheckBox> { chkEfectivo, chkTransferencia, chkTarjeta, chkBilleteraVirtual, chkCuentaCorriente };
             foreach (var chk in _checksMetodoPago)
                 chk.CheckedChanged += (sender, _) => SeleccionarMetodoPagoUnico((CheckBox)sender!);
 
-            //  si el usuario tilda Cuenta Corriente sin haber elegido un cliente, se le avisa y se vuelve a Efectivo
+            // Cuenta Corriente requiere cliente identificado: si todavía no se eligió ninguno (sigue en Consumidor Final), se avisa al tildarlo y
+            // se vuelve a Efectivo, en vez de dejar avanzar y recién cortar en btnConfirmarVenta_Click
             chkCuentaCorriente.CheckedChanged += (_, _) =>
             {
                 if (chkCuentaCorriente.Checked && _clienteVenta == null)
@@ -161,7 +162,8 @@ namespace cantinaPadel.UI
             }
         }
 
-        //  si el cliente elegido tiene saldo a favor, se lo muestra en el comprobante
+        // Saldo a favor real (el cliente pagó de más), leído de la bd porque el objeto Cliente de la pantalla puede estar desactualizado
+        // La venta ya quedó registrada, así que un fallo acá no debe impedir emitir el comprobante
         private decimal ObtenerSaldoAFavor(Cliente cliente)
         {
             try
@@ -192,7 +194,7 @@ namespace cantinaPadel.UI
                 DataPropertyName = "Cantidad",
                 HeaderText = "Cant.",
                 Width = 60,
-                ReadOnly = false,
+                ReadOnly = true,
                 DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
             });
             dgvCarrito.Columns.Add(new DataGridViewTextBoxColumn
@@ -217,9 +219,43 @@ namespace cantinaPadel.UI
             });
         }
 
-        // El usuario presiona Enter o flechas en la barra de búsqueda: se busca o se agrega el producto resaltado
+        // Cantidad escrita como prefijo en la barra de búsqueda: "3*coca" -> 3 unidades de "coca"
+        // Devuelve (null, texto) si no hay prefijo
+        private static (int? cantidad, string texto) SepararCantidad(string bruto)
+        {
+            var m = Regex.Match((bruto ?? string.Empty).Trim(), @"^(\d{1,3})\s*\*\s*(.*)$");
+            return m.Success
+                ? (int.Parse(m.Groups[1].Value), m.Groups[2].Value.Trim())
+                : (null, (bruto ?? string.Empty).Trim());
+        }
+
+        // Lee la cantidad tal como está escrita en el NumericUpDown, aunque todavía no haya confirmado el valor
+        // (el NumericUpDown recién actualiza Value al perder el foco o al validar)
+        private int LeerCantidad()
+        {
+            if (int.TryParse(nudCantidad.Text, out int c))
+                return Math.Max((int)nudCantidad.Minimum, Math.Min((int)nudCantidad.Maximum, c));
+            return (int)nudCantidad.Value;
+        }
+
+        // Barra de búsqueda por nombre y por código de barras
+        // El lector HID "tipea" el código muy rápido, como cada tecla reinicia el debounce, la búsqueda recién se
+        // dispara cuando el lector termina de tipear, sin necesidad de que el lector mande un Enter. Si el texto
+        // ingresado coincide exacto con el código de barras de un producto, se lo agrega directo al carrito
+        // si no, se muestran las coincidencias por nombre en cmbResultados
+
+        // Con las flechas Arriba/Abajo se navega el combo sin sacar el foco del textbox
+        // Enter agrega la opción resaltada, si no hay ninguna resaltada, busca ya mismo
         private void txtBuscarProducto_KeyDown(object sender, KeyEventArgs e)
         {
+            // F2 salta al campo de cantidad (con el número seleccionado para pisarlo escribiendo)
+            if (e.KeyCode == Keys.F2)
+            {
+                e.SuppressKeyPress = true;
+                nudCantidad.Focus();
+                nudCantidad.Select(0, nudCantidad.Text.Length);
+                return;
+            }
             if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
             {
                 e.SuppressKeyPress = true;
@@ -231,15 +267,43 @@ namespace cantinaPadel.UI
             {
                 e.SuppressKeyPress = true;
 
-                // Si hay un producto resaltado en el combo, se agrega al carrito. Si no, se hace la búsqueda por nombre (que puede mostrar un mensaje de "no encontrado")
+                // Si el usuario tipeó y apretó Enter antes de que venza el debounce, el combo todavía muestra los
+                // resultados del texto anterior. Se busca ya mismo con el texto actual para no agregar un producto equivocado
+                bool busquedaPendiente = _debounceBusqueda.Enabled;
+                if (busquedaPendiente)
+                {
+                    _debounceBusqueda.Stop();
+                    BuscarProductosPorNombre(avisarSiNoHayResultados: true);
+                }
+
+                // Si hay una opción resaltada en el combo, Enter la agrega directo
                 if (cmbResultados.SelectedItem is ProductoComboItem resaltado)
                 {
                     AgregarProductoAlCarrito(resaltado.Producto, limpiarBusqueda: true);
                     return;
                 }
 
-                _debounceBusqueda.Stop(); // Enter busca ya, no hace falta esperar el debounce
-                BuscarProductosPorNombre(avisarSiNoHayResultados: true);
+                if (!busquedaPendiente)
+                    BuscarProductosPorNombre(avisarSiNoHayResultados: true);
+            }
+        }
+
+        // Enter desde el campo de cantidad: si ya hay un producto resaltado en el combo (porque se buscó
+        // antes de tocar la cantidad), lo agrega directo. Si no, manda el foco a la barra de búsqueda para
+        // que el flujo "cantidad primero, después busco el producto" también funcione con Enter.
+        private void nudCantidad_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            e.SuppressKeyPress = true;
+
+            if (cmbResultados.SelectedItem is ProductoComboItem resaltado)
+            {
+                AgregarProductoAlCarrito(resaltado.Producto, limpiarBusqueda: true);
+            }
+            else
+            {
+                txtBuscarProducto.Focus();
+                txtBuscarProducto.SelectAll();
             }
         }
 
@@ -278,9 +342,17 @@ namespace cantinaPadel.UI
         // Busca productos por nombre y los muestra en cmbResultados. Si avisarSiNoHayResultados es true y no hay resultados, se muestra un mensaje de aviso
         private void BuscarProductosPorNombre(bool avisarSiNoHayResultados = false)
         {
-            string? texto = string.IsNullOrWhiteSpace(txtBuscarProducto.Text)
-                ? null
-                : txtBuscarProducto.Text.Trim();
+            // Si el texto trae un prefijo de cantidad ("3*coca"), se busca solo por la parte del producto
+            var (cantidadPrefijo, textoLimpio) = SepararCantidad(txtBuscarProducto.Text);
+
+            // Solo se escribió la cantidad ("3*"): todavía no hay nada que buscar
+            if (cantidadPrefijo != null && string.IsNullOrWhiteSpace(textoLimpio))
+            {
+                LimpiarCombo();
+                return;
+            }
+
+            string? texto = string.IsNullOrWhiteSpace(textoLimpio) ? null : textoLimpio;
 
             List<Producto> resultados;
             try
@@ -348,7 +420,7 @@ namespace cantinaPadel.UI
                 // Si hay resultados, se selecciona el primero para que el usuario pueda agregarlo con Enter sin tener que mover la selección
                 cmbResultados.SelectedIndex = cmbResultados.Items.Count > 0 ? 0 : -1;
 
-                cmbResultados.DroppedDown = cmbResultados.Items.Count > 0;
+
             }
             finally
             {
@@ -380,26 +452,33 @@ namespace cantinaPadel.UI
             AgregarProductoAlCarrito(item.Producto, limpiarBusqueda: true);
         }
 
-        // Agrega un producto al carrito y refresca la UI. Si limpiarBusqueda es true, se limpia la barra de búsqueda y el combo de resultados
+        // Agrega un producto al carrito. limpiarBusqueda=true después de un agregado exitoso (por código de
+        // barras o por selección del combo): deja la barra de búsqueda lista para la próxima búsqueda/escaneo
+        // La cantidad sale del prefijo "3*" de la barra de búsqueda si existe; si no, del campo de cantidad
         private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false)
         {
+            var (cantidadPrefijo, _) = SepararCantidad(txtBuscarProducto.Text);
+            int cantidad = cantidadPrefijo ?? LeerCantidad();
+
             try
             {
-                _logicaCarrito.AgregarProducto(producto, 1);
-                RefrescarUI();
-            }
-            catch (ArgumentException ex)
-            {
-                MessageBox.Show(ex.Message, "No se pudo agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            finally
-            {
+                _logicaCarrito.AgregarProducto(producto, cantidad);
+                RefrescarUI(); // actualiza la grilla y el total
+
+                nudCantidad.Value = 1;
+                nudCantidad.Text = "1"; // por si había un valor escrito sin confirmar
+
                 if (limpiarBusqueda)
                 {
                     txtBuscarProducto.Clear();
                     LimpiarCombo();
                     txtBuscarProducto.Focus();
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                // Si falla (por ejemplo stock insuficiente) no se pierde lo que el usuario había escrito
+                MessageBox.Show(ex.Message, "No se pudo agregar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -428,57 +507,6 @@ namespace cantinaPadel.UI
             ActualizarLabelTotal();
         }
 
-        // Se asegura de que la celda "Cantidad" solo acepte números enteros positivos, y no permita "-" ni "," ni letras
-        private void dgvCarrito_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
-        {
-            if (dgvCarrito.CurrentCell?.OwningColumn?.Name != "Cantidad") return;
-
-            if (e.Control is TextBox txtEdicion)
-            {
-                txtEdicion.KeyPress -= CantidadTextBox_KeyPress;
-                txtEdicion.KeyPress += CantidadTextBox_KeyPress;
-            }
-        }
-
-        private void CantidadTextBox_KeyPress(object? sender, KeyPressEventArgs e)
-        {
-            // Se permiten dígitos y teclas de control (Backspace, Delete, etc.)
-            // No permite "-", "," ni letras: la cantidad es un entero positivo
-            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
-                e.Handled = true;
-        }
-
-        // El usuario edita la celda "Cantidad" a mano en la grilla del carrito
-        private void dgvCarrito_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            if (dgvCarrito.Columns[e.ColumnIndex].Name != "Cantidad") return;
-
-            var filaCarrito = dgvCarrito.Rows[e.RowIndex];
-            var celdaId = filaCarrito.Cells["IdProducto"];
-            var celdaCantidad = filaCarrito.Cells["Cantidad"];
-
-            if (celdaId?.Value == null || !int.TryParse(celdaId.Value.ToString(), out int idProducto))
-                return;
-
-            if (!int.TryParse(celdaCantidad?.Value?.ToString(), out int cantidadNueva))
-            {
-                MessageBox.Show("Ingrese una cantidad numérica válida.",
-                    "Cantidad inválida", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                ActualizarGrillaCarrito(); // se descarta la edición inválida
-                return;
-            }
-
-            try
-            {
-                _logicaCarrito.ActualizarCantidad(idProducto, cantidadNueva);
-                RefrescarUI();
-            }
-            catch (ArgumentException ex)
-            {
-                MessageBox.Show(ex.Message, "No se pudo actualizar", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                ActualizarGrillaCarrito(); // vuelve a mostrar la cantidad anterior
-            }
-        }
 
         private void btnQuitarDelCarrito_Click(object sender, EventArgs e)
         {
@@ -509,7 +537,7 @@ namespace cantinaPadel.UI
             RefrescarUI();
         }
 
-        // El usuario confirma la venta: se valida stock, método de pago y cliente, se registra la venta y se abre el formulario de selección de comprobante
+        // Confirmar venta
         private void btnConfirmarVenta_Click(object sender, EventArgs e)
         {
             if (_logicaCarrito.CantidadItems == 0)

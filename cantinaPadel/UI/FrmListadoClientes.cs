@@ -34,12 +34,12 @@ namespace cantinaPadel.UI
             ConfigurarModo();
         }
 
-        // En modo normal, btnSeleccionar y btnCancelar no se ven y la pantalla queda idéntica a la de siempre
+        // En modo normal, btnCancelar no se ve y la pantalla queda idéntica a la de siempre
         // En modo selección se ocultan las acciones de administración (Modificar, Activar/Desactivar y el filtro de estado): en medio de una venta
         // no corresponde dar de baja ni editar clientes, y solo se pueden elegir clientes activos (una venta a un cliente inactivo se rechaza)
         private void ConfigurarModo()
         {
-            btnSeleccionar.Visible = _modoSeleccion;
+
             btnCancelar.Visible = _modoSeleccion;
             if (!_modoSeleccion) return;
 
@@ -56,7 +56,6 @@ namespace cantinaPadel.UI
             label2.Visible = false;
 
             // Los botones de selección ocupan el lugar de los que se ocultaron
-            btnSeleccionar.Location = btnModificar.Location;
             btnCancelar.Location = btnBajaLogica.Location;
             btnCancelar.DialogResult = DialogResult.Cancel;
             CancelButton = btnCancelar;
@@ -72,7 +71,6 @@ namespace cantinaPadel.UI
             if (_modoSeleccion)
             {
                 dgvClientes.CellDoubleClick += dgvClientes_CellDoubleClick;
-                btnSeleccionar.Click += btnSeleccionar_Click;
 
                 // Se asegura que la ventana entre en pantalla (el diseño está pensado para ir embebido en el panel principal)
                 var area = Screen.FromControl(this).WorkingArea;
