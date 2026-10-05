@@ -32,6 +32,13 @@ public class PagosCuentaCorrienteTests
         return (logica, repo);
     }
 
+    // Equivale a ProductoRepository cuando cambia el precio de un producto con unidades impagas del cliente
+    private static void CambiarPrecioPendientes(CuentaCorrienteEnMemoria repo, int idCliente, decimal nuevoMonto)
+    {
+        foreach (var idDetalle in repo.ObtenerPendientes(idCliente).Select(p => p.IdDetalle).ToList())
+            repo.CambiarMontoPendiente(idDetalle, nuevoMonto);
+    }
+
     // Pago parcial
 
     [TestMethod]
@@ -319,6 +326,69 @@ public class PagosCuentaCorrienteTests
         var resultado = logica.RegistrarPago(CrearCliente(IdPedro), 1500m, IdEmpleado);
         Assert.HasCount(1, resultado.ItemsPagados);
         Assert.AreEqual(0m, resultado.CreditoResultante);
+    }
+
+    // US-18: propagación del aumento de precio a la deuda pendiente
+
+    [TestMethod]
+    public void AumentoDePrecio_SeAplicaATodasLasUnidadesPendientes()
+    {
+        var (logica, repo) = CrearConDiezCocas();
+
+        CambiarPrecioPendientes(repo, IdPedro, 2000m);
+
+        var resumen = logica.ObtenerResumen(IdPedro);
+        Assert.HasCount(10, resumen.Pendientes);
+        Assert.IsTrue(resumen.Pendientes.All(p => p.Monto == 2000m));
+        Assert.AreEqual(20000m, resumen.DeudaBruta);
+    }
+
+    [TestMethod]
+    public void AumentoDePrecio_NoModificaLoQueYaFueCobrado()
+    {
+        var (logica, repo) = Crear();
+        repo.VenderACuenta(IdPedro, 1500m, 1500m, 1500m);
+        logica.RegistrarPago(CrearCliente(IdPedro), 1500m, IdEmpleado); // salda 1 unidad
+
+        CambiarPrecioPendientes(repo, IdPedro, 2000m);
+
+        var resumen = logica.ObtenerResumen(IdPedro);
+        Assert.HasCount(2, resumen.Pendientes);
+        Assert.AreEqual(4000m, resumen.DeudaBruta);
+        Assert.AreEqual(1500m, Pagos(repo).Single().Monto); // el pago histórico no cambia
+    }
+
+    [TestMethod]
+    public void AumentoDePrecio_RespetaElCreditoDeCadaClienteIndependientemente()
+    {
+        var (logica, repo) = Crear();
+        repo.VenderACuenta(IdPedro, 1500m);
+        repo.VenderACuenta(IdLucia, 1500m);
+        logica.RegistrarPago(CrearCliente(IdPedro), 500m, IdEmpleado); // Pedro: crédito $500
+
+        CambiarPrecioPendientes(repo, IdPedro, 2000m);
+        CambiarPrecioPendientes(repo, IdLucia, 2000m);
+
+        Assert.AreEqual(1500m, logica.ObtenerResumen(IdPedro).DeudaNeta);
+        Assert.AreEqual(2000m, logica.ObtenerResumen(IdLucia).DeudaNeta);
+    }
+
+    [TestMethod]
+    public void AumentoDePrecio_PagoPosterior_ActualizaElSaldoPendienteSobreElPrecioNuevo()
+    {
+        var (logica, repo) = Crear();
+        repo.VenderACuenta(IdPedro, 1500m, 1500m);
+        CambiarPrecioPendientes(repo, IdPedro, 2000m);
+
+        // $2.500 saldan 1 unidad de $2.000 y quedan $500 de crédito sobre la siguiente
+        var resultado = logica.RegistrarPago(CrearCliente(IdPedro), 2500m, IdEmpleado);
+
+        Assert.HasCount(1, resultado.ItemsPagados);
+        Assert.HasCount(1, resultado.ItemsPendientes);
+        Assert.AreEqual(500m, resultado.CreditoResultante);
+        Assert.AreEqual(1500m, logica.ObtenerResumen(IdPedro).DeudaNeta);
+        // y un pago mayor a la deuda neta nueva se rechaza
+        Assert.ThrowsExactly<InvalidOperationException>(() => logica.RegistrarPago(CrearCliente(IdPedro), 1500.01m, IdEmpleado));
     }
 
     [TestMethod]
