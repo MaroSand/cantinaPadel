@@ -237,15 +237,42 @@ public class PagosCuentaCorrienteTests
     {
         var (logica, repo) = CrearConDiezCocas();
 
-        logica.RegistrarPago(CrearCliente(IdPedro), 14000m, IdEmpleado);
+        logica.RegistrarPago(
+            CrearCliente(IdPedro),
+            14000m,
+            IdEmpleado,
+            MovimientoCuentaCorriente.TipoPagoTransferencia);
 
         var movimiento = Pagos(repo).Single();
         Assert.AreEqual(IdPedro, movimiento.IdCliente);
         Assert.AreEqual(MovimientoCuentaCorriente.TipoPago, movimiento.Tipo);
+        Assert.AreEqual(MovimientoCuentaCorriente.TipoPagoTransferencia, movimiento.TipoDePago);
         Assert.AreEqual(14000m, movimiento.Monto);
         Assert.AreEqual(500m, movimiento.SaldoPosterior);
         Assert.AreEqual(4, movimiento.IdCaja); // caja abierta simulada
         Assert.AreEqual(IdEmpleado, movimiento.IdEmpleado);
+        Assert.IsNotNull(movimiento.IdVenta);
+    }
+
+    [TestMethod]
+    public void Pago_CreaVentaDePagoYAsociaElMovimientoALosDetallesSaldados()
+    {
+        var (logica, repo) = Crear();
+        repo.VenderACuenta(IdPedro, 1500m, 1500m, 1500m);
+
+        var resultado = logica.RegistrarPago(CrearCliente(IdPedro), 3000m, IdEmpleado);
+
+        var movimiento = Pagos(repo).Single();
+        var ventaPago = repo.Ventas.Single(v => v.IdVenta == resultado.IdVentaPago);
+        Assert.AreEqual(movimiento.IdVenta, ventaPago.IdVenta);
+        Assert.AreEqual(1, ventaPago.IdVentaPadre);
+        CollectionAssert.AreEqual(
+            resultado.ItemsPagados.Select(i => i.IdDetalle).ToArray(),
+            repo.MovimientoPorDetalle
+                .Where(kv => kv.Value == movimiento.IdMovimiento)
+                .Select(kv => kv.Key)
+                .OrderBy(id => id)
+                .ToArray());
     }
 
     [TestMethod]
@@ -375,28 +402,43 @@ public class PagosCuentaCorrienteTests
         private readonly Dictionary<int, decimal> _credito = new();
         private int _proximoDetalle = 1;
         private int _proximaVenta = 1;
+        private int _proximoMovimiento = 1;
 
         public List<MovimientoCuentaCorriente> Movimientos { get; } = new();
+        public List<Venta> Ventas { get; } = new();
+        public Dictionary<int, int?> MovimientoPorDetalle { get; } = new();
 
         // Equivale a VentaRepository.Registrar con una venta a Cuenta Corriente
         public void VenderACuenta(int idCliente, params decimal[] montosPorUnidad)
         {
             int idVenta = _proximaVenta++;
+            Ventas.Add(new Venta
+            {
+                IdVenta = idVenta,
+                IdCliente = idCliente,
+                FormaPago = "Cuenta Corriente",
+                Total = montosPorUnidad.Sum(),
+                Pagado = false
+            });
+
             foreach (decimal monto in montosPorUnidad)
             {
-                _pendientes.Add((idCliente, new ItemDeudaCliente
+                var item = new ItemDeudaCliente
                 {
                     IdDetalle = _proximoDetalle++,
                     IdVenta = idVenta,
                     FechaVenta = new DateTime(2026, 1, 1).AddMinutes(_proximoDetalle),
                     NombreProducto = "Coca Cola",
                     Monto = monto
-                }));
+                };
+                MovimientoPorDetalle[item.IdDetalle] = null;
+                _pendientes.Add((idCliente, item));
             }
 
             Conciliar(idCliente);
             Movimientos.Add(new MovimientoCuentaCorriente
             {
+                IdMovimiento = _proximoMovimiento++,
                 IdCliente = idCliente,
                 IdVenta = idVenta,
                 Tipo = MovimientoCuentaCorriente.TipoCargo,
@@ -420,10 +462,12 @@ public class PagosCuentaCorrienteTests
         public ResumenCuentaCorriente ObtenerResumen(int idCliente)
             => new() { Pendientes = PendientesDe(idCliente), Credito = Credito(idCliente) };
 
-        public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado)
+        public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado, string tipoPago)
         {
             if (monto <= 0)
                 throw new ArgumentException("El monto a cobrar debe ser mayor a cero.");
+            if (!LogicaCuentaCorriente.EsTipoPagoValido(tipoPago))
+                throw new ArgumentException("Seleccione un tipo de pago válido.");
 
             monto = Math.Round(monto, 2);
             var pendientes = PendientesDe(idCliente);
@@ -437,18 +481,39 @@ public class PagosCuentaCorrienteTests
             _credito[idCliente] = Credito(idCliente) + monto;
             var saldados = Conciliar(idCliente);
 
+            int idVentaPago = _proximaVenta++;
+            Ventas.Add(new Venta
+            {
+                IdVenta = idVentaPago,
+                IdVentaPadre = saldados.Select(s => (int?)s.IdVenta).FirstOrDefault()
+                    ?? pendientes.Select(p => (int?)p.IdVenta).FirstOrDefault(),
+                IdCliente = idCliente,
+                FormaPago = tipoPago,
+                Total = monto,
+                Pagado = true
+            });
+
+            int idMovimiento = _proximoMovimiento++;
             Movimientos.Add(new MovimientoCuentaCorriente
             {
+                IdMovimiento = idMovimiento,
                 IdCliente = idCliente,
                 IdCaja = idCaja,
+                IdVenta = idVentaPago,
                 IdEmpleado = idEmpleado,
                 Tipo = MovimientoCuentaCorriente.TipoPago,
+                TipoDePago = tipoPago,
                 Monto = monto,
                 SaldoPosterior = Credito(idCliente)
             });
 
+            foreach (var saldado in saldados)
+                MovimientoPorDetalle[saldado.IdDetalle] = idMovimiento;
+
             return new ResultadoPagoCuentaCorriente
             {
+                IdMovimiento = idMovimiento,
+                IdVentaPago = idVentaPago,
                 MontoRecibido = monto,
                 ItemsPagados = saldados,
                 ItemsPendientes = PendientesDe(idCliente),

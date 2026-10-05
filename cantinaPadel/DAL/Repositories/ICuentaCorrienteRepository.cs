@@ -12,5 +12,5 @@ public interface ICuentaCorrienteRepository
 
     // Aplica "monto" (más el crédito que ya tuviera el cliente) a los productos pendientes más viejos, marcando como pagados solo los que se
     // alcanzan a cubrir completos. Rechaza montos mayores a la deuda. Devuelve el detalle de lo aplicado
-    ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado);
+    ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado, string tipoPago);
 }

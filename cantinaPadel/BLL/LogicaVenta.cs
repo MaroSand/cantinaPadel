@@ -82,7 +82,8 @@ public class LogicaVenta
             Subtotal = subtotal,
             Iva = total - subtotal,
             Total = total,
-            FormaPago = pago.FormaPago
+            FormaPago = pago.FormaPago,
+            Pagado = pago.Metodo != MetodoPago.CuentaCorriente
         };
         // cada unidad vendida es su propia fila de detalles_venta. Si se paga con Cuenta Corriente, las filas quedan sin pagar (Pagado = false)
         // hasta que el cliente las cancele desde la pantalla de Cuenta Corriente. con cualquier otro método quedan pagadas en el momento

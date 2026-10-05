@@ -10,6 +10,9 @@ public class Venta
     [Column("id_venta")]
     public int IdVenta { get; set; }
 
+    [Column("id_venta_padre")]
+    public int? IdVentaPadre { get; set; }
+
     [Column("id_caja")]
     public int IdCaja { get; set; }
 
@@ -40,6 +43,9 @@ public class Venta
 
     [Column("estado")]
     public string Estado { get; set; } = "Activa";
+
+    [Column("pagado")]
+    public bool Pagado { get; set; } = true;
 
     public List<DetalleVenta> Detalles { get; set; } = new();
 }
