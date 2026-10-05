@@ -56,6 +56,8 @@
             tabVenta = new TabPage();
             tabCuentaCorriente = new TabPage();
             cuentaCorrienteControl1 = new CuentaCorrienteControl();
+            nudCantidad = new NumericUpDown();
+            label2 = new Label();
             panel2.SuspendLayout();
             panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
@@ -65,6 +67,7 @@
             tabsPrincipal.SuspendLayout();
             tabVenta.SuspendLayout();
             tabCuentaCorriente.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).BeginInit();
             SuspendLayout();
             // 
             // lblBuscarProducto
@@ -89,12 +92,14 @@
             // 
             panel2.BackColor = Color.Gold;
             panel2.BorderStyle = BorderStyle.FixedSingle;
+            panel2.Controls.Add(label2);
+            panel2.Controls.Add(nudCantidad);
             panel2.Controls.Add(cmbResultados);
             panel2.Controls.Add(lblBuscarProducto);
             panel2.Controls.Add(txtBuscarProducto);
             panel2.Location = new Point(28, 49);
             panel2.Name = "panel2";
-            panel2.Size = new Size(388, 161);
+            panel2.Size = new Size(468, 161);
             panel2.TabIndex = 7;
             // 
             // cmbResultados
@@ -164,82 +169,6 @@
             btnQuitarDelCarrito.Text = "Quitar";
             btnQuitarDelCarrito.UseVisualStyleBackColor = false;
             // 
-            // grpMetodoPago
-            // 
-            // Punto 2 y 3: reemplaza al modal FrmMetodoPago (US-14). Se muestra siempre entre el carrito y
-            // el total/confirmar, en vez de recién aparecer al confirmar — así el cajero elige el método
-            // mientras arma la venta, y no hay un buscador de cliente duplicado (el cliente ya se define
-            // con "Agregar Cliente" / "Agregar Turno" más arriba; ver btnConfirmarVenta_Click)
-            grpMetodoPago.Controls.Add(flujoMetodoPago);
-            grpMetodoPago.Location = new Point(28, 531);
-            grpMetodoPago.Name = "grpMetodoPago";
-            grpMetodoPago.Size = new Size(1031, 92);
-            grpMetodoPago.TabIndex = 15;
-            grpMetodoPago.TabStop = false;
-            grpMetodoPago.Text = "Método de pago";
-            // 
-            // flujoMetodoPago
-            // 
-            flujoMetodoPago.Controls.Add(chkEfectivo);
-            flujoMetodoPago.Controls.Add(chkTransferencia);
-            flujoMetodoPago.Controls.Add(chkTarjeta);
-            flujoMetodoPago.Controls.Add(chkBilleteraVirtual);
-            flujoMetodoPago.Controls.Add(chkCuentaCorriente);
-            flujoMetodoPago.Dock = DockStyle.Fill;
-            flujoMetodoPago.Location = new Point(3, 19);
-            flujoMetodoPago.Name = "flujoMetodoPago";
-            flujoMetodoPago.Padding = new Padding(8);
-            flujoMetodoPago.Size = new Size(1025, 70);
-            flujoMetodoPago.TabIndex = 0;
-            flujoMetodoPago.WrapContents = true;
-            // 
-            // chkEfectivo
-            // 
-            chkEfectivo.AutoSize = true;
-            chkEfectivo.Checked = true;
-            chkEfectivo.CheckState = CheckState.Checked;
-            chkEfectivo.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkEfectivo.Margin = new Padding(6, 6, 24, 6);
-            chkEfectivo.Name = "chkEfectivo";
-            chkEfectivo.Text = "Efectivo";
-            chkEfectivo.UseVisualStyleBackColor = true;
-            // 
-            // chkTransferencia
-            // 
-            chkTransferencia.AutoSize = true;
-            chkTransferencia.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkTransferencia.Margin = new Padding(6, 6, 24, 6);
-            chkTransferencia.Name = "chkTransferencia";
-            chkTransferencia.Text = "Transferencia";
-            chkTransferencia.UseVisualStyleBackColor = true;
-            // 
-            // chkTarjeta
-            // 
-            chkTarjeta.AutoSize = true;
-            chkTarjeta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkTarjeta.Margin = new Padding(6, 6, 24, 6);
-            chkTarjeta.Name = "chkTarjeta";
-            chkTarjeta.Text = "Tarjeta";
-            chkTarjeta.UseVisualStyleBackColor = true;
-            // 
-            // chkBilleteraVirtual
-            // 
-            chkBilleteraVirtual.AutoSize = true;
-            chkBilleteraVirtual.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkBilleteraVirtual.Margin = new Padding(6, 6, 24, 6);
-            chkBilleteraVirtual.Name = "chkBilleteraVirtual";
-            chkBilleteraVirtual.Text = "Billetera Virtual";
-            chkBilleteraVirtual.UseVisualStyleBackColor = true;
-            // 
-            // chkCuentaCorriente
-            // 
-            chkCuentaCorriente.AutoSize = true;
-            chkCuentaCorriente.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            chkCuentaCorriente.Margin = new Padding(6, 6, 24, 6);
-            chkCuentaCorriente.Name = "chkCuentaCorriente";
-            chkCuentaCorriente.Text = "Cuenta Corriente";
-            chkCuentaCorriente.UseVisualStyleBackColor = true;
-            // 
             // panel4
             // 
             panel4.BackColor = Color.Gold;
@@ -278,7 +207,7 @@
             // 
             btnAgregarCliente.BackColor = Color.Gold;
             btnAgregarCliente.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnAgregarCliente.Location = new Point(440, 60);
+            btnAgregarCliente.Location = new Point(532, 59);
             btnAgregarCliente.Name = "btnAgregarCliente";
             btnAgregarCliente.Size = new Size(200, 40);
             btnAgregarCliente.TabIndex = 10;
@@ -289,7 +218,7 @@
             // 
             btnAgregarTurno.BackColor = Color.Goldenrod;
             btnAgregarTurno.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnAgregarTurno.Location = new Point(440, 110);
+            btnAgregarTurno.Location = new Point(532, 109);
             btnAgregarTurno.Name = "btnAgregarTurno";
             btnAgregarTurno.Size = new Size(200, 40);
             btnAgregarTurno.TabIndex = 11;
@@ -301,7 +230,7 @@
             lblClienteVenta.AutoEllipsis = true;
             lblClienteVenta.BackColor = Color.Transparent;
             lblClienteVenta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblClienteVenta.Location = new Point(660, 69);
+            lblClienteVenta.Location = new Point(752, 68);
             lblClienteVenta.Name = "lblClienteVenta";
             lblClienteVenta.Size = new Size(390, 40);
             lblClienteVenta.TabIndex = 12;
@@ -309,7 +238,7 @@
             // 
             // btnQuitarCliente
             // 
-            btnQuitarCliente.Location = new Point(660, 110);
+            btnQuitarCliente.Location = new Point(752, 109);
             btnQuitarCliente.Name = "btnQuitarCliente";
             btnQuitarCliente.Size = new Size(200, 40);
             btnQuitarCliente.TabIndex = 13;
@@ -318,18 +247,100 @@
             // 
             // btnVerCuentaCorriente
             // 
-            // US-16 / Punto 1, Paso 3: acceso rápido a la cuenta corriente del cliente activo de la venta,
-            // sin tener que buscarlo de nuevo en la pestaña de al lado (ver CuentaCorrienteControl.CargarCliente)
-            // Ubicado debajo de "Agregar Turno", en la misma columna: son las tres acciones rápidas
-            // ligadas al cliente de la venta (Cliente / Turno / Cuenta Corriente) y quedan agrupadas juntas
             btnVerCuentaCorriente.BackColor = Color.LightSteelBlue;
             btnVerCuentaCorriente.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnVerCuentaCorriente.Location = new Point(440, 160);
+            btnVerCuentaCorriente.Location = new Point(532, 159);
             btnVerCuentaCorriente.Name = "btnVerCuentaCorriente";
             btnVerCuentaCorriente.Size = new Size(200, 40);
             btnVerCuentaCorriente.TabIndex = 14;
             btnVerCuentaCorriente.Text = "Ver Cuenta Corriente";
             btnVerCuentaCorriente.UseVisualStyleBackColor = false;
+            // 
+            // grpMetodoPago
+            // 
+            grpMetodoPago.Controls.Add(flujoMetodoPago);
+            grpMetodoPago.Location = new Point(28, 531);
+            grpMetodoPago.Name = "grpMetodoPago";
+            grpMetodoPago.Size = new Size(1031, 92);
+            grpMetodoPago.TabIndex = 15;
+            grpMetodoPago.TabStop = false;
+            grpMetodoPago.Text = "Método de pago";
+            // 
+            // flujoMetodoPago
+            // 
+            flujoMetodoPago.Controls.Add(chkEfectivo);
+            flujoMetodoPago.Controls.Add(chkTransferencia);
+            flujoMetodoPago.Controls.Add(chkTarjeta);
+            flujoMetodoPago.Controls.Add(chkBilleteraVirtual);
+            flujoMetodoPago.Controls.Add(chkCuentaCorriente);
+            flujoMetodoPago.Dock = DockStyle.Fill;
+            flujoMetodoPago.Location = new Point(3, 23);
+            flujoMetodoPago.Name = "flujoMetodoPago";
+            flujoMetodoPago.Padding = new Padding(8);
+            flujoMetodoPago.Size = new Size(1025, 66);
+            flujoMetodoPago.TabIndex = 0;
+            // 
+            // chkEfectivo
+            // 
+            chkEfectivo.AutoSize = true;
+            chkEfectivo.Checked = true;
+            chkEfectivo.CheckState = CheckState.Checked;
+            chkEfectivo.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkEfectivo.Location = new Point(14, 14);
+            chkEfectivo.Margin = new Padding(6, 6, 24, 6);
+            chkEfectivo.Name = "chkEfectivo";
+            chkEfectivo.Size = new Size(87, 24);
+            chkEfectivo.TabIndex = 0;
+            chkEfectivo.Text = "Efectivo";
+            chkEfectivo.UseVisualStyleBackColor = true;
+            // 
+            // chkTransferencia
+            // 
+            chkTransferencia.AutoSize = true;
+            chkTransferencia.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkTransferencia.Location = new Point(131, 14);
+            chkTransferencia.Margin = new Padding(6, 6, 24, 6);
+            chkTransferencia.Name = "chkTransferencia";
+            chkTransferencia.Size = new Size(125, 24);
+            chkTransferencia.TabIndex = 1;
+            chkTransferencia.Text = "Transferencia";
+            chkTransferencia.UseVisualStyleBackColor = true;
+            // 
+            // chkTarjeta
+            // 
+            chkTarjeta.AutoSize = true;
+            chkTarjeta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkTarjeta.Location = new Point(286, 14);
+            chkTarjeta.Margin = new Padding(6, 6, 24, 6);
+            chkTarjeta.Name = "chkTarjeta";
+            chkTarjeta.Size = new Size(79, 24);
+            chkTarjeta.TabIndex = 2;
+            chkTarjeta.Text = "Tarjeta";
+            chkTarjeta.UseVisualStyleBackColor = true;
+            // 
+            // chkBilleteraVirtual
+            // 
+            chkBilleteraVirtual.AutoSize = true;
+            chkBilleteraVirtual.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkBilleteraVirtual.Location = new Point(395, 14);
+            chkBilleteraVirtual.Margin = new Padding(6, 6, 24, 6);
+            chkBilleteraVirtual.Name = "chkBilleteraVirtual";
+            chkBilleteraVirtual.Size = new Size(140, 24);
+            chkBilleteraVirtual.TabIndex = 3;
+            chkBilleteraVirtual.Text = "Billetera Virtual";
+            chkBilleteraVirtual.UseVisualStyleBackColor = true;
+            // 
+            // chkCuentaCorriente
+            // 
+            chkCuentaCorriente.AutoSize = true;
+            chkCuentaCorriente.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            chkCuentaCorriente.Location = new Point(565, 14);
+            chkCuentaCorriente.Margin = new Padding(6, 6, 24, 6);
+            chkCuentaCorriente.Name = "chkCuentaCorriente";
+            chkCuentaCorriente.Size = new Size(149, 24);
+            chkCuentaCorriente.TabIndex = 4;
+            chkCuentaCorriente.Text = "Cuenta Corriente";
+            chkCuentaCorriente.UseVisualStyleBackColor = true;
             // 
             // tabsPrincipal
             // 
@@ -344,7 +355,6 @@
             // 
             // tabVenta
             // 
-            // Todo lo que antes colgaba directo del Form ahora cuelga de esta pestaña
             tabVenta.BackColor = Color.FromArgb(255, 255, 192);
             tabVenta.Controls.Add(btnVerCuentaCorriente);
             tabVenta.Controls.Add(btnQuitarCliente);
@@ -375,11 +385,30 @@
             // 
             // cuentaCorrienteControl1
             // 
+            cuentaCorrienteControl1.BackColor = Color.FromArgb(255, 255, 192);
             cuentaCorrienteControl1.Dock = DockStyle.Fill;
             cuentaCorrienteControl1.Location = new Point(3, 3);
             cuentaCorrienteControl1.Name = "cuentaCorrienteControl1";
             cuentaCorrienteControl1.Size = new Size(1158, 810);
             cuentaCorrienteControl1.TabIndex = 0;
+            // 
+            // nudCantidad
+            // 
+            nudCantidad.Location = new Point(385, 43);
+            nudCantidad.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            nudCantidad.Name = "nudCantidad";
+            nudCantidad.Size = new Size(52, 27);
+            nudCantidad.TabIndex = 7;
+            nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(341, 45);
+            label2.Name = "label2";
+            label2.Size = new Size(42, 20);
+            label2.TabIndex = 8;
+            label2.Text = "Cant.";
             // 
             // FrmPuntoVenta
             // 
@@ -403,6 +432,7 @@
             tabsPrincipal.ResumeLayout(false);
             tabVenta.ResumeLayout(false);
             tabCuentaCorriente.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).EndInit();
             ResumeLayout(false);
         }
 
@@ -436,5 +466,7 @@
         private TabPage tabVenta;
         private TabPage tabCuentaCorriente;
         private CuentaCorrienteControl cuentaCorrienteControl1;
+        private NumericUpDown nudCantidad;
+        private Label label2;
     }
 }

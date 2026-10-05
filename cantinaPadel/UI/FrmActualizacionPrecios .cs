@@ -33,9 +33,8 @@ namespace cantinaPadel.UI
 
         private bool _refrescandoGrilla;
 
-        // Categoría/marca seleccionadas en el filtro actual. Se usan para
-        // saber si la búsqueda quedó "sin filtro específico" (ambas null)
-        // y así aplicar las salvaguardas contra actualización masiva accidental.
+        // Categoría/marca seleccionadas en el filtro actual. Se usan para saber si la búsqueda quedó "sin filtro específico" (ambas null)
+        // y así aplicar las salvaguardas contra actualización masiva accidental
         private int? _idCategoriaActual;
         private int? _idMarcaActual;
 
@@ -132,9 +131,8 @@ namespace cantinaPadel.UI
             });
         }
 
-        // Carga los combos de categoría, marca y proveedor con opciones activas.
-        // Los tres combos incluyen una opción "Todas/Todos" (Id null) para
-        // no obligar al usuario a elegir un valor puntual.
+        // Carga los combos de categoría, marca y proveedor con opciones activas. Los tres combos incluyen una opción "Todas/Todos" (Id null) para
+        // no obligar al usuario a elegir un valor puntual
         private void CargarCombos()
         {
             try
@@ -205,9 +203,8 @@ namespace cantinaPadel.UI
                     }
                 }
 
-                // Salvaguarda: sin categoría ni marca elegida ("Todas" en ambas),
-                // no tildamos nada por default. El usuario tiene que elegir a
-                // mano qué productos actualizar en vez de arrastrar el catálogo entero.
+                // Salvaguarda: sin categoría ni marca elegida ("Todas" en ambas), no se tilda nada por default. El usuario tiene que elegir a
+                // mano qué productos actualizar en vez de arrastrar el catálogo entero
                 if (!idCategoria.HasValue && !idMarca.HasValue)
                 {
                     foreach (var item in _listado)
@@ -225,7 +222,7 @@ namespace cantinaPadel.UI
             }
         }
 
-        // Recalcula los precios nuevos de los productos en la grilla según el porcentaje ingresado,
+        // Recalcula los precios nuevos de los productos en la grilla según el porcentaje ingresado
         private void RecalcularPreciosPorPorcentaje()
         {
             if (_listado.Count == 0) return;
@@ -252,9 +249,8 @@ namespace cantinaPadel.UI
         }
 
 
-        // Alterna entre modo "Por porcentaje" y modo "Precio manual": habilita
-        // los controles del modo activo, deshabilita los del otro, y descarta
-        // los precios calculados/cargados en el modo anterior para no mezclarlos.
+        // Alterna entre modo "Por porcentaje" y modo "Precio manual": habilita los controles del modo activo, deshabilita los del otro, y descarta
+        // los precios calculados/cargados en el modo anterior para no mezclarlos
         private void AlternarModo()
         {
             bool porPorcentaje = rbPorcentaje.Checked;
@@ -279,7 +275,7 @@ namespace cantinaPadel.UI
 
         // El usuario cargó un precio en el campo "Precio manual" y hace click en "Aplicar a tildados":
         // pisa el PrecioNuevo de los productos tildados en la columna "Aplicar" y los marca como editados a mano
-        // (para que el recálculo automático por porcentaje no los sobrescriba).
+        // (para que el recálculo automático por porcentaje no los sobrescriba)
         private void btnAplicarPrecioManual_Click(object? sender, EventArgs e)
         {
             var seleccionados = _listado.Where(p => p.Aplicar).ToList();
@@ -293,7 +289,7 @@ namespace cantinaPadel.UI
 
             decimal precioManual = nudPrecioManual.Value;
 
-            // No se permite $0 ni negativos: el precio manual tiene que ser mayor a $0.
+            // No se permite $0 ni negativos: el precio manual tiene que ser mayor a $0
             if (precioManual <= 0)
             {
                 MessageBox.Show("El precio debe ser mayor a $0.",
@@ -324,9 +320,8 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            // Sin categoría ni marca elegida, el mensaje se refuerza: advierte
-            // explícitamente que no hay filtro específico y muestra la cantidad
-            // real de productos que se van a tocar.
+            // Sin categoría ni marca elegida, el mensaje se refuerza: advierte explícitamente que no hay filtro específico y muestra la cantidad
+            // real de productos que se van a tocar
             bool sinFiltroEspecifico = !_idCategoriaActual.HasValue && !_idMarcaActual.HasValue;
 
             DialogResult confirmacion;
