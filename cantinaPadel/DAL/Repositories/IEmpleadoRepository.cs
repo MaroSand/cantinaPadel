@@ -5,6 +5,7 @@ namespace cantinaPadel.DAL.Repositories
     public interface IEmpleadoRepository
     {
         Empleado? ObtenerPorCredenciales(string nombreUsuario, string contrasena);
+        Empleado? ObtenerPorUsuario(string nombreUsuario);
 
         // Métodos para CRUD Empleado
         List<Empleado> ObtenerTodos();
