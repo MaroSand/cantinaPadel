@@ -13,6 +13,9 @@ public class DetalleVenta
     [Column("id_venta")]
     public int IdVenta { get; set; }
 
+    [Column("id_movimiento")]
+    public int? IdMovimiento { get; set; }
+
     [Column("id_producto")]
     public int? IdProducto { get; set; }
 

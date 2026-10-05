@@ -31,10 +31,12 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         };
     }
 
-    public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado)
+    public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado, string tipoPago)
     {
         if (monto <= 0)
             throw new ArgumentException("El monto a cobrar debe ser mayor a cero.");
+        if (!LogicaCuentaCorriente.EsTipoPagoValido(tipoPago))
+            throw new ArgumentException("Seleccione un tipo de pago válido.");
         monto = Math.Round(monto, 2);
 
         using var ctx = new AppDbContext();
@@ -50,26 +52,71 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         cliente.SaldoCuentaCorriente = Math.Max(cliente.SaldoCuentaCorriente, 0m) + monto;
         var (saldados, siguenPendientes) = ConciliacionCuentaCorriente.Aplicar(cliente, pendientes);
 
-        ctx.MovimientosCuentaCorriente.Add(new MovimientoCuentaCorriente
+        var ventaPago = CrearVentaDePago(idCliente, monto, idCaja, idEmpleado, tipoPago, saldados, pendientes);
+        ctx.Ventas.Add(ventaPago);
+        ctx.SaveChanges();
+
+        var movimiento = new MovimientoCuentaCorriente
         {
             IdCliente = idCliente,
             IdCaja = idCaja,
+            IdVenta = ventaPago.IdVenta,
             IdEmpleado = idEmpleado,
             Fecha = DateTime.Now,
             Tipo = MovimientoCuentaCorriente.TipoPago,
+            TipoDePago = tipoPago,
             Monto = monto,
             SaldoPosterior = cliente.SaldoCuentaCorriente
-        });
+        };
+        ctx.MovimientosCuentaCorriente.Add(movimiento);
+        ctx.SaveChanges();
+
+        foreach (var saldado in saldados)
+            saldado.Detalle.IdMovimiento = movimiento.IdMovimiento;
+
+        ConciliacionCuentaCorriente.ActualizarVentasPagadas(ctx, saldados.Select(s => s.Item.IdVenta));
 
         ctx.SaveChanges();
         transaccion.Commit();
 
         return new ResultadoPagoCuentaCorriente
         {
+            IdMovimiento = movimiento.IdMovimiento,
+            IdVentaPago = ventaPago.IdVenta,
             MontoRecibido = monto,
-            ItemsPagados = saldados,
-            ItemsPendientes = siguenPendientes,
+            ItemsPagados = saldados.Select(s => s.Item).ToList(),
+            ItemsPendientes = siguenPendientes.Select(p => p.Item).ToList(),
             CreditoResultante = cliente.SaldoCuentaCorriente
+        };
+    }
+
+    private static Venta CrearVentaDePago(
+        int idCliente,
+        decimal monto,
+        int idCaja,
+        int idEmpleado,
+        string tipoPago,
+        IReadOnlyCollection<PendienteCliente> saldados,
+        IReadOnlyCollection<PendienteCliente> pendientesAntesDelPago)
+    {
+        const decimal tasaIva = 0.21m;
+        decimal subtotal = Math.Round(monto / (1 + tasaIva), 2);
+
+        return new Venta
+        {
+            IdVentaPadre = saldados.Select(s => (int?)s.Item.IdVenta).FirstOrDefault()
+                ?? pendientesAntesDelPago.Select(p => (int?)p.Item.IdVenta).FirstOrDefault(),
+            IdCaja = idCaja,
+            IdCliente = idCliente,
+            IdEmpleado = idEmpleado,
+            FechaVenta = DateTime.Now,
+            Subtotal = subtotal,
+            Iva = monto - subtotal,
+            Total = monto,
+            TipoComprobante = "B",
+            FormaPago = tipoPago,
+            Estado = "Activa",
+            Pagado = true
         };
     }
 
