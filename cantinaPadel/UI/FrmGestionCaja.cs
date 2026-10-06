@@ -58,7 +58,7 @@ public class FrmGestionCaja : Form
         pestañas.TabPages.Add(tabCajas); pestañas.TabPages.Add(tabMovimientos);
         root.Controls.Add(pestañas); Controls.Add(root);
         _abrir.Click += (_, _) => { using var f = new FrmAperturaCaja(_logica); if (f.ShowDialog(this) == DialogResult.OK) Actualizar(); };
-        _cerrar.Click += (_, _) => { var caja = _logica.ObtenerCajaAbierta(Sesion.IdUsuario); if (caja == null) { MessageBox.Show(this, "No tenés una caja abierta.", "Caja", MessageBoxButtons.OK, MessageBoxIcon.Information); return; } using var f = new FrmCierreCaja(_logica, caja); if (f.ShowDialog(this) == DialogResult.OK) Actualizar(); };
+        _cerrar.Click += (_, _) => { var caja = Sesion.Rol == "Admin" ? _logica.ObtenerCajaAbiertaGeneral() : _logica.ObtenerCajaAbierta(Sesion.IdUsuario); if (caja == null) { MessageBox.Show(this, Sesion.Rol == "Admin" ? "No hay una caja abierta." : "No tenés una caja abierta.", "Caja", MessageBoxButtons.OK, MessageBoxIcon.Information); return; } using var f = new FrmCierreCaja(_logica, caja); if (f.ShowDialog(this) == DialogResult.OK) Actualizar(); };
         _retiro.Click += (_, _) => { var caja = _logica.ObtenerCajaAbiertaGeneral(); if (caja == null) { MessageBox.Show(this, "No hay una caja abierta.", "Caja", MessageBoxButtons.OK, MessageBoxIcon.Information); return; } using var f = new FrmRetiroEfectivo(_logica, caja); f.ShowDialog(this); Actualizar(); };
         _agregarEfectivo.Click += (_, _) => { var caja = _logica.ObtenerCajaAbiertaGeneral(); if (caja == null) { MessageBox.Show(this, "No hay una caja abierta.", "Caja", MessageBoxButtons.OK, MessageBoxIcon.Information); return; } using var f = new FrmIngresoEfectivo(_logica, caja); f.ShowDialog(this); Actualizar(); };
         Load += (_, _) => Actualizar();
@@ -71,8 +71,10 @@ public class FrmGestionCaja : Form
             var abierta = _logica.ObtenerCajaAbiertaGeneral();
             var propia = abierta?.IdEmpleado == Sesion.IdUsuario;
             _estado.Text = abierta == null ? "Caja física cerrada" : $"Caja abierta por {abierta.NombreEmpleado} · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(abierta.IdTurnoCaja):C2}";
-            _abrir.Enabled = abierta == null; _cerrar.Enabled = propia;
-            _retiro.Visible = true;
+            _abrir.Enabled = abierta == null;
+            // El empleado cierra solo su caja; el Admin puede cerrar la de cualquiera (por ejemplo, si quedó abierta por un corte de luz)
+            _cerrar.Enabled = abierta != null && (propia || Sesion.Rol == "Admin");
+            _retiro.Visible = Sesion.Rol == "Admin";
             _retiro.Enabled = abierta != null;
             _agregarEfectivo.Enabled = abierta != null;
             _historial.DataSource = Sesion.Rol == "Admin" ? _logica.ObtenerTodoHistorial(Sesion.Rol) : _logica.ObtenerHistorial(Sesion.IdUsuario);
@@ -146,7 +148,7 @@ public class FrmCierreCaja : Form
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize)); root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100)); root.RowStyles.Add(new RowStyle(SizeType.AutoSize)); root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.Controls.Add(EstiloCaja.Etiqueta("Revisá los ingresos del turno antes de confirmar el cierre", true), 0, 0);
-        var apertura = new Label { Text = $"Fondo inicial de efectivo: {caja.MontoApertura:C2}", Dock = DockStyle.Fill, Padding = new Padding(12), BackColor = Color.White, Font = new Font("Segoe UI", 10F, FontStyle.Bold), AutoSize = true };
+        var apertura = new Label { Text = $"Caja de {caja.NombreEmpleado} · Fondo inicial de efectivo: {caja.MontoApertura:C2}", Dock = DockStyle.Fill, Padding = new Padding(12), BackColor = Color.White, Font = new Font("Segoe UI", 10F, FontStyle.Bold), AutoSize = true };
         root.Controls.Add(apertura, 0, 1);
         var grilla = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, AllowUserToDeleteRows = false, RowHeadersVisible = false, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, BackgroundColor = Color.White, BorderStyle = BorderStyle.FixedSingle, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false };
         grilla.EnableHeadersVisualStyles = false; grilla.ColumnHeadersDefaultCellStyle.BackColor = Color.Gold; grilla.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
@@ -169,7 +171,7 @@ public class FrmCierreCaja : Form
         var confirmar = EstiloCaja.Boton("Confirmar cierre", Color.ForestGreen); var cancelar = EstiloCaja.Boton("Cancelar", Color.IndianRed);
         acciones.Controls.Add(confirmar); acciones.Controls.Add(cancelar); pie.Controls.Add(efectivo, 0, 0); pie.Controls.Add(acciones, 1, 0);
         root.Controls.Add(datosConteo, 0, 3); root.Controls.Add(pie, 0, 4); Controls.Add(root);
-        confirmar.Click += (_, _) => { try { _logica.CerrarCaja(caja.IdTurnoCaja, Sesion.IdUsuario, _efectivoContado.Value, _motivoDiferencia.Text); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo cerrar la caja", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
+        confirmar.Click += (_, _) => { try { _logica.CerrarCaja(caja.IdTurnoCaja, Sesion.IdUsuario, _efectivoContado.Value, _motivoDiferencia.Text, Sesion.Rol); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo cerrar la caja", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
         cancelar.Click += (_, _) => Close();
     }
 }
