@@ -44,6 +44,10 @@ namespace cantinaPadel.BLL
         // Lo que el cliente debe todavía (neto de crédito), calculado con los precios de hoy. Se muestra en el remito como total estimado
         // porque el precio puede subir antes de que cancele la deuda. Si es 0 se usa Total
         public decimal DeudaEstimada { get; set; }
+
+        // Pago en efectivo: con cuánto pagó el cliente y el vuelto que se le entregó (0 si no se informó). Se muestran en el ticket
+        public decimal PagoCon { get; set; }
+        public decimal Vuelto { get; set; }
     }
 
     public class LogicaComprobante
@@ -196,6 +200,12 @@ namespace cantinaPadel.BLL
             if (!string.IsNullOrWhiteSpace(datos.MetodoPago))
                 sb.AppendLine($"Método de pago: {datos.MetodoPago}");
             sb.AppendLine($"TOTAL: {comprobante.Total:C}");
+
+            if (datos.PagoCon > 0m)
+            {
+                sb.AppendLine($"Pagó con: {datos.PagoCon:C}");
+                sb.AppendLine($"Vuelto: {datos.Vuelto:C}");
+            }
 
             if (datos.CreditoPrevioAplicado > 0)
                 sb.AppendLine($"Crédito a favor aplicado (pago anterior): {datos.CreditoPrevioAplicado:C}");

@@ -31,6 +31,8 @@
             lblBuscarProducto = new Label();
             txtBuscarProducto = new TextBox();
             panel2 = new Panel();
+            label2 = new Label();
+            nudCantidad = new NumericUpDown();
             cmbResultados = new ComboBox();
             panel3 = new Panel();
             btnVaciarCarrito = new Button();
@@ -56,9 +58,12 @@
             tabVenta = new TabPage();
             tabCuentaCorriente = new TabPage();
             cuentaCorrienteControl1 = new CuentaCorrienteControl();
-            nudCantidad = new NumericUpDown();
-            label2 = new Label();
+            pnlEfectivo = new Panel();
+            lblPagaCon = new Label();
+            txtPagaCon = new TextBox();
+            lblVuelto = new Label();
             panel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).BeginInit();
             panel3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).BeginInit();
             panel4.SuspendLayout();
@@ -67,7 +72,7 @@
             tabsPrincipal.SuspendLayout();
             tabVenta.SuspendLayout();
             tabCuentaCorriente.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)nudCantidad).BeginInit();
+            pnlEfectivo.SuspendLayout();
             SuspendLayout();
             // 
             // lblBuscarProducto
@@ -101,6 +106,24 @@
             panel2.Name = "panel2";
             panel2.Size = new Size(468, 161);
             panel2.TabIndex = 7;
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(341, 45);
+            label2.Name = "label2";
+            label2.Size = new Size(42, 20);
+            label2.TabIndex = 8;
+            label2.Text = "Cant.";
+            // 
+            // nudCantidad
+            // 
+            nudCantidad.Location = new Point(385, 43);
+            nudCantidad.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            nudCantidad.Name = "nudCantidad";
+            nudCantidad.Size = new Size(52, 27);
+            nudCantidad.TabIndex = 7;
+            nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
             // cmbResultados
             // 
@@ -173,11 +196,12 @@
             // 
             panel4.BackColor = Color.Gold;
             panel4.BorderStyle = BorderStyle.FixedSingle;
+            panel4.Controls.Add(pnlEfectivo);
             panel4.Controls.Add(btnConfirmarVenta);
             panel4.Controls.Add(lblTotal);
             panel4.Location = new Point(28, 631);
             panel4.Name = "panel4";
-            panel4.Size = new Size(1031, 66);
+            panel4.Size = new Size(1031, 70);
             panel4.TabIndex = 9;
             // 
             // btnConfirmarVenta
@@ -379,7 +403,7 @@
             tabCuentaCorriente.Location = new Point(4, 29);
             tabCuentaCorriente.Name = "tabCuentaCorriente";
             tabCuentaCorriente.Padding = new Padding(3);
-            tabCuentaCorriente.Size = new Size(1164, 816);
+            tabCuentaCorriente.Size = new Size(192, 67);
             tabCuentaCorriente.TabIndex = 1;
             tabCuentaCorriente.Text = "Cuenta Corriente";
             // 
@@ -389,26 +413,47 @@
             cuentaCorrienteControl1.Dock = DockStyle.Fill;
             cuentaCorrienteControl1.Location = new Point(3, 3);
             cuentaCorrienteControl1.Name = "cuentaCorrienteControl1";
-            cuentaCorrienteControl1.Size = new Size(1158, 810);
+            cuentaCorrienteControl1.Size = new Size(186, 61);
             cuentaCorrienteControl1.TabIndex = 0;
             // 
-            // nudCantidad
+            // pnlEfectivo
             // 
-            nudCantidad.Location = new Point(385, 43);
-            nudCantidad.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            nudCantidad.Name = "nudCantidad";
-            nudCantidad.Size = new Size(52, 27);
-            nudCantidad.TabIndex = 7;
-            nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            pnlEfectivo.Controls.Add(lblVuelto);
+            pnlEfectivo.Controls.Add(txtPagaCon);
+            pnlEfectivo.Controls.Add(lblPagaCon);
+            pnlEfectivo.Location = new Point(400, 6);
+            pnlEfectivo.Name = "pnlEfectivo";
+            pnlEfectivo.Size = new Size(310, 56);
+            pnlEfectivo.TabIndex = 2;
             // 
-            // label2
+            // lblPagaCon
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(341, 45);
-            label2.Name = "label2";
-            label2.Size = new Size(42, 20);
-            label2.TabIndex = 8;
-            label2.Text = "Cant.";
+            lblPagaCon.AutoSize = true;
+            lblPagaCon.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblPagaCon.Location = new Point(0, 6);
+            lblPagaCon.Name = "lblPagaCon";
+            lblPagaCon.Size = new Size(87, 23);
+            lblPagaCon.TabIndex = 0;
+            lblPagaCon.Text = "Paga con:";
+            // 
+            // txtPagaCon
+            // 
+            txtPagaCon.Location = new Point(80, 2);
+            txtPagaCon.Name = "txtPagaCon";
+            txtPagaCon.Size = new Size(125, 27);
+            txtPagaCon.TabIndex = 1;
+            txtPagaCon.TextAlign = HorizontalAlignment.Right;
+            // 
+            // lblVuelto
+            // 
+            lblVuelto.AutoSize = true;
+            lblVuelto.Font = new Font("Segoe UI", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblVuelto.ForeColor = Color.DimGray;
+            lblVuelto.Location = new Point(0, 32);
+            lblVuelto.Name = "lblVuelto";
+            lblVuelto.Size = new Size(85, 25);
+            lblVuelto.TabIndex = 2;
+            lblVuelto.Text = "Vuelto: -";
             // 
             // FrmPuntoVenta
             // 
@@ -421,6 +466,7 @@
             Text = "FrmPuntoVenta";
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudCantidad).EndInit();
             panel3.ResumeLayout(false);
             panel3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCarrito).EndInit();
@@ -432,7 +478,8 @@
             tabsPrincipal.ResumeLayout(false);
             tabVenta.ResumeLayout(false);
             tabCuentaCorriente.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)nudCantidad).EndInit();
+            pnlEfectivo.ResumeLayout(false);
+            pnlEfectivo.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -468,5 +515,9 @@
         private CuentaCorrienteControl cuentaCorrienteControl1;
         private NumericUpDown nudCantidad;
         private Label label2;
+        private Panel pnlEfectivo;
+        private TextBox txtPagaCon;
+        private Label lblPagaCon;
+        private Label lblVuelto;
     }
 }

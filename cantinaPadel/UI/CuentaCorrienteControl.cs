@@ -36,6 +36,10 @@ public class CuentaCorrienteControl : UserControl
     };
     private readonly NumericUpDown _nudMonto = new() { DecimalPlaces = 2, Maximum = 99999999, Minimum = 0, Width = 140 };
     private readonly ComboBox _cmbTipoPago = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 150 };
+    // Pago en efectivo: con cuánto entrega el cliente (puede ser más de lo que debe) y el vuelto resultante. Solo visibles con forma de pago Efectivo
+    private readonly Label _lblPagaCon = new() { Text = "Paga con", AutoSize = true, Margin = new Padding(12, 7, 6, 0) };
+    private readonly TextBox _txtPagaCon = new() { Width = 110, TextAlign = HorizontalAlignment.Right };
+    private readonly Label _lblVuelto = new() { AutoSize = true, Font = new Font("Segoe UI", 10, FontStyle.Bold), Margin = new Padding(12, 6, 6, 0) };
     private readonly Button _btnRegistrarPago = new() { Text = "Registrar pago", AutoSize = true, BackColor = Color.PaleGreen };
 
     private List<Cliente> _clientesEncontrados = new();
@@ -112,6 +116,12 @@ public class CuentaCorrienteControl : UserControl
             .ToList();
         panelPago.Controls.Add(new Label { Text = "Forma de pago", AutoSize = true, Margin = new Padding(12, 7, 6, 0) });
         panelPago.Controls.Add(_cmbTipoPago);
+        panelPago.Controls.Add(_lblPagaCon);
+        panelPago.Controls.Add(_txtPagaCon);
+        panelPago.Controls.Add(_lblVuelto);
+        _cmbTipoPago.SelectedIndexChanged += (_, _) => ActualizarVuelto();
+        _nudMonto.ValueChanged += (_, _) => ActualizarVuelto();
+        _txtPagaCon.TextChanged += (_, _) => ActualizarVuelto();
         _btnRegistrarPago.Click += btnRegistrarPago_Click;
         panelPago.Controls.Add(_btnRegistrarPago);
         panelPago.Controls.Add(_lblAvisoEstimativo);
@@ -121,6 +131,36 @@ public class CuentaCorrienteControl : UserControl
         Controls.Add(layout);
 
         MostrarEstadoVacio();
+        ActualizarVuelto();
+    }
+
+    private bool EsPagoEnEfectivo() => _cmbTipoPago.SelectedValue is MetodoPago m && m == MetodoPago.Efectivo;
+
+    // Muestra "Paga con" y el vuelto solo cuando se cobra en efectivo, y recalcula el vuelto contra el monto a cobrar
+    private void ActualizarVuelto()
+    {
+        bool efectivo = EsPagoEnEfectivo();
+        _lblPagaCon.Visible = efectivo;
+        _txtPagaCon.Visible = efectivo;
+        _lblVuelto.Visible = efectivo;
+        if (!efectivo) return;
+
+        decimal montoACobrar = _nudMonto.Value;
+        if (!CalculadorVuelto.TryParsearMonto(_txtPagaCon.Text, out var pagaCon) || pagaCon <= 0m)
+        {
+            _lblVuelto.ForeColor = Color.DimGray;
+            _lblVuelto.Text = "Vuelto: -";
+        }
+        else if (pagaCon < montoACobrar)
+        {
+            _lblVuelto.ForeColor = Color.Firebrick;
+            _lblVuelto.Text = $"Falta: {montoACobrar - pagaCon:C2}";
+        }
+        else
+        {
+            _lblVuelto.ForeColor = Color.ForestGreen;
+            _lblVuelto.Text = $"Vuelto: {pagaCon - montoACobrar:C2}";
+        }
     }
 
     // Mismo texto que usa el Punto de Venta para cada forma de pago
@@ -140,6 +180,7 @@ public class CuentaCorrienteControl : UserControl
         _dgvDeuda.Visible = false;
         _nudMonto.Enabled = false;
         _cmbTipoPago.Enabled = false;
+        _txtPagaCon.Enabled = false;
         _btnRegistrarPago.Enabled = false;
     }
 
@@ -250,6 +291,8 @@ public class CuentaCorrienteControl : UserControl
         _nudMonto.Value = 0;
         _nudMonto.Maximum = hayDeuda ? resumen.DeudaNeta : 0;
         _nudMonto.Enabled = hayDeuda;
+        _txtPagaCon.Clear();
+        _txtPagaCon.Enabled = hayDeuda;
         _cmbTipoPago.Enabled = hayDeuda;
         _btnRegistrarPago.Enabled = hayDeuda;
     }
@@ -286,7 +329,32 @@ public class CuentaCorrienteControl : UserControl
         var pago = new PagoVenta { Metodo = _cmbTipoPago.SelectedValue is MetodoPago metodo ? metodo : MetodoPago.Efectivo };
         string tipoPago = pago.FormaPago;
 
-        if (!ConfirmarPago(monto, creditoPrevio, tipoPago))
+        // Efectivo: "Paga con" es opcional. El cliente puede entregar más de lo que debe: se cobra solo el monto y se informa el vuelto
+        decimal pagaCon = 0m;
+        decimal vuelto = 0m;
+        if (pago.Metodo == MetodoPago.Efectivo)
+        {
+            if (!CalculadorVuelto.TryParsearMonto(_txtPagaCon.Text, out pagaCon))
+            {
+                MessageBox.Show(this, "El monto con el que paga el cliente no es válido.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _txtPagaCon.Focus();
+                _txtPagaCon.SelectAll();
+                return;
+            }
+
+            var errorPago = CalculadorVuelto.Validar(monto, pagaCon);
+            if (errorPago != null)
+            {
+                MessageBox.Show(this, errorPago, "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _txtPagaCon.Focus();
+                _txtPagaCon.SelectAll();
+                return;
+            }
+
+            vuelto = CalculadorVuelto.Calcular(monto, pagaCon);
+        }
+
+        if (!ConfirmarPago(monto, creditoPrevio, tipoPago, pagaCon, vuelto))
             return;
 
         try
@@ -298,9 +366,11 @@ public class CuentaCorrienteControl : UserControl
             string mensajePagado = deudaRestante > 0m
                 ? $"PAGADO\n\nSe registró el pago de {monto:C2} ({tipoPago}).\nTodavía queda una deuda estimada de {deudaRestante:C2} (estimativo, sujeto a cambios por aumentos de precios)."
                 : $"PAGADO\n\nSe registró el pago de {monto:C2} ({tipoPago}).\nLa cuenta quedó saldada.";
+            if (vuelto > 0m)
+                mensajePagado += $"\n\nPaga con: {pagaCon:C2}\nVUELTO: {vuelto:C2}";
             MessageBox.Show(this, mensajePagado, "Pagado", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-            MostrarComprobantePago(resultado, _clienteSeleccionado, creditoPrevio, tipoPago);
+            MostrarComprobantePago(resultado, _clienteSeleccionado, creditoPrevio, tipoPago, pagaCon, vuelto);
 
             CargarCuenta();
         }
@@ -325,7 +395,7 @@ public class CuentaCorrienteControl : UserControl
 
     // Preview de confirmación: antes de mandar el pago a la bd, se muestra al cajero qué va a pasar con la plata:
     // cuánto se suma al crédito previo, cuántas unidades se terminan saldando, y si queda algo de crédito para la próxima vez
-    private bool ConfirmarPago(decimal monto, decimal creditoPrevio, string tipoPago)
+    private bool ConfirmarPago(decimal monto, decimal creditoPrevio, string tipoPago, decimal pagaCon = 0m, decimal vuelto = 0m)
     {
         if (_resumenActual == null) return true;
 
@@ -338,6 +408,8 @@ public class CuentaCorrienteControl : UserControl
         if (_resumenActual.DeudaNeta > 0m)
             texto.AppendLine($"Deuda estimada: {_resumenActual.DeudaNeta:C2} (estimativo: puede variar si hay aumentos de precios).");
         texto.AppendLine($"Tipo de pago: {tipoPago}.");
+        if (pagaCon > 0m)
+            texto.AppendLine($"El cliente paga con {pagaCon:C2}. Vuelto a entregar: {vuelto:C2}.");
 
         if (creditoPrevio > 0m)
         {
@@ -366,7 +438,7 @@ public class CuentaCorrienteControl : UserControl
     // Al cobrar cuenta corriente se abre la misma pantalla de comprobante que usa el punto de venta
     // El empleado ahí elige si imprime, manda por email o no emite nada
     // Si todavía queda deuda pendiente después de este pago, se fuerza Remito
-    private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio, string tipoPago)
+    private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio, string tipoPago, decimal pagaCon = 0m, decimal vuelto = 0m)
     {
         bool quedaDeudaPendiente = resultado.DeudaPendiente > 0m;
 
@@ -389,7 +461,9 @@ public class CuentaCorrienteControl : UserControl
             SaldoFavor = resultado.SaldoAFavor,
             CreditoRestante = resultado.CreditoResultante,
             DeudaEstimada = CalculadorCuentaCorriente.CalcularDeudaNeta(resultado.DeudaPendiente, resultado.CreditoResultante),
-            CreditoPrevioAplicado = creditoPrevio
+            CreditoPrevioAplicado = creditoPrevio,
+            PagoCon = pagaCon,
+            Vuelto = vuelto
         };
 
         using var comprobante = new FrmSeleccionComprobante(datos);

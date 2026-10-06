@@ -135,6 +135,39 @@ namespace cantinaPadel.Tests
         }
 
         [TestMethod]
+        public void GenerarTexto_PagoEnEfectivoConVuelto_MuestraConCuantoPagoYElVuelto()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 3000m,
+                MetodoPago = "Efectivo",
+                PagoCon = 5000m,
+                Vuelto = 2000m,
+                Items = new List<DetalleComprobante> { new() { Nombre = "Coca Cola 500ml", Cantidad = 2, PrecioUnitario = 1500m } }
+            };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Ticket, FormaEntrega.NoEmitir);
+
+            string texto = logica.GenerarTexto(comprobante, datos);
+
+            StringAssert.Contains(texto, "Pagó con:");
+            StringAssert.Contains(texto, "Vuelto:");
+        }
+
+        [TestMethod]
+        public void GenerarTexto_PagoSinInformarConCuantoPaga_NoMuestraVuelto()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante { IdVenta = 1, Total = 3000m, MetodoPago = "Efectivo" };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Ticket, FormaEntrega.NoEmitir);
+
+            string texto = logica.GenerarTexto(comprobante, datos);
+
+            Assert.IsFalse(texto.Contains("Vuelto"));
+        }
+
+        [TestMethod]
         public void GenerarTexto_RemitoConPagoACuenta_MuestraLaCuentaCompletaSinDecirSaldoAFavor()
         {
             var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
