@@ -135,7 +135,7 @@ public class LogicaCuentaCorrienteTests
 
     private sealed class CajaRepositoryFake(bool sinCaja = false) : ICajaRepository
     {
-        public Caja? ObtenerCajaAbierta(int idEmpleado) => sinCaja ? null : new() { IdCaja = 4, IdEmpleado = idEmpleado, Estado = Caja.EstadoAbierta };
-        public Caja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
+        public TurnoCaja? ObtenerCajaAbierta(int idEmpleado) => sinCaja ? null : new() { IdTurnoCaja = 4, IdEmpleado = idEmpleado, Estado = TurnoCaja.EstadoAbierta };
+        public TurnoCaja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
     }
 }

@@ -17,6 +17,7 @@ namespace cantinaPadel.DAL
         public DbSet<Cancha> Canchas { get; set; }
         public DbSet<HorarioCancha> HorariosCancha { get; set; }
         public DbSet<Caja> Cajas { get; set; }
+        public DbSet<TurnoCaja> TurnosCaja { get; set; }
         public DbSet<RetiroCaja> RetirosCaja { get; set; }
         public DbSet<IngresoCaja> IngresosCaja { get; set; }
         public DbSet<InstanciaTurno> InstanciasTurno { get; set; }
@@ -58,6 +59,13 @@ namespace cantinaPadel.DAL
                 .HasOne(p => p.Persona)
                 .WithOne(per => per.Proveedor)
                 .HasForeignKey<Proveedor>(p => p.IdPersona);
+
+            modelBuilder.Entity<Caja>().HasIndex(c => c.IdEmpleado).IsUnique();
+            modelBuilder.Entity<TurnoCaja>().HasOne<Caja>().WithMany().HasForeignKey(t => t.IdCaja);
+            modelBuilder.Entity<Venta>().HasOne<TurnoCaja>().WithMany().HasForeignKey(v => v.IdTurnoCaja);
+            modelBuilder.Entity<MovimientoCuentaCorriente>().HasOne<TurnoCaja>().WithMany().HasForeignKey(m => m.IdTurnoCaja);
+            modelBuilder.Entity<RetiroCaja>().HasOne<TurnoCaja>().WithMany().HasForeignKey(r => r.IdTurnoCaja);
+            modelBuilder.Entity<IngresoCaja>().HasOne<TurnoCaja>().WithMany().HasForeignKey(i => i.IdTurnoCaja);
 
             modelBuilder.Entity<Producto>()
                 .HasOne(p => p.Proveedor)

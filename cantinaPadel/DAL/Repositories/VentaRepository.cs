@@ -46,7 +46,7 @@ public class VentaRepository : IVentaRepository
             ctx.MovimientosCuentaCorriente.Add(new MovimientoCuentaCorriente
             {
                 IdCliente = idCliente,
-                IdCaja = venta.IdCaja,
+                IdTurnoCaja = venta.IdTurnoCaja,
                 IdVenta = venta.IdVenta,
                 IdEmpleado = venta.IdEmpleado,
                 Fecha = venta.FechaVenta,

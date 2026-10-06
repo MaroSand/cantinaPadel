@@ -31,7 +31,7 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         };
     }
 
-    public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idCaja, int idEmpleado, string tipoPago)
+    public ResultadoPagoCuentaCorriente RegistrarPago(int idCliente, decimal monto, int idTurnoCaja, int idEmpleado, string tipoPago)
     {
         if (monto <= 0)
             throw new ArgumentException("El monto a cobrar debe ser mayor a cero.");
@@ -52,14 +52,14 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         cliente.SaldoCuentaCorriente = Math.Max(cliente.SaldoCuentaCorriente, 0m) + monto;
         var (saldados, siguenPendientes) = ConciliacionCuentaCorriente.Aplicar(cliente, pendientes);
 
-        var ventaPago = CrearVentaDePago(idCliente, monto, idCaja, idEmpleado, tipoPago, saldados, pendientes);
+        var ventaPago = CrearVentaDePago(idCliente, monto, idTurnoCaja, idEmpleado, tipoPago, saldados, pendientes);
         ctx.Ventas.Add(ventaPago);
         ctx.SaveChanges();
 
         var movimiento = new MovimientoCuentaCorriente
         {
             IdCliente = idCliente,
-            IdCaja = idCaja,
+            IdTurnoCaja = idTurnoCaja,
             IdVenta = ventaPago.IdVenta,
             IdEmpleado = idEmpleado,
             Fecha = DateTime.Now,
@@ -93,7 +93,7 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
     private static Venta CrearVentaDePago(
         int idCliente,
         decimal monto,
-        int idCaja,
+        int idTurnoCaja,
         int idEmpleado,
         string tipoPago,
         IReadOnlyCollection<PendienteCliente> saldados,
@@ -106,7 +106,7 @@ public class CuentaCorrienteRepository : ICuentaCorrienteRepository
         {
             IdVentaPadre = saldados.Select(s => (int?)s.Item.IdVenta).FirstOrDefault()
                 ?? pendientesAntesDelPago.Select(p => (int?)p.Item.IdVenta).FirstOrDefault(),
-            IdCaja = idCaja,
+            IdTurnoCaja = idTurnoCaja,
             IdCliente = idCliente,
             IdEmpleado = idEmpleado,
             FechaVenta = DateTime.Now,
