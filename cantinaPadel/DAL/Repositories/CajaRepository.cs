@@ -96,31 +96,20 @@ public class CajaRepository : ICajaRepository
     {
         using var ctx = new AppDbContext();
         var result = new List<MovimientoCajaDato>();
-        var idsProductosPadel = ctx.Productos.Where(p => p.Categoria.Nombre == "Hora Padel")
-            .Select(p => p.IdProducto).ToHashSet();
-        var ventas = ctx.Ventas.Include(v => v.Detalles)
+        var ventas = ctx.Ventas
             .Where(v => v.IdCaja == idCaja && v.Estado == "Activa" && v.IdVentaPadre == null).ToList();
         foreach (var venta in ventas)
         {
             if (venta.FormaPago == "Cuenta Corriente")
             {
-                result.AddRange(venta.Detalles.Where(d => !d.Pagado).Select(d => new MovimientoCajaDato("", d.Subtotal, EsFiadoPendiente: true)));
                 continue;
             }
-            var padel = venta.Detalles.Where(d => d.IdTurno.HasValue || (d.IdProducto.HasValue && idsProductosPadel.Contains(d.IdProducto.Value))).Sum(d => d.Subtotal);
-            var cantina = venta.Detalles.Where(d => d.IdProducto.HasValue && !idsProductosPadel.Contains(d.IdProducto.Value)).Sum(d => d.Subtotal);
-            var ajuste = venta.Total - padel - cantina;
-            if (venta.Detalles.Count == 0) cantina = venta.Total;
-            else if (padel > 0m && cantina > 0m) cantina += ajuste;
-            else if (padel > 0m) padel += ajuste;
-            else cantina += ajuste;
             var metodo = venta.FormaPago is "Transferencia" or "MercadoPago" ? "Transferencia" : venta.FormaPago;
-            if (padel != 0m) result.Add(new MovimientoCajaDato(metodo, padel, EsPadel: true));
-            if (cantina != 0m) result.Add(new MovimientoCajaDato(metodo, cantina, EsCantina: true));
+            result.Add(new MovimientoCajaDato(metodo, venta.Total));
         }
         result.AddRange(ctx.MovimientosCuentaCorriente
             .Where(m => m.IdCaja == idCaja && m.Tipo == MovimientoCuentaCorriente.TipoPago)
-            .Select(m => new MovimientoCajaDato(m.TipoDePago == "MercadoPago" ? "Transferencia" : m.TipoDePago ?? "", m.Monto, false, false, false, true)));
+            .Select(m => new MovimientoCajaDato(m.TipoDePago == "MercadoPago" ? "Transferencia" : m.TipoDePago ?? "", m.Monto, true)));
         return result;
     }
 

@@ -149,9 +149,9 @@ public class FrmCierreCaja : Form
         grilla.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ventas", HeaderText = "Ventas cobradas", ReadOnly = true, DefaultCellStyle = new() { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight } });
         grilla.Columns.Add(new DataGridViewTextBoxColumn { Name = "CuentaCorriente", HeaderText = "Cobros de cuenta corriente", ReadOnly = true, DefaultCellStyle = new() { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight } });
         grilla.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", HeaderText = "Total", ReadOnly = true, DefaultCellStyle = new() { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight, Font = new Font("Segoe UI", 9F, FontStyle.Bold) } });
-        grilla.Rows.Add("Efectivo", r.EfectivoPadel + r.EfectivoCantina, r.CobrosCuentaCorrienteEfectivo, r.Efectivo);
-        grilla.Rows.Add("Tarjeta", r.TarjetaPadel + r.TarjetaCantina, r.CobrosCuentaCorrienteTarjeta, r.Tarjeta);
-        grilla.Rows.Add("Transferencia / Mercado Pago", r.TransferenciaPadel + r.TransferenciaCantina, r.CobrosCuentaCorrienteTransferencia, r.Transferencia);
+        grilla.Rows.Add("Efectivo", r.Efectivo - r.CobrosCuentaCorrienteEfectivo, r.CobrosCuentaCorrienteEfectivo, r.Efectivo);
+        grilla.Rows.Add("Tarjeta", r.Tarjeta - r.CobrosCuentaCorrienteTarjeta, r.CobrosCuentaCorrienteTarjeta, r.Tarjeta);
+        grilla.Rows.Add("Transferencia / Mercado Pago", r.Transferencia - r.CobrosCuentaCorrienteTransferencia, r.CobrosCuentaCorrienteTransferencia, r.Transferencia);
         root.Controls.Add(grilla, 0, 2);
         var pie = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true, Padding = new Padding(0, 12, 0, 0) };
         var efectivo = new Label { Text = $"Efectivo en caja: {_logica.ObtenerEfectivoDisponible(caja.IdCaja):C2}", AutoSize = true, Padding = new Padding(12), BackColor = Color.White, Font = new Font("Segoe UI", 11F, FontStyle.Bold), Anchor = AnchorStyles.Left };
