@@ -35,9 +35,8 @@ public class FrmGestionCaja : Form
         root.Controls.Add(EstiloCaja.Etiqueta("Caja", true));
         var bar = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true };
         bar.Controls.AddRange(new Control[] { _abrir, _cerrar, _retiro, _agregarEfectivo, _estado }); root.Controls.Add(bar);
-        _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.IdTurnoCaja), HeaderText = "Turno", Width = 55 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.IdCaja), HeaderText = "Caja empleado", Width = 85 });
-        _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.IdEmpleado), HeaderText = "Empleado", Width = 85 });
+        _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.NombreEmpleado), HeaderText = "Empleado", Width = 150 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.FechaApertura), HeaderText = "Apertura", Width = 150, DefaultCellStyle = new() { Format = "g" } });
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.MontoApertura), HeaderText = "Efectivo inicial", Width = 130, DefaultCellStyle = new() { Format = "C2" } });
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.FechaCierre), HeaderText = "Cierre", Width = 150, DefaultCellStyle = new() { Format = "g" } });
@@ -50,7 +49,6 @@ public class FrmGestionCaja : Form
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.CierreTransferencia), HeaderText = "Transferencia / MP", Width = 145, DefaultCellStyle = new() { Format = "C2" } });
         _historial.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(TurnoCaja.Estado), HeaderText = "Estado", Width = 100 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(MovimientoEfectivoHistorial.Fecha), HeaderText = "Fecha y hora", Width = 180, DefaultCellStyle = new() { Format = "g" } });
-        _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(MovimientoEfectivoHistorial.IdTurnoCaja), HeaderText = "Turno", Width = 70 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(MovimientoEfectivoHistorial.Tipo), HeaderText = "Movimiento", Width = 120 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(MovimientoEfectivoHistorial.Monto), HeaderText = "Monto", Width = 130, DefaultCellStyle = new() { Format = "C2" } });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(MovimientoEfectivoHistorial.Usuario), HeaderText = "Registrado por", Width = 180 });
@@ -72,7 +70,7 @@ public class FrmGestionCaja : Form
         {
             var abierta = _logica.ObtenerCajaAbiertaGeneral();
             var propia = abierta?.IdEmpleado == Sesion.IdUsuario;
-            _estado.Text = abierta == null ? "Caja física cerrada" : $"Caja abierta por empleado {abierta.IdEmpleado} · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(abierta.IdTurnoCaja):C2}";
+            _estado.Text = abierta == null ? "Caja física cerrada" : $"Caja abierta por {abierta.NombreEmpleado} · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(abierta.IdTurnoCaja):C2}";
             _abrir.Enabled = abierta == null; _cerrar.Enabled = propia;
             _retiro.Visible = Sesion.Rol == "Admin";
             _retiro.Enabled = abierta != null;
