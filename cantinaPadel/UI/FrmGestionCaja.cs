@@ -189,7 +189,7 @@ public class FrmGestionCaja : Form
             _abrir.Enabled = abierta == null;
             // El empleado cierra solo su caja; el Admin puede cerrar la de cualquiera (por ejemplo, si quedó abierta por un corte de luz)
             _cerrar.Enabled = abierta != null && (propia || Sesion.Rol == "Admin");
-            _retiro.Visible = Sesion.Rol == "Admin";
+            _retiro.Visible = true;
             _retiro.Enabled = abierta != null;
             _agregarEfectivo.Enabled = abierta != null;
             _historial.DataSource = Sesion.Rol == "Admin" ? _logica.ObtenerTodoHistorial(Sesion.Rol) : _logica.ObtenerHistorial(Sesion.IdUsuario);
