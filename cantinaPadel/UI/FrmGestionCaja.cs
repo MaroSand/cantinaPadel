@@ -15,7 +15,7 @@ internal static class EstiloCaja
     }
     public static Label Etiqueta(string texto, bool titulo = false) => new() { Text = texto, AutoSize = true, Margin = new Padding(8), Font = new Font("Segoe UI", titulo ? 13F : 9F, titulo ? FontStyle.Bold : FontStyle.Regular) };
 
-    // Mismo estilo que los botones de Punto de Venta: Segoe UI 9 negrita, tamaño fijo, color sólido y texto contrastado.
+    // Mismo estilo que los botones de Punto de Venta: Segoe UI 9 negrita, tamaño fijo, color sólido y texto contrastado
     public static Button BotonPuntoVenta(string texto, Color color) => new()
     {
         Text = texto,
@@ -27,7 +27,7 @@ internal static class EstiloCaja
         Margin = new Padding(6)
     };
 
-    // Apila los controles en una sola columna, centrados horizontalmente y en bloque verticalmente dentro del formulario.
+    // Apila los controles en una sola columna, centrados horizontalmente y en bloque verticalmente dentro del formulario
     public static TableLayoutPanel Centrar(params Control[] controles)
     {
         var tabla = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = controles.Length + 2, Padding = new Padding(20) };
@@ -46,8 +46,7 @@ internal static class EstiloCaja
     }
 }
 
-// Campo de monto en pesos: solo dígitos (sin signo, punto ni coma), sin pegar, sin flechas y con largo máximo.
-// Mientras se escribe se muestra formateado ("$ 1.234.567"); el punto y el "$" los pone el control, no el usuario.
+// Campo de monto en pesos: solo dígitos (sin signo, punto ni coma), sin pegar, sin flechas y con largo máximo
 internal sealed class TextBoxMonto : TextBox
 {
     private const int WM_PASTE = 0x0302;
@@ -81,7 +80,7 @@ internal sealed class TextBoxMonto : TextBox
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        // El cursor siempre queda al final para que el formato no se desordene.
+        // El cursor siempre queda al final para que el formato no se desordene
         if (e.KeyCode is Keys.Left or Keys.Up or Keys.Home or Keys.PageUp or Keys.Delete)
         {
             e.Handled = true;
