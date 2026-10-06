@@ -30,8 +30,6 @@ namespace cantinaPadel.UI
         // Timer para hacer debounce en la búsqueda de productos al tipear
         private readonly System.Windows.Forms.Timer _debounceTexto = new() { Interval = 350 };
 
-        private bool _refrescandoGrilla;
-
         // Categoría/marca seleccionadas en el filtro actual. Se usan para saber si la búsqueda quedó "sin filtro específico" (ambas null)
         // y así aplicar las salvaguardas contra actualización masiva accidental
         private int? _idCategoriaActual;
@@ -210,9 +208,7 @@ namespace cantinaPadel.UI
                         item.Aplicar = false;
                 }
 
-                _refrescandoGrilla = true;
                 _bindingSource.DataSource = _listado;
-                _refrescandoGrilla = false;
             }
             catch (Exception ex)
             {
@@ -233,9 +229,7 @@ namespace cantinaPadel.UI
                     item.PrecioNuevo = Math.Round(item.PrecioActual * factor, 2);
             }
 
-            _refrescandoGrilla = true;
             _bindingSource.ResetBindings(false);
-            _refrescandoGrilla = false;
         }
 
         // El usuario hizo click en el checkbox "Aplicar" de la grilla: confirmamos el cambio
@@ -267,9 +261,7 @@ namespace cantinaPadel.UI
             if (porPorcentaje)
                 RecalcularPreciosPorPorcentaje();
 
-            _refrescandoGrilla = true;
             _bindingSource.ResetBindings(false);
-            _refrescandoGrilla = false;
         }
 
         // El usuario cargó un precio en el campo "Precio manual" y hace click en "Aplicar a tildados":
@@ -302,9 +294,7 @@ namespace cantinaPadel.UI
                 item.EditadoManualmente = true;
             }
 
-            _refrescandoGrilla = true;
             _bindingSource.ResetBindings(false);
-            _refrescandoGrilla = false;
         }
 
         // El usuario hizo click en el botón "Confirmar": valida y confirma la actualización de precios

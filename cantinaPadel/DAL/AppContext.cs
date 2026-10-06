@@ -17,6 +17,8 @@ namespace cantinaPadel.DAL
         public DbSet<Cancha> Canchas { get; set; }
         public DbSet<HorarioCancha> HorariosCancha { get; set; }
         public DbSet<Caja> Cajas { get; set; }
+        public DbSet<RetiroCaja> RetirosCaja { get; set; }
+        public DbSet<IngresoCaja> IngresosCaja { get; set; }
         public DbSet<InstanciaTurno> InstanciasTurno { get; set; }
         public DbSet<TurnoReservado> TurnosReservados { get; set; }
         // Se conserva el mapeo por compatibilidad; US-14 no lo consulta ni
