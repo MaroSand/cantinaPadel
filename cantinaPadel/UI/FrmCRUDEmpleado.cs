@@ -273,5 +273,16 @@ namespace cantinaPadel.UI
             if (!char.IsLetter(e.KeyChar) && !char.IsControl(e.KeyChar) && !char.IsWhiteSpace(e.KeyChar))
                 e.Handled = true;
         }
+
+
+        // Solo permite dígitos en la contraseña y Backspace, para poder borrar
+        // char.IsControl cubre Backspace, Delete, etc. sin bloquear la edición normal
+        private void txtContrasenia_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -54,7 +55,12 @@ namespace cantinaPadel.Models
             if (string.IsNullOrWhiteSpace(Contrasena))
                 throw new ArgumentException("El campo Contraseña es obligatorio.");
 
-            if (Contrasena.Length < 7 || Contrasena.Length  > 8)
+            // El KeyPress del formulario solo filtra lo tipeado: lo pegado (Ctrl+V) lo saltea, por eso se valida acá también.
+            // Se compara contra '0'-'9' y no con char.IsDigit, que aceptaría dígitos de otros alfabetos
+            if (!Contrasena.All(c => c >= '0' && c <= '9'))
+                throw new ArgumentException("La Contraseña solo puede contener números.");
+
+            if (Contrasena.Length < 7 || Contrasena.Length > 8)
                 throw new ArgumentException("La Contraseña no puede ser menor a 7 caracteres.");
 
             if (string.IsNullOrWhiteSpace(Rol))
