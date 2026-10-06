@@ -56,28 +56,33 @@ public class LogicaCaja
         return CalculadorCaja.CalcularEfectivoDisponible(d.AperturaMasIngresos, d.VentasEfectivo, d.PagosCuentaCorrienteEfectivo, d.Retiros);
     }
 
-    public void RetirarEfectivo(int idCaja, int idAdmin, string? rol, decimal monto, string contrasena)
+    public void RetirarEfectivo(int idTurnoCaja, decimal monto, string contrasenaAdmin)
     {
-        if (rol != "Admin") throw new UnauthorizedAccessException("Solo un administrador puede retirar efectivo.");
         if (monto <= 0) throw new ArgumentException("El monto del retiro debe ser mayor a cero.");
-        var admin = _empleados.ObtenerTodos().FirstOrDefault(e => e.IdEmpleado == idAdmin && e.Activo && e.Rol == "Admin");
-        if (admin == null || string.IsNullOrEmpty(contrasena) || admin.Contrasena != contrasena)
-            throw new UnauthorizedAccessException("La contraseña del administrador es incorrecta.");
-        var caja = _cajas.Obtener(idCaja);
-        if (caja.Estado != TurnoCaja.EstadoAbierta) throw new InvalidOperationException("La caja está cerrada.");
-        if (ObtenerEfectivoDisponible(idCaja) < monto) throw new InvalidOperationException("El retiro supera el efectivo disponible en caja.");
-        _cajas.RegistrarRetiro(new RetiroCaja { IdTurnoCaja = idCaja, IdEmpleado = idAdmin, Monto = monto, FechaRetiro = DateTime.Now });
+        var admin = ObtenerAdminAutorizado(contrasenaAdmin);
+        var caja = _cajas.Obtener(idTurnoCaja);
+        if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idTurnoCaja)
+            throw new InvalidOperationException("Solo se puede retirar efectivo de la caja física abierta.");
+        if (ObtenerEfectivoDisponible(idTurnoCaja) < monto) throw new InvalidOperationException("El retiro supera el efectivo disponible en caja.");
+        _cajas.RegistrarRetiro(new RetiroCaja { IdTurnoCaja = idTurnoCaja, IdEmpleado = admin.IdEmpleado, Monto = monto, FechaRetiro = DateTime.Now });
     }
 
-    public void AgregarEfectivo(int idCaja, decimal monto, string usuarioAdmin, string contrasenaAdmin)
+    public void AgregarEfectivo(int idTurnoCaja, decimal monto, string contrasenaAdmin)
     {
         if (monto <= 0m) throw new ArgumentException("El monto a agregar debe ser mayor a cero.");
-        var admin = _empleados.ObtenerPorUsuario(usuarioAdmin.Trim());
-        if (admin == null || !admin.Activo || admin.Rol != "Admin" || string.IsNullOrEmpty(contrasenaAdmin) || admin.Contrasena != contrasenaAdmin)
-            throw new UnauthorizedAccessException("El usuario o la contraseña del administrador son incorrectos.");
-        var caja = _cajas.Obtener(idCaja);
-        if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idCaja)
+        var admin = ObtenerAdminAutorizado(contrasenaAdmin);
+        var caja = _cajas.Obtener(idTurnoCaja);
+        if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idTurnoCaja)
             throw new InvalidOperationException("Solo se puede agregar efectivo a la caja física abierta.");
-        _cajas.RegistrarIngreso(new IngresoCaja { IdTurnoCaja = idCaja, IdAdmin = admin.IdEmpleado, Monto = monto, FechaIngreso = DateTime.Now });
+        _cajas.RegistrarIngreso(new IngresoCaja { IdTurnoCaja = idTurnoCaja, IdAdmin = admin.IdEmpleado, Monto = monto, FechaIngreso = DateTime.Now });
+    }
+
+    private Empleado ObtenerAdminAutorizado(string contrasena)
+    {
+        var admin = _empleados.ObtenerTodos().FirstOrDefault(e =>
+            e.Activo && e.Rol == "Admin" && !string.IsNullOrEmpty(contrasena) && e.Contrasena == contrasena);
+        if (admin == null)
+            throw new UnauthorizedAccessException("La contraseña del administrador es incorrecta.");
+        return admin;
     }
 }
