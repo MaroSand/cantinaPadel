@@ -109,6 +109,76 @@ namespace cantinaPadel.Tests
         }
 
         [TestMethod]
+        public void GenerarTexto_Remito_ListaProductosSinPreciosYConTotalEstimado()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                Total = 3000m,
+                DeudaEstimada = 2750m,
+                MetodoPago = "Cuenta Corriente",
+                Items = new List<DetalleComprobante>
+                {
+                    new() { Nombre = "Coca Cola 500ml", Cantidad = 2, PrecioUnitario = 1500m }
+                }
+            };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
+
+            string texto = logica.GenerarTexto(comprobante, datos);
+
+            StringAssert.Contains(texto, "2 x Coca Cola 500ml");
+            StringAssert.Contains(texto, "TOTAL ESTIMADO A PAGAR");
+            StringAssert.Contains(texto, "estimativo");
+            // No se muestran precios por producto ni el total bruto de la venta
+            Assert.IsFalse(texto.Contains("1500") || texto.Contains("1.500") || texto.Contains("3000") || texto.Contains("3.000"));
+        }
+
+        [TestMethod]
+        public void GenerarTexto_RemitoConPagoACuenta_MuestraLaCuentaCompletaSinDecirSaldoAFavor()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                MetodoPago = "Cuenta Corriente",
+                DeudaEstimada = 5201m,
+                CreditoRestante = 9803m,
+                Items = new List<DetalleComprobante>
+                {
+                    new() { Nombre = "Tubo de Pelotas", Cantidad = 1, PrecioUnitario = 13000m },
+                    new() { Nombre = "Agua Mineral", Cantidad = 1, PrecioUnitario = 1000m }
+                }
+            };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
+
+            string texto = logica.GenerarTexto(comprobante, datos);
+
+            StringAssert.Contains(texto, "Deuda estimada");
+            StringAssert.Contains(texto, "Pagos a cuenta");
+            StringAssert.Contains(texto, "SALDO ESTIMADO");
+            StringAssert.Contains(texto, "estimativos");
+            Assert.IsFalse(texto.ToLower().Contains("saldo a favor"));
+        }
+
+        [TestMethod]
+        public void GenerarTexto_RemitoConSaldoAFavorReal_LoIndica()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 1,
+                MetodoPago = "Cuenta Corriente",
+                Total = 1000m,
+                SaldoFavor = 500m,
+                Items = new List<DetalleComprobante> { new() { Nombre = "Agua", Cantidad = 1, PrecioUnitario = 1000m } }
+            };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
+
+            StringAssert.Contains(logica.GenerarTexto(comprobante, datos), "Saldo a favor");
+        }
+
+        [TestMethod]
         public void ConfirmarEmision_FacturaAConsumidorFinal_LanzaExcepcion()
         {
             var repo = new ComprobanteRepositoryFake();

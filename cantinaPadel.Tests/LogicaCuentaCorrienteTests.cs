@@ -50,6 +50,39 @@ public class LogicaCuentaCorrienteTests
     }
 
     [TestMethod]
+    public void RegistrarPago_ConPagoVentaBilleteraVirtual_GuardaLaFormaDePagoDelPuntoDeVenta()
+    {
+        var repo = new CuentaCorrienteRepositoryFake();
+        var logica = new LogicaCuentaCorriente(repo, new ClienteRepositoryFake(), new CajaRepositoryFake());
+        var cliente = CrearCliente(1, "Ana", "Paz");
+
+        logica.RegistrarPago(cliente, 150m, 5, new PagoVenta { Metodo = MetodoPago.BilleteraVirtual });
+
+        Assert.AreEqual(MovimientoCuentaCorriente.TipoPagoMercadoPago, repo.TipoPagoRecibido);
+    }
+
+    [TestMethod]
+    public void RegistrarPago_ConPagoVentaTarjeta_GuardaTarjeta()
+    {
+        var repo = new CuentaCorrienteRepositoryFake();
+        var logica = new LogicaCuentaCorriente(repo, new ClienteRepositoryFake(), new CajaRepositoryFake());
+
+        logica.RegistrarPago(CrearCliente(1, "Ana", "Paz"), 150m, 5, new PagoVenta { Metodo = MetodoPago.Tarjeta });
+
+        Assert.AreEqual(MovimientoCuentaCorriente.TipoPagoTarjeta, repo.TipoPagoRecibido);
+    }
+
+    [TestMethod]
+    public void RegistrarPago_ConPagoVentaCuentaCorriente_LanzaExcepcion()
+    {
+        var logica = new LogicaCuentaCorriente(new CuentaCorrienteRepositoryFake(), new ClienteRepositoryFake(), new CajaRepositoryFake());
+        var cliente = CrearCliente(1, "Ana", "Paz");
+
+        Assert.ThrowsExactly<ArgumentException>(
+            () => logica.RegistrarPago(cliente, 150m, 5, new PagoVenta { Metodo = MetodoPago.CuentaCorriente }));
+    }
+
+    [TestMethod]
     public void ObtenerPendientes_DelegaEnElRepositorio()
     {
         var repo = new CuentaCorrienteRepositoryFake();

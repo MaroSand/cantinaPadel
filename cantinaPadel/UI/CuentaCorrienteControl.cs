@@ -15,7 +15,15 @@ public class CuentaCorrienteControl : UserControl
     // Desglose Deuda total - Crédito previo = A cobrar ahora. Se muestra solo cuando hay crédito previo, para que quede claro por qué el monto
     // a cobrar es menor a la deuda bruta (y así el cajero no cobre de más)
     private readonly Label _lblDesglose = new() { AutoSize = true, ForeColor = Color.DimGray, Font = new Font("Segoe UI", 9, FontStyle.Italic) };
-    private readonly Label _lblDeudaTotal = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Total a cobrar: $0,00" };
+    private readonly Label _lblDeudaTotal = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Total a cobrar (estimativo): $0,00" };
+    private readonly Label _lblAvisoEstimativo = new()
+    {
+        AutoSize = true,
+        ForeColor = Color.DimGray,
+        Font = new Font("Segoe UI", 9, FontStyle.Italic),
+        Text = "El monto es estimativo: puede variar si hay aumentos de precios.",
+        Visible = false
+    };
 
     private readonly Label _lblEstadoVacio = new()
     {
@@ -98,23 +106,33 @@ public class CuentaCorrienteControl : UserControl
         panelPago.Controls.Add(_nudMonto);
         _cmbTipoPago.DisplayMember = "Texto";
         _cmbTipoPago.ValueMember = "Valor";
-        _cmbTipoPago.DataSource = new[]
-        {
-            new { Texto = "Efectivo", Valor = MovimientoCuentaCorriente.TipoPagoEfectivo },
-            new { Texto = "Transferencia", Valor = MovimientoCuentaCorriente.TipoPagoTransferencia },
-            new { Texto = "Tarjeta", Valor = MovimientoCuentaCorriente.TipoPagoTarjeta },
-            new { Texto = "MercadoPago", Valor = MovimientoCuentaCorriente.TipoPagoMercadoPago }
-        };
-        panelPago.Controls.Add(new Label { Text = "Tipo de pago", AutoSize = true, Margin = new Padding(12, 7, 6, 0) });
+        // Mismas formas de pago que el Punto de Venta (MetodoPago de LogicaVenta), sin Cuenta Corriente
+        _cmbTipoPago.DataSource = LogicaCuentaCorriente.MetodosPagoDeCobro
+            .Select(m => new { Texto = NombreMetodoPago(m), Valor = m })
+            .ToList();
+        panelPago.Controls.Add(new Label { Text = "Forma de pago", AutoSize = true, Margin = new Padding(12, 7, 6, 0) });
         panelPago.Controls.Add(_cmbTipoPago);
         _btnRegistrarPago.Click += btnRegistrarPago_Click;
         panelPago.Controls.Add(_btnRegistrarPago);
+        panelPago.Controls.Add(_lblAvisoEstimativo);
+        panelPago.SetFlowBreak(_btnRegistrarPago, true);
         layout.Controls.Add(panelPago, 0, 4);
 
         Controls.Add(layout);
 
         MostrarEstadoVacio();
     }
+
+    // Mismo texto que usa el Punto de Venta para cada forma de pago
+    private static string NombreMetodoPago(MetodoPago metodo) => metodo switch
+    {
+        MetodoPago.Efectivo => "Efectivo",
+        MetodoPago.Transferencia => "Transferencia",
+        MetodoPago.Tarjeta => "Tarjeta",
+        MetodoPago.BilleteraVirtual => "Billetera Virtual",
+        MetodoPago.CuentaCorriente => "Cuenta Corriente",
+        _ => metodo.ToString()
+    };
 
     private void MostrarEstadoVacio()
     {
@@ -220,11 +238,12 @@ public class CuentaCorrienteControl : UserControl
         // Visibilidad del estado del sistema: si hay deuda se resalta en rojo, si está saldada se muestra en verde
         bool hayDeuda = resumen.DeudaNeta > 0m;
         _lblDeudaTotal.ForeColor = hayDeuda ? Color.Firebrick : Color.ForestGreen;
-        _lblDeudaTotal.Text = hayDeuda ? $"Total a cobrar: {resumen.DeudaNeta:C2}" : "Sin deuda pendiente";
+        _lblDeudaTotal.Text = hayDeuda ? $"Total a cobrar (estimativo): {resumen.DeudaNeta:C2}" : "Sin deuda pendiente";
+        _lblAvisoEstimativo.Visible = hayDeuda;
 
         // Si hay crédito de un pago parcial anterior, se muestra la cuenta completa (Deuda total - Crédito previo = A cobrar ahora)
         _lblDesglose.Text = hayDeuda && resumen.PagosParcialesAcreditados > 0m
-            ? $"Deuda total: {resumen.DeudaBruta:C2}   -   Crédito previo: {resumen.PagosParcialesAcreditados:C2}   =   A cobrar ahora: {resumen.DeudaNeta:C2}"
+            ? $"Deuda total: {resumen.DeudaBruta:C2}   -   Crédito previo: {resumen.PagosParcialesAcreditados:C2}   =   A cobrar ahora (estimativo): {resumen.DeudaNeta:C2}"
             : string.Empty;
 
         // No se puede cobrar más de lo que se debe (evita generar un saldo a favor que no corresponde)
@@ -264,14 +283,23 @@ public class CuentaCorrienteControl : UserControl
         // Crédito previo que tenía el cliente antes de este pago
         // Se guarda acá porque CargarCuenta() lo va a pisar después de registrar el pago, y se necesita tanto para el preview como para el ticket
         decimal creditoPrevio = _resumenActual?.PagosParcialesAcreditados ?? 0m;
-        string tipoPago = _cmbTipoPago.SelectedValue as string ?? MovimientoCuentaCorriente.TipoPagoEfectivo;
+        var pago = new PagoVenta { Metodo = _cmbTipoPago.SelectedValue is MetodoPago metodo ? metodo : MetodoPago.Efectivo };
+        string tipoPago = pago.FormaPago;
 
         if (!ConfirmarPago(monto, creditoPrevio, tipoPago))
             return;
 
         try
         {
-            var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario, tipoPago);
+            var resultado = _logica.RegistrarPago(_clienteSeleccionado, monto, Sesion.IdUsuario, pago);
+
+            // Confirmación visible de que el pago quedó registrado
+            decimal deudaRestante = CalculadorCuentaCorriente.CalcularDeudaNeta(resultado.DeudaPendiente, resultado.CreditoResultante);
+            string mensajePagado = deudaRestante > 0m
+                ? $"PAGADO\n\nSe registró el pago de {monto:C2} ({tipoPago}).\nTodavía queda una deuda estimada de {deudaRestante:C2} (estimativo, sujeto a cambios por aumentos de precios)."
+                : $"PAGADO\n\nSe registró el pago de {monto:C2} ({tipoPago}).\nLa cuenta quedó saldada.";
+            MessageBox.Show(this, mensajePagado, "Pagado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             MostrarComprobantePago(resultado, _clienteSeleccionado, creditoPrevio, tipoPago);
 
             CargarCuenta();
@@ -307,6 +335,8 @@ public class CuentaCorrienteControl : UserControl
 
         var texto = new System.Text.StringBuilder();
         texto.AppendLine($"Vas a registrar un pago de {monto:C2}.");
+        if (_resumenActual.DeudaNeta > 0m)
+            texto.AppendLine($"Deuda estimada: {_resumenActual.DeudaNeta:C2} (estimativo: puede variar si hay aumentos de precios).");
         texto.AppendLine($"Tipo de pago: {tipoPago}.");
 
         if (creditoPrevio > 0m)
@@ -351,10 +381,14 @@ public class CuentaCorrienteControl : UserControl
             MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : tipoPago,
             CuitCliente = cliente.Persona.Cuit,
             CondicionIvaCliente = cliente.Persona.CondicionIva,
-            Items = resultado.ItemsPagados
-                .Select(item => new DetalleComprobante { Nombre = item.NombreProducto, Cantidad = 1, PrecioUnitario = item.Monto })
+            // Con deuda pendiente se emite Remito: lista solo lo que todavía debe (sin precios). Si no, el detalle de lo pagado
+            Items = (quedaDeudaPendiente ? resultado.ItemsPendientes : resultado.ItemsPagados)
+                .GroupBy(item => item.NombreProducto)
+                .Select(g => new DetalleComprobante { Nombre = g.Key, Cantidad = g.Count(), PrecioUnitario = g.Sum(i => i.Monto) / g.Count() })
                 .ToList(),
             SaldoFavor = resultado.SaldoAFavor,
+            CreditoRestante = resultado.CreditoResultante,
+            DeudaEstimada = CalculadorCuentaCorriente.CalcularDeudaNeta(resultado.DeudaPendiente, resultado.CreditoResultante),
             CreditoPrevioAplicado = creditoPrevio
         };
 
