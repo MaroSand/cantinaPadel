@@ -26,6 +26,28 @@ public class LogicaCuentaCorriente
 
     public ResumenCuentaCorriente ObtenerResumen(int idCliente) => _cuentaCorriente.ObtenerResumen(idCliente);
 
+    // Formas de pago con las que se puede cobrar una deuda de cuenta corriente: son las mismas del Punto de Venta (MetodoPago), menos
+    // Cuenta Corriente (una deuda no se puede pagar con más deuda)
+    public static readonly MetodoPago[] MetodosPagoDeCobro =
+    {
+        MetodoPago.Efectivo,
+        MetodoPago.Transferencia,
+        MetodoPago.Tarjeta,
+        MetodoPago.BilleteraVirtual
+    };
+
+    // Cobra la deuda usando el mismo PagoVenta que el Punto de Venta: el nombre de la forma de pago (p. ej. BilleteraVirtual -> "MercadoPago")
+    // sale de PagoVenta.FormaPago, así caja y reportes ven exactamente los mismos valores que en una venta común
+    public ResultadoPagoCuentaCorriente RegistrarPago(Cliente cliente, decimal monto, int idEmpleado, PagoVenta pago)
+    {
+        if (pago == null)
+            throw new ArgumentException("Seleccione una forma de pago.");
+        if (!MetodosPagoDeCobro.Contains(pago.Metodo))
+            throw new ArgumentException("La deuda de cuenta corriente no se puede pagar con Cuenta Corriente. Seleccione otra forma de pago.");
+
+        return RegistrarPago(cliente, monto, idEmpleado, pago.FormaPago);
+    }
+
     public ResultadoPagoCuentaCorriente RegistrarPago(
         Cliente cliente,
         decimal monto,

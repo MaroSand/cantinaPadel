@@ -36,6 +36,14 @@ namespace cantinaPadel.BLL
         // Crédito que el cliente ya tenía acumulado de un pago parcial anterior y que se sumó automáticamente a este pago para saldar
         // deuda (0 si no había crédito previo). Se muestra en el ticket para que quede constancia de que esa plata no se "perdió"
         public decimal CreditoPrevioAplicado { get; set; }
+
+        // Crédito que le queda al cliente después de este pago (plata entregada que todavía no saldó por completo la próxima unidad)
+        // Se informa en el remito como saldo a favor
+        public decimal CreditoRestante { get; set; }
+
+        // Lo que el cliente debe todavía (neto de crédito), calculado con los precios de hoy. Se muestra en el remito como total estimado
+        // porque el precio puede subir antes de que cancele la deuda. Si es 0 se usa Total
+        public decimal DeudaEstimada { get; set; }
     }
 
     public class LogicaComprobante
@@ -46,7 +54,7 @@ namespace cantinaPadel.BLL
         // En PagoVenta.FormaPago (LogicaVenta.cs) para Cuenta Corriente. Se compara sin distinguir mayúsculas
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
 
- 
+
         // En Argentina, Factura A solo se le puede emitir a un cliente Responsable Inscripto (con CUIT); a Consumidor Final, o a
         // cualquier otra condición de IVA, corresponde Factura B o C
         private const string CondicionIvaResponsableInscripto = "Responsable Inscripto";
@@ -135,6 +143,51 @@ namespace cantinaPadel.BLL
             sb.AppendLine($"Fecha: {comprobante.FechaEmision:dd/MM/yyyy HH:mm}");
             sb.AppendLine($"Cliente: {datos.NombreCliente}");
             sb.AppendLine(new string('-', 32));
+
+            // El remito es un comprobante de entrega sin pagar: lista solo los productos que el cliente debe,
+            // sin precios ni total (el precio puede cambiar hasta que se cancele la deuda)
+            if (comprobante.Tipo == TipoComprobante.Remito)
+            {
+                sb.AppendLine("Productos adeudados:");
+                foreach (var item in datos.Items)
+                    sb.AppendLine($"{item.Cantidad,3} x {item.Nombre}");
+
+                sb.AppendLine(new string('-', 32));
+
+                // Lo que debe el cliente, ya descontado el pago a cuenta (calculado con los precios de hoy)
+                decimal saldoEstimado = datos.DeudaEstimada > 0 ? datos.DeudaEstimada : datos.Total;
+                decimal pagoACuenta = datos.CreditoRestante;
+
+                if (pagoACuenta > 0 && saldoEstimado > 0)
+                {
+                    // Cuenta completa en vez de "saldo a favor": mientras haya deuda, lo entregado es un pago a cuenta que se resta de lo que
+                    // debe. Llamarlo "saldo a favor" junto a un total a pagar parece que le sobra plata al cliente
+                    decimal deudaEstimada = saldoEstimado + pagoACuenta;
+                    sb.AppendLine($"{"Deuda estimada:",-18}{deudaEstimada,13:C}");
+                    sb.AppendLine($"{"Pagos a cuenta:",-18}{-pagoACuenta,13:C}");
+                    sb.AppendLine($"{"SALDO ESTIMADO:",-18}{saldoEstimado,13:C}");
+                    sb.AppendLine("* Montos estimativos, sujetos a");
+                    sb.AppendLine("  cambios por aumentos de precios.");
+                    sb.AppendLine("* Los pagos a cuenta se aplican a los");
+                    sb.AppendLine("  productos por orden de carga; cada");
+                    sb.AppendLine("  uno se cancela al cubrirse completo.");
+                }
+                else
+                {
+                    if (saldoEstimado > 0)
+                    {
+                        sb.AppendLine($"TOTAL ESTIMADO A PAGAR: {saldoEstimado:C}");
+                        sb.AppendLine("* Monto estimativo, sujeto a cambios");
+                        sb.AppendLine("  por aumentos de precios.");
+                    }
+
+                    // Saldo a favor real: solo si el crédito supera la deuda
+                    if (datos.SaldoFavor > 0)
+                        sb.AppendLine($"Saldo a favor: {datos.SaldoFavor:C}");
+                }
+
+                return sb.ToString();
+            }
 
             foreach (var item in datos.Items)
                 sb.AppendLine($"{item.Cantidad,3} x {item.Nombre,-18} {item.Subtotal,7:C}");

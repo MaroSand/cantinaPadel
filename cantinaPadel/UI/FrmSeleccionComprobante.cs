@@ -52,6 +52,9 @@ namespace cantinaPadel.UI
                 rbFacturaC.Enabled = false;
 
                 rbRemito.Checked = true;
+
+                // En cuenta corriente el total es solo un estimado (puede cambiar si suben los precios)
+                lblTotalTexto.Text = "Total estimado :";
             }
         }
 
