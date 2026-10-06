@@ -9,7 +9,7 @@ public class RetiroCaja
     [Key, Column("id_retiro")]
     public int IdRetiro { get; set; }
     [Column("id_caja")]
-    public int IdCaja { get; set; }
+    public int IdTurnoCaja { get; set; }
     [Column("id_empleado")]
     public int IdEmpleado { get; set; }
     [Column("monto")]

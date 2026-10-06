@@ -75,7 +75,7 @@ public class LogicaVenta
         decimal subtotal = Math.Round(total / (1 + TasaIva), 2);
         var venta = new Venta
         {
-            IdCaja = caja.IdCaja,
+            IdTurnoCaja = caja.IdTurnoCaja,
             IdCliente = cliente.IdCliente,
             IdEmpleado = idEmpleado,
             FechaVenta = DateTime.Now,

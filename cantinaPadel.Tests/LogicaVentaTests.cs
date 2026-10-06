@@ -115,7 +115,7 @@ public class LogicaVentaTests
 
     private sealed class CajaRepositoryFake : ICajaRepository
     {
-        public Caja? ObtenerCajaAbierta(int idEmpleado) => new() { IdCaja = 4, IdEmpleado = idEmpleado, Estado = Caja.EstadoAbierta };
-        public Caja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
+        public TurnoCaja? ObtenerCajaAbierta(int idEmpleado) => new() { IdTurnoCaja = 4, IdEmpleado = idEmpleado, Estado = TurnoCaja.EstadoAbierta };
+        public TurnoCaja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
     }
 }

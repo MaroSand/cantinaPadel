@@ -41,4 +41,11 @@ public static class CalculadorCaja
             throw new ArgumentOutOfRangeException(nameof(apertura), "Los montos no pueden ser negativos.");
         return Math.Round(apertura + ventasEfectivo + pagosCuentaCorriente - retiros, 2);
     }
+
+    public static decimal CalcularDiferenciaEfectivo(decimal efectivoEsperado, decimal efectivoContado)
+    {
+        if (efectivoEsperado < 0m || efectivoContado < 0m)
+            throw new ArgumentOutOfRangeException(nameof(efectivoContado), "Los montos no pueden ser negativos.");
+        return Math.Round(efectivoContado - efectivoEsperado, 2);
+    }
 }

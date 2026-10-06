@@ -14,7 +14,7 @@ public class Venta
     public int? IdVentaPadre { get; set; }
 
     [Column("id_caja")]
-    public int IdCaja { get; set; }
+    public int IdTurnoCaja { get; set; }
 
     [Column("id_cliente")]
     public int IdCliente { get; set; }

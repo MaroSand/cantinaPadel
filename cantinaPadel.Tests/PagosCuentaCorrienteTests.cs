@@ -256,7 +256,7 @@ public class PagosCuentaCorrienteTests
         Assert.AreEqual(MovimientoCuentaCorriente.TipoPagoTransferencia, movimiento.TipoDePago);
         Assert.AreEqual(14000m, movimiento.Monto);
         Assert.AreEqual(500m, movimiento.SaldoPosterior);
-        Assert.AreEqual(4, movimiento.IdCaja); // caja abierta simulada
+        Assert.AreEqual(4, movimiento.IdTurnoCaja); // turno de caja abierto simulado
         Assert.AreEqual(IdEmpleado, movimiento.IdEmpleado);
         Assert.IsNotNull(movimiento.IdVenta);
     }
@@ -568,7 +568,7 @@ public class PagosCuentaCorrienteTests
             {
                 IdMovimiento = idMovimiento,
                 IdCliente = idCliente,
-                IdCaja = idCaja,
+                IdTurnoCaja = idCaja,
                 IdVenta = idVentaPago,
                 IdEmpleado = idEmpleado,
                 Tipo = MovimientoCuentaCorriente.TipoPago,
@@ -625,7 +625,7 @@ public class PagosCuentaCorrienteTests
 
     private sealed class CajaRepositoryAbiertaFake : ICajaRepository
     {
-        public Caja? ObtenerCajaAbierta(int idEmpleado) => new() { IdCaja = 4, IdEmpleado = idEmpleado, Estado = Caja.EstadoAbierta };
-        public Caja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
+        public TurnoCaja? ObtenerCajaAbierta(int idEmpleado) => new() { IdTurnoCaja = 4, IdEmpleado = idEmpleado, Estado = TurnoCaja.EstadoAbierta };
+        public TurnoCaja ObtenerOCrearCajaTecnicaParaPruebas(int idEmpleado) => ObtenerCajaAbierta(idEmpleado)!;
     }
 }

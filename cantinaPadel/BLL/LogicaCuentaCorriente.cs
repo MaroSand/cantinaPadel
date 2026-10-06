@@ -64,7 +64,7 @@ public class LogicaCuentaCorriente
         var caja = _cajas.ObtenerCajaAbierta(idEmpleado)
             ?? throw new InvalidOperationException("No hay una caja abierta para el empleado actual.");
 
-        return _cuentaCorriente.RegistrarPago(cliente.IdCliente, monto, caja.IdCaja, idEmpleado, tipoPago);
+        return _cuentaCorriente.RegistrarPago(cliente.IdCliente, monto, caja.IdTurnoCaja, idEmpleado, tipoPago);
     }
 
     public static bool EsTipoPagoValido(string? tipoPago)

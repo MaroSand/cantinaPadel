@@ -26,7 +26,7 @@ public class MovimientoCuentaCorriente
     public int IdCliente { get; set; }
 
     [Column("id_caja")]
-    public int IdCaja { get; set; }
+    public int IdTurnoCaja { get; set; }
 
     [Column("id_venta")]
     public int? IdVenta { get; set; }

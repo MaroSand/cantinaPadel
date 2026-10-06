@@ -18,6 +18,13 @@ public class CalculadorCajaTests
     }
 
     [TestMethod]
+    public void CalcularDiferenciaEfectivo_RestaEsperadoAlContado()
+    {
+        Assert.AreEqual(-250m, CalculadorCaja.CalcularDiferenciaEfectivo(10000m, 9750m));
+        Assert.AreEqual(250m, CalculadorCaja.CalcularDiferenciaEfectivo(10000m, 10250m));
+    }
+
+    [TestMethod]
     public void CalcularResumen_AgrupaMercadoPagoConTransferencia()
     {
         var resumen = CalculadorCaja.CalcularResumen(new[]
