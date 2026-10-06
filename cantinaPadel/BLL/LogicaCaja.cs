@@ -39,10 +39,12 @@ public class LogicaCaja
 
     public CajaResumenDatos ObtenerResumen(int idCaja) => CalculadorCaja.CalcularResumen(_cajas.ObtenerMovimientosResumen(idCaja));
 
-    public void CerrarCaja(int idCaja, int idEmpleado, decimal efectivoContado, string? motivoDiferencia)
+    // Un empleado solo cierra su propia caja. Un Admin puede cerrar la de cualquiera (por ejemplo, tras un corte de luz
+    // que dejó abierta la caja de un empleado). El rol llega por parámetro, igual que en RetirarEfectivo
+    public void CerrarCaja(int idCaja, int idEmpleado, decimal efectivoContado, string? motivoDiferencia, string? rol = null)
     {
         var caja = _cajas.Obtener(idCaja);
-        if (caja.IdEmpleado != idEmpleado) throw new InvalidOperationException("Solo podés cerrar tu propio turno de caja.");
+        if (caja.IdEmpleado != idEmpleado && rol != "Admin") throw new InvalidOperationException("Solo podés cerrar tu propio turno de caja.");
         var efectivoEsperado = ObtenerEfectivoDisponible(idCaja);
         var diferencia = CalculadorCaja.CalcularDiferenciaEfectivo(efectivoEsperado, efectivoContado);
         if (diferencia != 0m && string.IsNullOrWhiteSpace(motivoDiferencia))
@@ -80,4 +82,4 @@ public class LogicaCaja
             throw new InvalidOperationException("Solo se puede agregar efectivo a la caja física abierta.");
         _cajas.RegistrarIngreso(new IngresoCaja { IdTurnoCaja = idCaja, IdAdmin = admin.IdEmpleado, Monto = monto, FechaIngreso = DateTime.Now });
     }
-}
+}   

@@ -12,7 +12,7 @@ namespace cantinaPadel.Tests
             return new Empleado
             {
                 NombreUsuario = "jgomez",
-                Contrasena = "abc1234",
+                Contrasena = "1234567",
                 Rol = "Empleado",
                 Persona = new Persona
                 {
@@ -67,6 +67,20 @@ namespace cantinaPadel.Tests
         }
 
         [TestMethod]
+        [DataRow("abc1234")]   // letras (por ejemplo, pegadas con Ctrl+V)
+        [DataRow("123 4567")]  // espacio en el medio
+        [DataRow("1234-567")]  // símbolo
+        [DataRow("١٢٣٤٥٦٧")]   // dígitos de otro alfabeto
+        public void ValidarFormato_ContrasenaConCaracteresNoNumericos_LanzaArgumentException(string valor)
+        {
+            var empleado = CrearEmpleadoValido();
+            empleado.Contrasena = valor;
+
+            var ex = Assert.ThrowsExactly<ArgumentException>(() => empleado.ValidarFormato());
+            StringAssert.Contains(ex.Message, "números");
+        }
+
+        [TestMethod]
         public void ValidarFormato_ContrasenaExcedeLongitud_LanzaArgumentException()
         {
             var empleado = CrearEmpleadoValido();
@@ -102,13 +116,13 @@ namespace cantinaPadel.Tests
         {
             var empleado = CrearEmpleadoValido();
             empleado.NombreUsuario = "  jgomez  ";
-            empleado.Contrasena = "  abc1234  ";
+            empleado.Contrasena = "  1234567  ";
             empleado.Rol = "  Empleado  ";
 
             empleado.ValidarFormato();
 
             Assert.AreEqual("jgomez", empleado.NombreUsuario);
-            Assert.AreEqual("abc1234", empleado.Contrasena);
+            Assert.AreEqual("1234567", empleado.Contrasena);
             Assert.AreEqual("Empleado", empleado.Rol);
         }
 

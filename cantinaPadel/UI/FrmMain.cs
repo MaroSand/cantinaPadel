@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using cantinaPadel.BLL;
 
 namespace cantinaPadel
 {
@@ -69,6 +70,13 @@ namespace cantinaPadel
         // Evento que se ejecuta al hacer clic en el botón de cerrar sesión, muestra una confirmación y cierra la sesión si el usuario confirma
         private void btnCerrarSesion_Click(object sender, EventArgs e)
         {
+            // No se puede cerrar sesión con la caja propia abierta
+            if (TieneCajaAbierta())
+            {
+                AvisarCajaAbierta("cerrar sesión");
+                return;
+            }
+
             var confirmacion = MessageBox.Show(
                 "¿Desea cerrar sesión?", "Confirmar",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -77,6 +85,44 @@ namespace cantinaPadel
                 Sesion.CerrarSesion();
                 this.Close();
             }
+        }
+
+        // Evita salir del programa con la X (o Alt+F4) mientras el usuario tenga su caja abierta.
+        // Solo se bloquea el cierre iniciado por el usuario: un apagado de Windows no se frena.
+        // Al cerrar sesión, Sesion.CerrarSesion() ya se ejecutó antes de Close(), por eso Sesion.Activa evita volver a validar
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+
+            if (e.Cancel || e.CloseReason != CloseReason.UserClosing || !Sesion.Activa)
+                return;
+
+            if (TieneCajaAbierta())
+            {
+                e.Cancel = true;
+                AvisarCajaAbierta("salir del programa");
+            }
+        }
+
+        // Indica si el usuario logueado tiene una caja abierta. Si no se puede consultar la base, no se bloquea:
+        // sin conexión tampoco se podría cerrar la caja y el usuario quedaría atrapado en el programa
+        private static bool TieneCajaAbierta()
+        {
+            try
+            {
+                return new LogicaCaja().ObtenerCajaAbierta(Sesion.IdUsuario) != null;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void AvisarCajaAbierta(string accion)
+        {
+            MessageBox.Show(this,
+                $"Tenés la caja abierta. Cerrala desde el módulo Caja antes de {accion}.\n\nSi no podés cerrarla, pedile a un administrador que la cierre.",
+                "Caja abierta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         // Método para navegar a un módulo específico, actualizando el título del módulo en la interfaz
