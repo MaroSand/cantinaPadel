@@ -1,6 +1,7 @@
 using cantinaPadel.BLL;
 using cantinaPadel.Models;
 using System.Drawing;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace cantinaPadel.UI;
@@ -14,6 +15,120 @@ internal static class EstiloCaja
     }
     public static Button Boton(string texto, Color color) => new() { Text = texto, AutoSize = true, Padding = new Padding(8, 4, 8, 4), BackColor = color, UseVisualStyleBackColor = false, Font = new Font("Segoe UI", 9F, FontStyle.Bold), Margin = new Padding(6) };
     public static Label Etiqueta(string texto, bool titulo = false) => new() { Text = texto, AutoSize = true, Margin = new Padding(8), Font = new Font("Segoe UI", titulo ? 13F : 9F, titulo ? FontStyle.Bold : FontStyle.Regular) };
+
+    // Mismo estilo que los botones de Punto de Venta: Segoe UI 9 negrita, tamaño fijo, color sólido y texto contrastado.
+    public static Button BotonPuntoVenta(string texto, Color color) => new()
+    {
+        Text = texto,
+        Size = new Size(200, 42),
+        BackColor = color,
+        ForeColor = Color.White,
+        UseVisualStyleBackColor = false,
+        Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0),
+        Margin = new Padding(8)
+    };
+
+    // Apila los controles en una sola columna, centrados horizontalmente y en bloque verticalmente dentro del formulario.
+    public static TableLayoutPanel Centrar(params Control[] controles)
+    {
+        var tabla = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = controles.Length + 2, Padding = new Padding(20) };
+        tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        for (int i = 0; i < controles.Length; i++)
+        {
+            var c = controles[i];
+            if (c is Label l) { l.TextAlign = ContentAlignment.MiddleCenter; l.MaximumSize = new Size(360, 0); }
+            c.Anchor = AnchorStyles.None;
+            tabla.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            tabla.Controls.Add(c, 0, i + 1);
+        }
+        tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+        return tabla;
+    }
+}
+
+// Campo de monto en pesos: solo dígitos (sin signo, punto ni coma), sin pegar, sin flechas y con largo máximo.
+// Mientras se escribe se muestra formateado ("$ 1.234.567"); el punto y el "$" los pone el control, no el usuario.
+internal sealed class TextBoxMonto : TextBox
+{
+    private const int WM_PASTE = 0x0302;
+    public const int MaxDigitos = 9;
+    private static readonly NumberFormatInfo FormatoPesos = new() { NumberGroupSeparator = ".", NumberDecimalDigits = 0 };
+    private bool _formateando;
+
+    public TextBoxMonto()
+    {
+        MaxLength = 13;                              // "$ 999.999.999"
+        Width = 220;
+        TextAlign = HorizontalAlignment.Center;
+        PlaceholderText = "$ 0";
+        ShortcutsEnabled = false;                    // bloquea Ctrl+V, Shift+Insert, etc.
+        ContextMenuStrip = new ContextMenuStrip();   // menú contextual vacío: no hay "Pegar"
+        AllowDrop = false;
+        ImeMode = ImeMode.Disable;
+    }
+
+    private static string Digitos(string texto) => new(texto.Where(char.IsAsciiDigit).ToArray());
+
+    protected override void OnKeyPress(KeyPressEventArgs e)
+    {
+        if (!char.IsControl(e.KeyChar))
+        {
+            if (!char.IsAsciiDigit(e.KeyChar)) e.Handled = true;
+            else if (Digitos(Text).Length - Digitos(SelectedText).Length >= MaxDigitos) e.Handled = true;
+        }
+        base.OnKeyPress(e);
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        // El cursor siempre queda al final para que el formato no se desordene.
+        if (e.KeyCode is Keys.Left or Keys.Up or Keys.Home or Keys.PageUp or Keys.Delete)
+        {
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+        }
+        base.OnKeyDown(e);
+    }
+
+    protected override void OnMouseUp(MouseEventArgs mevent)
+    {
+        base.OnMouseUp(mevent);
+        SelectionStart = Text.Length;
+        SelectionLength = 0;
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        if (m.Msg == WM_PASTE) return;               // ignora cualquier pegado que llegue por mensaje de Windows
+        base.WndProc(ref m);
+    }
+
+    protected override void OnTextChanged(EventArgs e)
+    {
+        if (_formateando) return;
+
+        var digitos = Digitos(Text);                 // también limpia texto soltado con drag & drop
+        if (digitos.Length > MaxDigitos) digitos = digitos[..MaxDigitos];
+        var formateado = digitos.Length == 0
+            ? ""
+            : "$ " + long.Parse(digitos, CultureInfo.InvariantCulture).ToString("N0", FormatoPesos);
+
+        if (formateado != Text)
+        {
+            _formateando = true;
+            try { Text = formateado; SelectionStart = Text.Length; }
+            finally { _formateando = false; }
+        }
+        base.OnTextChanged(e);
+    }
+
+    public bool TryObtenerMonto(out decimal monto)
+    {
+        monto = 0;
+        var digitos = Digitos(Text);
+        return digitos.Length > 0 && decimal.TryParse(digitos, NumberStyles.None, CultureInfo.InvariantCulture, out monto) && monto > 0;
+    }
 }
 
 public class FrmGestionCaja : Form
@@ -105,22 +220,29 @@ public class FrmIngresoEfectivo : Form
 {
     private readonly LogicaCaja _logica;
     private readonly TurnoCaja _caja;
-    private readonly NumericUpDown _monto = new() { Minimum = 0.01m, Maximum = 999999999, DecimalPlaces = 2, ThousandsSeparator = true, Width = 220 };
-    private readonly TextBox _contrasenaAdmin = new() { Width = 220, MaxLength = 8, UseSystemPasswordChar = true };
+    private readonly TextBoxMonto _monto = new();
+    private readonly TextBox _contrasenaAdmin = new() { Width = 220, MaxLength = 8, UseSystemPasswordChar = true, TextAlign = HorizontalAlignment.Center };
 
     public FrmIngresoEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
-        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Agregar efectivo"); Size = new Size(470, 330);
-        var root = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
-        root.Controls.Add(EstiloCaja.Etiqueta("El administrador registra el efectivo que entrega para el cambio."));
-        root.Controls.Add(EstiloCaja.Etiqueta("Monto a ingresar")); root.Controls.Add(_monto);
-        root.Controls.Add(EstiloCaja.Etiqueta("Contraseña del administrador")); root.Controls.Add(_contrasenaAdmin);
-        var agregar = EstiloCaja.Boton("Registrar ingreso", Color.ForestGreen); root.Controls.Add(agregar); Controls.Add(root);
+        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Agregar efectivo"); Size = new Size(470, 360);
+        var agregar = EstiloCaja.BotonPuntoVenta("Registrar ingreso", Color.Green);
+        Controls.Add(EstiloCaja.Centrar(
+            EstiloCaja.Etiqueta("El administrador registra el efectivo que entrega para el cambio."),
+            EstiloCaja.Etiqueta("Monto a ingresar"), _monto,
+            EstiloCaja.Etiqueta("Contraseña del administrador"), _contrasenaAdmin,
+            agregar));
         agregar.Click += (_, _) =>
         {
+            if (!_monto.TryObtenerMonto(out var monto))
+            {
+                MessageBox.Show(this, "Ingresá un monto mayor a cero.", "Monto inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _monto.Focus();
+                return;
+            }
             try
             {
-                _logica.AgregarEfectivo(_caja.IdTurnoCaja, _monto.Value, _contrasenaAdmin.Text);
+                _logica.AgregarEfectivo(_caja.IdTurnoCaja, monto, _contrasenaAdmin.Text);
                 MessageBox.Show(this, "Ingreso de efectivo registrado.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK; Close();
             }
@@ -179,14 +301,35 @@ public class FrmCierreCaja : Form
 public class FrmRetiroEfectivo : Form
 {
     private readonly LogicaCaja _logica; private readonly TurnoCaja _caja;
-    private readonly NumericUpDown _monto = new() { Minimum = 0.01m, Maximum = 999999999, DecimalPlaces = 2, ThousandsSeparator = true, Width = 220 };
-    private readonly TextBox _contrasena = new() { UseSystemPasswordChar = true, Width = 220, MaxLength = 8 };
+    private readonly TextBoxMonto _monto = new();
+    private readonly TextBox _contrasena = new() { UseSystemPasswordChar = true, Width = 220, MaxLength = 8, TextAlign = HorizontalAlignment.Center };
     public FrmRetiroEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
-        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Retiro de Efectivo"); Size = new Size(440, 300);
-        var root = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown, WrapContents = false };
-        root.Controls.Add(EstiloCaja.Etiqueta($"Disponible: {_logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja):C2}")); root.Controls.Add(EstiloCaja.Etiqueta("Monto a retirar")); root.Controls.Add(_monto); root.Controls.Add(EstiloCaja.Etiqueta("Contraseña del administrador")); root.Controls.Add(_contrasena);
-        var retirar = EstiloCaja.Boton("Confirmar retiro", Color.IndianRed); root.Controls.Add(retirar); Controls.Add(root);
-        retirar.Click += (_, _) => { try { _logica.RetirarEfectivo(_caja.IdTurnoCaja, _monto.Value, _contrasena.Text); MessageBox.Show(this, "Retiro registrado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo registrar el retiro", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
+        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Retiro de Efectivo"); Size = new Size(440, 340);
+        var retirar = EstiloCaja.BotonPuntoVenta("Confirmar retiro", Color.Firebrick);
+        Controls.Add(EstiloCaja.Centrar(
+            EstiloCaja.Etiqueta($"Disponible: {_logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja):C2}"),
+            EstiloCaja.Etiqueta("Monto a retirar"), _monto,
+            EstiloCaja.Etiqueta("Contraseña del administrador"), _contrasena,
+            retirar));
+        retirar.Click += (_, _) =>
+        {
+            if (!_monto.TryObtenerMonto(out var monto))
+            {
+                MessageBox.Show(this, "Ingresá un monto mayor a cero.", "Monto inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                _monto.Focus();
+                return;
+            }
+            try
+            {
+                _logica.RetirarEfectivo(_caja.IdTurnoCaja, monto, _contrasena.Text);
+                MessageBox.Show(this, "Retiro registrado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                DialogResult = DialogResult.OK; Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "No se pudo registrar el retiro", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        };
     }
 }
