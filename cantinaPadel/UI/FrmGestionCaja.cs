@@ -23,8 +23,8 @@ public class FrmGestionCaja : Form
     private readonly DataGridView _historialEfectivo = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoGenerateColumns = false, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
     private readonly Button _abrir = EstiloCaja.Boton("Abrir caja", Color.ForestGreen);
     private readonly Button _cerrar = EstiloCaja.Boton("Cerrar caja", Color.Gold);
-    private readonly Button _retiro = EstiloCaja.Boton("Retirar efectivo · Clave admin", Color.IndianRed);
-    private readonly Button _agregarEfectivo = EstiloCaja.Boton("Agregar efectivo · Clave admin", Color.ForestGreen);
+    private readonly Button _retiro = EstiloCaja.Boton("Retirar efectivo", Color.IndianRed);
+    private readonly Button _agregarEfectivo = EstiloCaja.Boton("Agregar efectivo", Color.ForestGreen);
     private readonly Label _estado = EstiloCaja.Etiqueta("");
 
     public FrmGestionCaja()
