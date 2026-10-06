@@ -11,20 +11,28 @@ namespace cantinaPadel
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Se instancia el formulario de Login
-            FrmLogin login = new FrmLogin();
+            // Ciclo Login → Menú principal. Al cerrar sesión se vuelve al Login en vez de terminar el programa
+            while (true)
+            {
+                // El Login se muestra como diálogo: el código se detiene acá hasta que se cierra
+                using (var login = new FrmLogin())
+                {
+                    // Si el usuario cerró el Login con la cruz, el programa termina sin abrir nada
+                    if (login.ShowDialog() != DialogResult.OK)
+                        break;
+                }
 
-            // Se muestra el Login como una ventana de diálogo flotante
-            // Esto detiene el código acá hasta que el Login se cierre
-            if (login.ShowDialog() == DialogResult.OK)
-            {
-                // Si el Login devuelve "OK" (credenciales correctas), arranca la aplicación real con el formulario principal
-                Application.Run(new FrmMain());
-            }
-            else
-            {
-                // Si el usuario cerró la cruz, el programa termina limpiamente sin abrir nada
-                Application.Exit();
+                // Credenciales correctas: arranca la aplicación real con el formulario principal.
+                // Application.Run no devuelve el control hasta que se cierra FrmMain
+                using (var principal = new FrmMain())
+                {
+                    Application.Run(principal);
+                }
+
+                // "Cerrar sesión" limpia la sesión antes de cerrar FrmMain y vuelve al Login
+                // Si FrmMain se cerró con la cruz de la ventana, la sesión sigue activa y el programa termina
+                if (Sesion.Activa)
+                    break;
             }
         }
     }

@@ -9,6 +9,9 @@ namespace cantinaPadel
         public static int IdUsuario { get; set; }
         public static string? Rol { get; set; }
 
+        // Hay un usuario con sesión iniciada (false después de CerrarSesion)
+        public static bool Activa => IdUsuario != 0;
+
         // Método opcional para limpiar los datos al cerrar sesión
         public static void CerrarSesion()
         {
