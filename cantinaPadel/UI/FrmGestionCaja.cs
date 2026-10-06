@@ -13,19 +13,18 @@ internal static class EstiloCaja
         f.Text = titulo; f.StartPosition = FormStartPosition.CenterParent; f.Font = new Font("Segoe UI", 9F);
         f.BackColor = SystemColors.Info; f.FormBorderStyle = FormBorderStyle.FixedDialog; f.MaximizeBox = false; f.MinimizeBox = false;
     }
-    public static Button Boton(string texto, Color color) => new() { Text = texto, AutoSize = true, Padding = new Padding(8, 4, 8, 4), BackColor = color, UseVisualStyleBackColor = false, Font = new Font("Segoe UI", 9F, FontStyle.Bold), Margin = new Padding(6) };
     public static Label Etiqueta(string texto, bool titulo = false) => new() { Text = texto, AutoSize = true, Margin = new Padding(8), Font = new Font("Segoe UI", titulo ? 13F : 9F, titulo ? FontStyle.Bold : FontStyle.Regular) };
 
     // Mismo estilo que los botones de Punto de Venta: Segoe UI 9 negrita, tamaño fijo, color sólido y texto contrastado.
     public static Button BotonPuntoVenta(string texto, Color color) => new()
     {
         Text = texto,
-        Size = new Size(200, 42),
+        Size = new Size(176, 40),
         BackColor = color,
-        ForeColor = Color.White,
+        ForeColor = color == Color.Gold ? Color.Black : Color.White,
         UseVisualStyleBackColor = false,
         Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0),
-        Margin = new Padding(8)
+        Margin = new Padding(6)
     };
 
     // Apila los controles en una sola columna, centrados horizontalmente y en bloque verticalmente dentro del formulario.
@@ -136,10 +135,10 @@ public class FrmGestionCaja : Form
     private readonly LogicaCaja _logica = new();
     private readonly DataGridView _historial = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoGenerateColumns = false, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
     private readonly DataGridView _historialEfectivo = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoGenerateColumns = false, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White };
-    private readonly Button _abrir = EstiloCaja.Boton("Abrir caja", Color.ForestGreen);
-    private readonly Button _cerrar = EstiloCaja.Boton("Cerrar caja", Color.Gold);
-    private readonly Button _retiro = EstiloCaja.Boton("Retirar efectivo", Color.IndianRed);
-    private readonly Button _agregarEfectivo = EstiloCaja.Boton("Agregar efectivo", Color.ForestGreen);
+    private readonly Button _abrir = EstiloCaja.BotonPuntoVenta("Abrir caja", Color.Green);
+    private readonly Button _cerrar = EstiloCaja.BotonPuntoVenta("Cerrar caja", Color.Gold);
+    private readonly Button _retiro = EstiloCaja.BotonPuntoVenta("Retirar efectivo", Color.Firebrick);
+    private readonly Button _agregarEfectivo = EstiloCaja.BotonPuntoVenta("Agregar efectivo", Color.Green);
     private readonly Label _estado = EstiloCaja.Etiqueta("");
 
     public FrmGestionCaja()
@@ -211,7 +210,7 @@ public class FrmAperturaCaja : Form
         var root = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown, WrapContents = false };
         var heredado = _logica.ObtenerMontoSiguienteApertura();
         root.Controls.Add(EstiloCaja.Etiqueta($"Efectivo apertura: {heredado:C2}", true));
-        var guardar = EstiloCaja.Boton("Abrir caja", Color.ForestGreen); root.Controls.Add(guardar); Controls.Add(root);
+        var guardar = EstiloCaja.BotonPuntoVenta("Abrir caja", Color.Green); root.Controls.Add(guardar); Controls.Add(root);
         guardar.Click += (_, _) => { try { _logica.AbrirCaja(Sesion.IdUsuario); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo abrir la caja", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
     }
 }
@@ -262,7 +261,7 @@ public class FrmCierreCaja : Form
     private readonly decimal _efectivoEsperado;
     public FrmCierreCaja(LogicaCaja logica, TurnoCaja caja)
     {
-        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Cierre de Caja"); Size = new Size(760, 500);
+        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Cierre de Caja"); Size = new Size(760, 520);
         _efectivoEsperado = _logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja);
         _efectivoContado.Value = Math.Min(_efectivoEsperado, _efectivoContado.Maximum);
         var r = _logica.ObtenerResumen(caja.IdTurnoCaja);
@@ -290,7 +289,7 @@ public class FrmCierreCaja : Form
         var efectivo = new Label { Text = $"Diferencia: {_efectivoContado.Value - _efectivoEsperado:C2}", AutoSize = true, Padding = new Padding(12), BackColor = Color.White, Font = new Font("Segoe UI", 11F, FontStyle.Bold), Anchor = AnchorStyles.Left };
         _efectivoContado.ValueChanged += (_, _) => efectivo.Text = $"Diferencia: {_efectivoContado.Value - _efectivoEsperado:C2}";
         var acciones = new FlowLayoutPanel { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
-        var confirmar = EstiloCaja.Boton("Confirmar cierre", Color.ForestGreen); var cancelar = EstiloCaja.Boton("Cancelar", Color.IndianRed);
+        var confirmar = EstiloCaja.BotonPuntoVenta("Confirmar cierre", Color.Green); var cancelar = EstiloCaja.BotonPuntoVenta("Cancelar", Color.Firebrick);
         acciones.Controls.Add(confirmar); acciones.Controls.Add(cancelar); pie.Controls.Add(efectivo, 0, 0); pie.Controls.Add(acciones, 1, 0);
         root.Controls.Add(datosConteo, 0, 3); root.Controls.Add(pie, 0, 4); Controls.Add(root);
         confirmar.Click += (_, _) => { try { _logica.CerrarCaja(caja.IdTurnoCaja, Sesion.IdUsuario, _efectivoContado.Value, _motivoDiferencia.Text, Sesion.Rol); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo cerrar la caja", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };

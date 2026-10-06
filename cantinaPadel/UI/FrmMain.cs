@@ -121,7 +121,7 @@ namespace cantinaPadel
         private void AvisarCajaAbierta(string accion)
         {
             MessageBox.Show(this,
-                $"Tenés la caja abierta. Cerrala desde el módulo Caja antes de {accion}.\n\nSi no podés cerrarla, pedile a un administrador que la cierre.",
+                $"La caja está abierta. Cerrala desde el módulo Caja antes de {accion}.\n\nSi no podés cerrarla, pedile a un administrador que la cierre.",
                 "Caja abierta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
