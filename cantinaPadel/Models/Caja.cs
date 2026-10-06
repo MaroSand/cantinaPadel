@@ -3,11 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace cantinaPadel.Models
 {
-    // PLACEHOLDER: mapea sólo las columnas que necesita el módulo de
-    // Alquiler por Día para saber si hay una caja abierta. El módulo de
-    // Caja (apertura/cierre/retiros) todavía no existe en el código C#.
-    // Cuando se implemente, fusionar esta clase con la definitiva en vez
-    // de tener dos mapeos de la misma tabla.
     [Table("cajas")]
     public class Caja
     {
@@ -23,6 +18,24 @@ namespace cantinaPadel.Models
 
         [Column("fecha_apertura")]
         public DateTime FechaApertura { get; set; }
+
+        [Column("monto_apertura")]
+        public decimal MontoApertura { get; set; }
+
+        [Column("fecha_cierre")]
+        public DateTime? FechaCierre { get; set; }
+
+        [Column("cierre_efectivo")]
+        public decimal? CierreEfectivo { get; set; }
+
+        [Column("cierre_tarjeta")]
+        public decimal? CierreTarjeta { get; set; }
+
+        [Column("cierre_transferencia")]
+        public decimal? CierreTransferencia { get; set; }
+
+        [Column("efectivo_final")]
+        public decimal? EfectivoFinal { get; set; }
 
         [Column("estado")]
         public string Estado { get; set; } = EstadoAbierta;

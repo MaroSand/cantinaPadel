@@ -119,7 +119,11 @@ namespace cantinaPadel
             cantinaPadel.UI.FrmCanchas frm = new cantinaPadel.UI.FrmCanchas();
             AbrirEnPanel(frm);
         }
-        private void btnCaja_Click(object sender, EventArgs e) => Navegar("Caja");
+        private void btnCaja_Click(object sender, EventArgs e)
+        {
+            Navegar("Caja");
+            AbrirEnPanel(new cantinaPadel.UI.FrmGestionCaja());
+        }
         private void btnProveedores_Click(object sender, EventArgs e)
         {
             Navegar("Proveedores");
