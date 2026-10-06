@@ -8,14 +8,32 @@ public class CajaRepository : ICajaRepository
     public TurnoCaja? ObtenerCajaAbierta(int idEmpleado)
     {
         using var ctx = new AppDbContext();
-        return ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado && c.Estado == TurnoCaja.EstadoAbierta)
-            .OrderByDescending(c => c.FechaApertura).FirstOrDefault();
+        return CompletarNombres(ctx, ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado && c.Estado == TurnoCaja.EstadoAbierta)
+            .OrderByDescending(c => c.FechaApertura).FirstOrDefault());
+    }
+
+    // Completa NombreEmpleado (nombre y apellido) a partir de IdEmpleado, con una sola consulta para toda la lista
+    private static List<TurnoCaja> CompletarNombres(AppDbContext ctx, List<TurnoCaja> turnos)
+    {
+        var ids = turnos.Select(t => t.IdEmpleado).Distinct().ToList();
+        var nombres = ctx.Empleados.Include(e => e.Persona)
+            .Where(e => ids.Contains(e.IdEmpleado))
+            .ToDictionary(e => e.IdEmpleado, e => $"{e.Persona.Nombre} {e.Persona.Apellido}");
+        foreach (var turno in turnos)
+            turno.NombreEmpleado = nombres.GetValueOrDefault(turno.IdEmpleado, string.Empty);
+        return turnos;
+    }
+
+    private static TurnoCaja? CompletarNombres(AppDbContext ctx, TurnoCaja? turno)
+    {
+        if (turno != null) CompletarNombres(ctx, new List<TurnoCaja> { turno });
+        return turno;
     }
 
     public TurnoCaja? ObtenerCajaAbiertaGeneral()
     {
         using var ctx = new AppDbContext();
-        return ctx.TurnosCaja.Where(c => c.Estado == TurnoCaja.EstadoAbierta).OrderByDescending(c => c.FechaApertura).FirstOrDefault();
+        return CompletarNombres(ctx, ctx.TurnosCaja.Where(c => c.Estado == TurnoCaja.EstadoAbierta).OrderByDescending(c => c.FechaApertura).FirstOrDefault());
     }
 
     public TurnoCaja? ObtenerUltimaCajaCerrada()
@@ -28,13 +46,13 @@ public class CajaRepository : ICajaRepository
     public List<TurnoCaja> ObtenerHistorial(int idEmpleado)
     {
         using var ctx = new AppDbContext();
-        return ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado).OrderByDescending(c => c.FechaApertura).ToList();
+        return CompletarNombres(ctx, ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado).OrderByDescending(c => c.FechaApertura).ToList());
     }
 
     public List<TurnoCaja> ObtenerTodoHistorial()
     {
         using var ctx = new AppDbContext();
-        return ctx.TurnosCaja.OrderByDescending(c => c.FechaApertura).ToList();
+        return CompletarNombres(ctx, ctx.TurnosCaja.OrderByDescending(c => c.FechaApertura).ToList());
     }
 
     public List<MovimientoEfectivoHistorial> ObtenerHistorialEfectivo(int? idEmpleado)
