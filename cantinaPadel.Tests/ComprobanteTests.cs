@@ -109,6 +109,26 @@ namespace cantinaPadel.Tests
         }
 
         [TestMethod]
+        public void ConfirmarEmision_PagoCuentaCorrienteSinProductosSaldados_PermiteFactura()
+        {
+            var repo = new ComprobanteRepositoryFake();
+            var logica = new LogicaComprobante(repo);
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 10,
+                Total = 500m,
+                MetodoPago = "Efectivo",
+                NombreCliente = "Consumidor Final"
+            };
+
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.FacturaB, FormaEntrega.NoEmitir);
+
+            Assert.AreEqual(TipoComprobante.FacturaB, comprobante.Tipo);
+            Assert.AreEqual(10, comprobante.IdVenta);
+            Assert.AreEqual(500m, comprobante.Total);
+        }
+
+        [TestMethod]
         public void GenerarTexto_Remito_ListaProductosSinPreciosYConTotalEstimado()
         {
             var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
@@ -132,6 +152,28 @@ namespace cantinaPadel.Tests
             StringAssert.Contains(texto, "estimativo");
             // No se muestran precios por producto ni el total bruto de la venta
             Assert.IsFalse(texto.Contains("1500") || texto.Contains("1.500") || texto.Contains("3000") || texto.Contains("3.000"));
+        }
+
+        [TestMethod]
+        public void GenerarTexto_RemitoDePagoCuentaCorriente_UsaProductosPendientesDelRemito()
+        {
+            var logica = new LogicaComprobante(new ComprobanteRepositoryFake());
+            var datos = new DatosVentaParaComprobante
+            {
+                IdVenta = 10,
+                Total = 500m,
+                MetodoPago = "Efectivo",
+                Items = new List<DetalleComprobante>(),
+                ItemsRemito = new List<DetalleComprobante>
+                {
+                    new() { Nombre = "Agua Mineral", Cantidad = 1, PrecioUnitario = 900m }
+                }
+            };
+            var comprobante = logica.ConfirmarEmision(datos, TipoComprobante.Remito, FormaEntrega.NoEmitir);
+
+            string texto = logica.GenerarTexto(comprobante, datos);
+
+            StringAssert.Contains(texto, "1 x Agua Mineral");
         }
 
         [TestMethod]

@@ -21,6 +21,7 @@ namespace cantinaPadel.BLL
         public int IdVenta { get; set; }
         public decimal Total { get; set; }
         public List<DetalleComprobante> Items { get; set; } = new();
+        public List<DetalleComprobante> ItemsRemito { get; set; } = new();
         public string NombreCliente { get; set; } = "Consumidor Final";
         public string? EmailCliente { get; set; }
         public string MetodoPago { get; set; } = string.Empty;
@@ -152,8 +153,9 @@ namespace cantinaPadel.BLL
             // sin precios ni total (el precio puede cambiar hasta que se cancele la deuda)
             if (comprobante.Tipo == TipoComprobante.Remito)
             {
+                var itemsRemito = datos.ItemsRemito.Count > 0 ? datos.ItemsRemito : datos.Items;
                 sb.AppendLine("Productos adeudados:");
-                foreach (var item in datos.Items)
+                foreach (var item in itemsRemito)
                     sb.AppendLine($"{item.Cantidad,3} x {item.Nombre}");
 
                 sb.AppendLine(new string('-', 32));
