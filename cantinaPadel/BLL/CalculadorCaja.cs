@@ -11,29 +11,24 @@ public static class CalculadorCaja
         foreach (var m in movimientos)
         {
             if (m.Monto < 0m) throw new ArgumentOutOfRangeException(nameof(movimientos), "Los montos no pueden ser negativos.");
-            if (m.EsFiadoPendiente) { r.FiadoPendiente += m.Monto; continue; }
             var medio = m.MedioPago == "MercadoPago" ? "Transferencia" : m.MedioPago;
             switch (medio)
             {
                 case "Efectivo":
                     r.Efectivo += m.Monto;
                     if (m.EsPagoCuentaCorriente) r.CobrosCuentaCorrienteEfectivo += m.Monto;
-                    else { if (m.EsPadel) r.EfectivoPadel += m.Monto; if (m.EsCantina) r.EfectivoCantina += m.Monto; }
                     break;
                 case "Tarjeta":
                     r.Tarjeta += m.Monto;
                     if (m.EsPagoCuentaCorriente) r.CobrosCuentaCorrienteTarjeta += m.Monto;
-                    else { if (m.EsPadel) r.TarjetaPadel += m.Monto; if (m.EsCantina) r.TarjetaCantina += m.Monto; }
                     break;
                 case "Transferencia":
                     r.Transferencia += m.Monto;
                     if (m.EsPagoCuentaCorriente) r.CobrosCuentaCorrienteTransferencia += m.Monto;
-                    else { if (m.EsPadel) r.TransferenciaPadel += m.Monto; if (m.EsCantina) r.TransferenciaCantina += m.Monto; }
                     break;
             }
         }
         r.Efectivo = Math.Round(r.Efectivo, 2); r.Tarjeta = Math.Round(r.Tarjeta, 2); r.Transferencia = Math.Round(r.Transferencia, 2);
-        r.FiadoPendiente = Math.Round(r.FiadoPendiente, 2);
         r.CobrosCuentaCorrienteEfectivo = Math.Round(r.CobrosCuentaCorrienteEfectivo, 2);
         r.CobrosCuentaCorrienteTarjeta = Math.Round(r.CobrosCuentaCorrienteTarjeta, 2);
         r.CobrosCuentaCorrienteTransferencia = Math.Round(r.CobrosCuentaCorrienteTransferencia, 2);

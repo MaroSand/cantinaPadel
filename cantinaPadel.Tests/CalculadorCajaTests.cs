@@ -18,19 +18,15 @@ public class CalculadorCajaTests
     }
 
     [TestMethod]
-    public void CalcularResumen_AgrupaMercadoPagoConTransferenciaYDejaFiadoAparte()
+    public void CalcularResumen_AgrupaMercadoPagoConTransferencia()
     {
         var resumen = CalculadorCaja.CalcularResumen(new[]
         {
-            new cantinaPadel.Models.MovimientoCajaDato("Transferencia", 1200m, EsPadel: true),
-            new cantinaPadel.Models.MovimientoCajaDato("MercadoPago", 800m, EsCantina: true),
-            new cantinaPadel.Models.MovimientoCajaDato("", 350m, EsFiadoPendiente: true)
+            new cantinaPadel.Models.MovimientoCajaDato("Transferencia", 1200m),
+            new cantinaPadel.Models.MovimientoCajaDato("MercadoPago", 800m)
         });
 
         Assert.AreEqual(2000m, resumen.Transferencia);
-        Assert.AreEqual(1200m, resumen.TransferenciaPadel);
-        Assert.AreEqual(800m, resumen.TransferenciaCantina);
-        Assert.AreEqual(350m, resumen.FiadoPendiente);
     }
 
     [TestMethod]
