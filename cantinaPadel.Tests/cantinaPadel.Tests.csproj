@@ -8,6 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Remove="CaculadorVueltoTests.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="CaculadorVueltoTests.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="MSTest" Version="4.0.2" />
     </ItemGroup>
 

@@ -114,6 +114,47 @@ namespace cantinaPadel.UI
                     chkEfectivo.Checked = true;
                 }
             };
+
+            ConfigurarPagoEfectivo();
+        }
+
+        // Engancha los eventos del campo "Paga con" (los controles están en el diseñador)
+        private void ConfigurarPagoEfectivo()
+        {
+            txtPagaCon.TextChanged += (_, _) => ActualizarVuelto();
+            txtPagaCon.KeyDown += (_, e) =>
+            {
+                // Enter confirma la venta, para cobrar sin usar el mouse
+                if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; btnConfirmarVenta.PerformClick(); }
+            };
+            chkEfectivo.CheckedChanged += (_, _) => ActualizarVuelto();
+            ActualizarVuelto();
+        }
+
+        // Muestra u oculta el panel de efectivo y recalcula el vuelto con el total actual del carrito
+        private void ActualizarVuelto()
+        {
+            pnlEfectivo.Visible = chkEfectivo.Checked;
+            if (!chkEfectivo.Checked) return;
+
+            decimal total = Math.Round(_logicaCarrito.Total, 2);
+            if (!CalculadorVuelto.TryParsearMonto(txtPagaCon.Text, out var pagaCon) || pagaCon <= 0m)
+            {
+                lblVuelto.ForeColor = Color.DimGray;
+                lblVuelto.Text = "Vuelto: -";
+                return;
+            }
+
+            if (pagaCon < total)
+            {
+                lblVuelto.ForeColor = Color.Firebrick;
+                lblVuelto.Text = $"Falta: {total - pagaCon:C2}";
+            }
+            else
+            {
+                lblVuelto.ForeColor = Color.ForestGreen;
+                lblVuelto.Text = $"Vuelto: {pagaCon - total:C2}";
+            }
         }
 
         private void SeleccionarMetodoPagoUnico(CheckBox seleccionado)
@@ -160,6 +201,9 @@ namespace cantinaPadel.UI
             {
                 _actualizandoChecksMetodoPago = false;
             }
+
+            txtPagaCon.Clear();
+            ActualizarVuelto();
         }
 
         // Saldo a favor real (el cliente pagó de más), leído de la bd porque el objeto Cliente de la pantalla puede estar desactualizado
@@ -498,6 +542,7 @@ namespace cantinaPadel.UI
         private void ActualizarLabelTotal()
         {
             lblTotal.Text = $"Total: {_logicaCarrito.Total:C2}";
+            ActualizarVuelto();
         }
 
         // Refresca lo que depende del estado del carrito: la grilla del carrito y el total
@@ -576,33 +621,76 @@ namespace cantinaPadel.UI
                 return;
             }
 
+            // Efectivo: "Paga con" es opcional; si se informó, tiene que ser un número válido y alcanzar para el total
+            decimal pagaCon = 0m;
+            decimal vuelto = 0m;
+            if (metodo == MetodoPago.Efectivo)
+            {
+                if (!CalculadorVuelto.TryParsearMonto(txtPagaCon.Text, out pagaCon))
+                {
+                    MessageBox.Show(this, "El monto con el que paga el cliente no es válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtPagaCon.Focus();
+                    txtPagaCon.SelectAll();
+                    return;
+                }
+
+                decimal totalACobrar = Math.Round(_logicaCarrito.Items.Sum(i => i.Subtotal), 2);
+                var errorPago = CalculadorVuelto.Validar(totalACobrar, pagaCon);
+                if (errorPago != null)
+                {
+                    MessageBox.Show(this, errorPago, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtPagaCon.Focus();
+                    txtPagaCon.SelectAll();
+                    return;
+                }
+
+                vuelto = CalculadorVuelto.Calcular(totalACobrar, pagaCon);
+            }
+
             try
             {
                 var pago = new PagoVenta { Metodo = metodo };
-                var venta = _logicaVenta.ConfirmarVenta(_logicaCarrito.Items, _clienteVenta, pago, Sesion.IdUsuario);
                 var cliente = _clienteVenta ?? _logicaVenta.ObtenerConsumidorFinal();
                 var datos = new DatosVentaParaComprobante
                 {
-                    IdVenta = venta.IdVenta,
-                    Total = venta.Total,
+                    IdVenta = 0, // todavía no existe: la venta se registra recién después de confirmar el comprobante
+                    Total = Math.Round(_logicaCarrito.Items.Sum(i => i.Subtotal), 2),
                     NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
                     EmailCliente = cliente.Email,
                     MetodoPago = pago.FormaPago,
                     CuitCliente = cliente.Persona.Cuit,
                     CondicionIvaCliente = cliente.Persona.CondicionIva,
                     Items = _logicaCarrito.Items.Select(i => new DetalleComprobante { Nombre = i.Producto.Nombre, Cantidad = i.Cantidad, PrecioUnitario = i.PrecioUnitario }).ToList(),
-                    SaldoFavor = ObtenerSaldoAFavor(cliente)
+                    SaldoFavor = ObtenerSaldoAFavor(cliente),
+                    PagoCon = pagaCon,
+                    Vuelto = vuelto
                 };
 
+                // El diálogo de comprobante es el último paso del cobro y se muestra ANTES de registrar la venta.
+                // Si el usuario cancela, no se registra nada y se conservan los productos del carrito, el cliente
+                // y el método de pago elegidos, para poder corregir o reintentar sin volver a cargar todo
                 using var comprobante = new FrmSeleccionComprobante(datos);
-                if (comprobante.ShowDialog(this) == DialogResult.OK && comprobante.ComprobanteGenerado != null)
-                    _logicaVenta.ActualizarTipoComprobante(venta.IdVenta, comprobante.ComprobanteGenerado.Tipo);
+                if (comprobante.ShowDialog(this) != DialogResult.OK || comprobante.ComprobanteGenerado == null)
+                {
+                    txtBuscarProducto.Focus();
+                    return;
+                }
+
+                var venta = _logicaVenta.ConfirmarVenta(_logicaCarrito.Items, _clienteVenta, pago, Sesion.IdUsuario);
+                comprobante.ComprobanteGenerado.IdVenta = venta.IdVenta;
+                _logicaVenta.ActualizarTipoComprobante(venta.IdVenta, comprobante.ComprobanteGenerado.Tipo);
 
                 _logicaCarrito.Vaciar();
                 _clienteVenta = null; // la venta terminó: la próxima arranca de nuevo con Consumidor Final
                 ActualizarLabelCliente();
                 ResetearMetodoPago();
                 RefrescarUI();
+
+                // El vuelto se avisa después de limpiar la pantalla, para que no quede en pantalla de la venta anterior
+                if (vuelto > 0m)
+                    MessageBox.Show(this, $"Venta registrada.\n\nTotal: {datos.Total:C2}\nPaga con: {pagaCon:C2}\n\nVUELTO: {vuelto:C2}",
+                        "Vuelto", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                 txtBuscarProducto.Focus();
             }
             catch (ArgumentException ex)
