@@ -178,6 +178,7 @@
             txtContrasena.Size = new Size(171, 27);
             txtContrasena.TabIndex = 7;
             txtContrasena.UseSystemPasswordChar = true;
+            txtContrasena.KeyPress += txtContrasenia_KeyPress;
             // 
             // label6
             // 
