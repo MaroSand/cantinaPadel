@@ -435,26 +435,24 @@ public class CuentaCorrienteControl : UserControl
         return resultado == DialogResult.Yes;
     }
 
-    // Al cobrar cuenta corriente se abre la misma pantalla de comprobante que usa el punto de venta
-    // El empleado ahí elige si imprime, manda por email o no emite nada
-    // Si todavía queda deuda pendiente después de este pago, se fuerza Remito
+    // Al cobrar cuenta corriente se abre la misma pantalla de comprobante que usa el punto de venta.
+    // Cada pago tiene su propia venta, por eso puede emitirse como factura aunque no haya saldado productos completos.
     private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio, string tipoPago, decimal pagaCon = 0m, decimal vuelto = 0m)
     {
-        bool quedaDeudaPendiente = resultado.DeudaPendiente > 0m;
-
         var datos = new DatosVentaParaComprobante
         {
             IdVenta = resultado.IdVentaPago ?? (resultado.ItemsPagados.Count > 0 ? resultado.ItemsPagados[0].IdVenta : 0),
             Total = resultado.MontoRecibido,
             NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
             EmailCliente = cliente.Email,
-            // Se muestra msj en "Cuenta Corriente" solo cuando todavía queda deuda
-            // Con la deuda saldada se usa un texto informativo para no disparar esa regla y dejar elegir Factura
-            MetodoPago = quedaDeudaPendiente ? "Cuenta Corriente" : tipoPago,
+            MetodoPago = tipoPago,
             CuitCliente = cliente.Persona.Cuit,
             CondicionIvaCliente = cliente.Persona.CondicionIva,
-            // Con deuda pendiente se emite Remito: lista solo lo que todavía debe (sin precios). Si no, el detalle de lo pagado
-            Items = (quedaDeudaPendiente ? resultado.ItemsPendientes : resultado.ItemsPagados)
+            Items = resultado.ItemsPagados
+                .GroupBy(item => item.NombreProducto)
+                .Select(g => new DetalleComprobante { Nombre = g.Key, Cantidad = g.Count(), PrecioUnitario = g.Sum(i => i.Monto) / g.Count() })
+                .ToList(),
+            ItemsRemito = resultado.ItemsPendientes
                 .GroupBy(item => item.NombreProducto)
                 .Select(g => new DetalleComprobante { Nombre = g.Key, Cantidad = g.Count(), PrecioUnitario = g.Sum(i => i.Monto) / g.Count() })
                 .ToList(),
