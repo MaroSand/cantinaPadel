@@ -51,7 +51,6 @@ public class TurnoCaja
     [Column("estado")]
     public string Estado { get; set; } = EstadoAbierta;
 
-    // Nombre y apellido del empleado que abrió la caja. No es una columna: lo completa el repositorio para mostrarlo en pantalla
     [NotMapped]
     public string NombreEmpleado { get; set; } = string.Empty;
 }
