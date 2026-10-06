@@ -24,7 +24,7 @@ public class FrmGestionCaja : Form
     private readonly Button _abrir = EstiloCaja.Boton("Abrir caja", Color.ForestGreen);
     private readonly Button _cerrar = EstiloCaja.Boton("Cerrar caja", Color.Gold);
     private readonly Button _retiro = EstiloCaja.Boton("Retirar efectivo", Color.IndianRed);
-    private readonly Button _agregarEfectivo = EstiloCaja.Boton("Agregar efectivo · Admin", Color.ForestGreen);
+    private readonly Button _agregarEfectivo = EstiloCaja.Boton("Agregar efectivo", Color.ForestGreen);
     private readonly Label _estado = EstiloCaja.Etiqueta("");
 
     public FrmGestionCaja()
@@ -106,23 +106,21 @@ public class FrmIngresoEfectivo : Form
     private readonly LogicaCaja _logica;
     private readonly TurnoCaja _caja;
     private readonly NumericUpDown _monto = new() { Minimum = 0.01m, Maximum = 999999999, DecimalPlaces = 2, ThousandsSeparator = true, Width = 220 };
-    private readonly TextBox _usuarioAdmin = new() { Width = 220, MaxLength = 25 };
     private readonly TextBox _contrasenaAdmin = new() { Width = 220, MaxLength = 8, UseSystemPasswordChar = true };
 
     public FrmIngresoEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
-        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Agregar efectivo"); Size = new Size(470, 390);
+        _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Agregar efectivo"); Size = new Size(470, 330);
         var root = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown, WrapContents = false, AutoScroll = true };
         root.Controls.Add(EstiloCaja.Etiqueta("El administrador registra el efectivo que entrega para el cambio."));
         root.Controls.Add(EstiloCaja.Etiqueta("Monto a ingresar")); root.Controls.Add(_monto);
-        root.Controls.Add(EstiloCaja.Etiqueta("Usuario del administrador")); root.Controls.Add(_usuarioAdmin);
         root.Controls.Add(EstiloCaja.Etiqueta("Contraseña del administrador")); root.Controls.Add(_contrasenaAdmin);
         var agregar = EstiloCaja.Boton("Registrar ingreso", Color.ForestGreen); root.Controls.Add(agregar); Controls.Add(root);
         agregar.Click += (_, _) =>
         {
             try
             {
-                _logica.AgregarEfectivo(_caja.IdTurnoCaja, _monto.Value, _usuarioAdmin.Text, _contrasenaAdmin.Text);
+                _logica.AgregarEfectivo(_caja.IdTurnoCaja, _monto.Value, _contrasenaAdmin.Text);
                 MessageBox.Show(this, "Ingreso de efectivo registrado.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK; Close();
             }
@@ -186,10 +184,9 @@ public class FrmRetiroEfectivo : Form
     public FrmRetiroEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
         _logica = logica; _caja = caja; EstiloCaja.Preparar(this, "Retiro de Efectivo"); Size = new Size(440, 300);
-        if (Sesion.Rol != "Admin") { Shown += (_, _) => { MessageBox.Show(this, "Solo un administrador puede retirar efectivo.", "Acceso denegado", MessageBoxButtons.OK, MessageBoxIcon.Warning); Close(); }; return; }
         var root = new FlowLayoutPanel { Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown, WrapContents = false };
         root.Controls.Add(EstiloCaja.Etiqueta($"Disponible: {_logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja):C2}")); root.Controls.Add(EstiloCaja.Etiqueta("Monto a retirar")); root.Controls.Add(_monto); root.Controls.Add(EstiloCaja.Etiqueta("Contraseña del administrador")); root.Controls.Add(_contrasena);
         var retirar = EstiloCaja.Boton("Confirmar retiro", Color.IndianRed); root.Controls.Add(retirar); Controls.Add(root);
-        retirar.Click += (_, _) => { try { _logica.RetirarEfectivo(_caja.IdTurnoCaja, Sesion.IdUsuario, Sesion.Rol, _monto.Value, _contrasena.Text); MessageBox.Show(this, "Retiro registrado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo registrar el retiro", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
+        retirar.Click += (_, _) => { try { _logica.RetirarEfectivo(_caja.IdTurnoCaja, _monto.Value, _contrasena.Text); MessageBox.Show(this, "Retiro registrado correctamente.", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information); DialogResult = DialogResult.OK; Close(); } catch (Exception ex) { MessageBox.Show(this, ex.Message, "No se pudo registrar el retiro", MessageBoxButtons.OK, MessageBoxIcon.Warning); } };
     }
 }
