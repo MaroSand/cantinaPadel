@@ -19,5 +19,6 @@ namespace cantinaPadel.DAL.Repositories
         EfectivoCajaDatos ObtenerDatosEfectivo(int idTurnoCaja) => throw new NotSupportedException();
         void RegistrarRetiro(RetiroCaja retiro) => throw new NotSupportedException();
         void RegistrarIngreso(IngresoCaja ingreso) => throw new NotSupportedException();
+        bool ExisteIngreso(int idTurnoCaja) => false;
     }
 }
