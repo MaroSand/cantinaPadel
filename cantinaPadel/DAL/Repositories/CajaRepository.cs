@@ -63,30 +63,30 @@ public class CajaRepository : ICajaRepository
     {
         using var ctx = new AppDbContext();
         var ingresos = (from i in ctx.IngresosCaja
-            join c in ctx.TurnosCaja on i.IdTurnoCaja equals c.IdTurnoCaja
-            join e in ctx.Empleados.Include(e => e.Persona) on i.IdAdmin equals e.IdEmpleado
-            where idEmpleado == null || c.IdEmpleado == idEmpleado
-            select new MovimientoEfectivoHistorial
-            {
-                IdTurnoCaja = i.IdTurnoCaja,
-                Fecha = i.FechaIngreso,
-                Tipo = "Ingreso",
-                Monto = i.Monto,
-                Usuario = e.Persona.Nombre + " " + e.Persona.Apellido
-            }).ToList();
+                        join c in ctx.TurnosCaja on i.IdTurnoCaja equals c.IdTurnoCaja
+                        join e in ctx.Empleados.Include(e => e.Persona) on i.IdAdmin equals e.IdEmpleado
+                        where idEmpleado == null || c.IdEmpleado == idEmpleado
+                        select new MovimientoEfectivoHistorial
+                        {
+                            IdTurnoCaja = i.IdTurnoCaja,
+                            Fecha = i.FechaIngreso,
+                            Tipo = "Ingreso",
+                            Monto = i.Monto,
+                            Usuario = e.Persona.Nombre + " " + e.Persona.Apellido
+                        }).ToList();
 
         var retiros = (from r in ctx.RetirosCaja
-            join c in ctx.TurnosCaja on r.IdTurnoCaja equals c.IdTurnoCaja
-            join e in ctx.Empleados.Include(e => e.Persona) on r.IdEmpleado equals e.IdEmpleado
-            where idEmpleado == null || c.IdEmpleado == idEmpleado
-            select new MovimientoEfectivoHistorial
-            {
-                IdTurnoCaja = r.IdTurnoCaja,
-                Fecha = r.FechaRetiro,
-                Tipo = "Retiro",
-                Monto = r.Monto,
-                Usuario = e.Persona.Nombre + " " + e.Persona.Apellido
-            }).ToList();
+                       join c in ctx.TurnosCaja on r.IdTurnoCaja equals c.IdTurnoCaja
+                       join e in ctx.Empleados.Include(e => e.Persona) on r.IdEmpleado equals e.IdEmpleado
+                       where idEmpleado == null || c.IdEmpleado == idEmpleado
+                       select new MovimientoEfectivoHistorial
+                       {
+                           IdTurnoCaja = r.IdTurnoCaja,
+                           Fecha = r.FechaRetiro,
+                           Tipo = "Retiro",
+                           Monto = r.Monto,
+                           Usuario = e.Persona.Nombre + " " + e.Persona.Apellido
+                       }).ToList();
 
         return ingresos.Concat(retiros).OrderByDescending(m => m.Fecha).ToList();
     }
@@ -113,7 +113,10 @@ public class CajaRepository : ICajaRepository
 
         var turno = new TurnoCaja
         {
-            IdCaja = caja.IdCaja, IdEmpleado = idEmpleado, FechaApertura = DateTime.Now, MontoApertura = montoInicial,
+            IdCaja = caja.IdCaja,
+            IdEmpleado = idEmpleado,
+            FechaApertura = DateTime.Now,
+            MontoApertura = montoInicial,
             Estado = TurnoCaja.EstadoAbierta
         };
         ctx.TurnosCaja.Add(turno);
@@ -195,10 +198,26 @@ public class CajaRepository : ICajaRepository
         ctx.SaveChanges();
     }
 
+    public bool ExisteIngreso(int idTurnoCaja)
+    {
+        using var ctx = new AppDbContext();
+        return ctx.IngresosCaja.Any(i => i.IdTurnoCaja == idTurnoCaja);
+    }
+
     public void RegistrarIngreso(IngresoCaja ingreso)
     {
         using var ctx = new AppDbContext();
+        if (ctx.IngresosCaja.Any(i => i.IdTurnoCaja == ingreso.IdTurnoCaja))
+            throw new InvalidOperationException("Ya se registró un ingreso de efectivo en este turno de caja.");
         ctx.IngresosCaja.Add(ingreso);
-        ctx.SaveChanges();
+        try
+        {
+            ctx.SaveChanges();
+        }
+        catch (DbUpdateException)
+        {
+            // Respaldo ante doble clic o dos sesiones simultáneas: la restricción UNIQUE de la base lo rechaza
+            throw new InvalidOperationException("Ya se registró un ingreso de efectivo en este turno de caja.");
+        }
     }
 }

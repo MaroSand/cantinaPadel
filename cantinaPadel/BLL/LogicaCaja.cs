@@ -35,13 +35,15 @@ public class LogicaCaja
         return _cajas.ObtenerTodoHistorial();
     }
 
-    public TurnoCaja AbrirCaja(int idEmpleado)
+    // El monto inicial lo ingresa quien abre la caja (por defecto 0).
+    public TurnoCaja AbrirCaja(int idEmpleado, decimal montoInicial = 0m)
     {
         if (idEmpleado <= 0) throw new ArgumentException("No hay un usuario autenticado.");
+        if (montoInicial < 0m) throw new ArgumentException("El monto inicial no puede ser negativo.");
         if (_cajas.ObtenerCajaAbiertaGeneral() != null)
             throw new InvalidOperationException(
                 "La caja física ya está abierta por otro usuario. Cerrala antes de iniciar el siguiente turno.");
-        return _cajas.Abrir(idEmpleado, ObtenerMontoSiguienteApertura());
+        return _cajas.Abrir(idEmpleado, montoInicial);
     }
 
     public decimal ObtenerMontoSiguienteApertura()
@@ -88,19 +90,25 @@ public class LogicaCaja
         if (ObtenerEfectivoDisponible(idTurnoCaja) < monto)
             throw new InvalidOperationException("El retiro supera el efectivo disponible en caja.");
         _cajas.RegistrarRetiro(new RetiroCaja
-            { IdTurnoCaja = idTurnoCaja, IdEmpleado = admin.IdEmpleado, Monto = monto, FechaRetiro = DateTime.Now });
+        { IdTurnoCaja = idTurnoCaja, IdEmpleado = admin.IdEmpleado, Monto = monto, FechaRetiro = DateTime.Now });
     }
 
-    public void AgregarEfectivo(int idTurnoCaja, decimal monto, string contrasenaAdmin)
+    // Ingreso de efectivo a la caja: no requiere contraseña y se permite una sola vez por turno de caja
+    // Queda registrado el empleado que lo realizó y el monto
+    public void AgregarEfectivo(int idTurnoCaja, decimal monto, int idEmpleado)
     {
+        if (idEmpleado <= 0) throw new ArgumentException("No hay un usuario autenticado.");
         if (monto <= 0m) throw new ArgumentException("El monto a agregar debe ser mayor a cero.");
-        var admin = ObtenerAdminAutorizado(contrasenaAdmin);
         var caja = _cajas.Obtener(idTurnoCaja);
         if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idTurnoCaja)
             throw new InvalidOperationException("Solo se puede agregar efectivo a la caja física abierta.");
+        if (_cajas.ExisteIngreso(idTurnoCaja))
+            throw new InvalidOperationException("Ya se registró un ingreso de efectivo en este turno de caja.");
         _cajas.RegistrarIngreso(new IngresoCaja
-            { IdTurnoCaja = idTurnoCaja, IdAdmin = admin.IdEmpleado, Monto = monto, FechaIngreso = DateTime.Now });
+        { IdTurnoCaja = idTurnoCaja, IdAdmin = idEmpleado, Monto = monto, FechaIngreso = DateTime.Now });
     }
+
+    public bool ExisteIngreso(int idTurnoCaja) => _cajas.ExisteIngreso(idTurnoCaja);
 
     private Empleado ObtenerAdminAutorizado(string contrasena)
     {

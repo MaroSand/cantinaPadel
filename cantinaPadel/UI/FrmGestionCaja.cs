@@ -21,7 +21,9 @@ internal static class EstiloCaja
 
     public static Label Etiqueta(string texto, bool titulo = false) => new()
     {
-        Text = texto, AutoSize = true, Margin = new Padding(8),
+        Text = texto,
+        AutoSize = true,
+        Margin = new Padding(8),
         Font = new Font("Segoe UI", titulo ? 13F : 9F, titulo ? FontStyle.Bold : FontStyle.Regular)
     };
 
@@ -39,7 +41,7 @@ internal static class EstiloCaja
     public static TableLayoutPanel Centrar(params Control[] controles)
     {
         var tabla = new TableLayoutPanel
-            { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = controles.Length + 2, Padding = new Padding(20) };
+        { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = controles.Length + 2, Padding = new Padding(20) };
         tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
         for (int i = 0; i < controles.Length; i++)
@@ -67,7 +69,7 @@ internal sealed class TextBoxMonto : TextBox
     public const int MaxDigitos = 9;
 
     private static readonly NumberFormatInfo FormatoPesos = new()
-        { NumberGroupSeparator = ".", NumberDecimalDigits = 0 };
+    { NumberGroupSeparator = ".", NumberDecimalDigits = 0 };
 
     private bool _formateando;
 
@@ -147,6 +149,16 @@ internal sealed class TextBoxMonto : TextBox
         base.OnTextChanged(e);
     }
 
+    // Para campos donde cero es válido (por ejemplo, el monto inicial de apertura). Vacío equivale a 0.
+    public decimal ObtenerMontoOCero()
+    {
+        var digitos = Digitos(Text);
+        return digitos.Length > 0 &&
+               decimal.TryParse(digitos, NumberStyles.None, CultureInfo.InvariantCulture, out var monto)
+            ? monto
+            : 0m;
+    }
+
     public bool TryObtenerMonto(out decimal monto)
     {
         monto = 0;
@@ -162,14 +174,24 @@ public class FrmGestionCaja : Form
 
     private readonly DataGridView _historial = new()
     {
-        Dock = DockStyle.Fill, ReadOnly = true, AutoGenerateColumns = false, AllowUserToAddRows = false,
-        SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White
+        Dock = DockStyle.Fill,
+        ReadOnly = true,
+        AutoGenerateColumns = false,
+        AllowUserToAddRows = false,
+        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+        MultiSelect = false,
+        BackgroundColor = Color.White
     };
 
     private readonly DataGridView _historialEfectivo = new()
     {
-        Dock = DockStyle.Fill, ReadOnly = true, AutoGenerateColumns = false, AllowUserToAddRows = false,
-        SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false, BackgroundColor = Color.White
+        Dock = DockStyle.Fill,
+        ReadOnly = true,
+        AutoGenerateColumns = false,
+        AllowUserToAddRows = false,
+        SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+        MultiSelect = false,
+        BackgroundColor = Color.White
     };
 
     private readonly Button _abrir = EstiloCaja.BotonPuntoVenta("Abrir caja", Color.Green);
@@ -183,7 +205,7 @@ public class FrmGestionCaja : Form
         EstiloCaja.Preparar(this, "Gestión de Caja");
         Size = new Size(880, 570);
         var root = new TableLayoutPanel
-            { Dock = DockStyle.Fill, Padding = new Padding(18), RowCount = 3, ColumnCount = 1 };
+        { Dock = DockStyle.Fill, Padding = new Padding(18), RowCount = 3, ColumnCount = 1 };
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -192,73 +214,97 @@ public class FrmGestionCaja : Form
         bar.Controls.AddRange(new Control[] { _abrir, _cerrar, _retiro, _agregarEfectivo, _estado });
         root.Controls.Add(bar);
         _historial.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = nameof(TurnoCaja.IdCaja), HeaderText = "Caja empleado", Width = 85 });
+        { DataPropertyName = nameof(TurnoCaja.IdCaja), HeaderText = "Caja empleado", Width = 85 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = nameof(TurnoCaja.NombreEmpleado), HeaderText = "Empleado", Width = 150 });
+        { DataPropertyName = nameof(TurnoCaja.NombreEmpleado), HeaderText = "Empleado", Width = 150 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.FechaApertura), HeaderText = "Apertura", Width = 150,
+            DataPropertyName = nameof(TurnoCaja.FechaApertura),
+            HeaderText = "Apertura",
+            Width = 150,
             DefaultCellStyle = new() { Format = "g" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.MontoApertura), HeaderText = "Efectivo inicial", Width = 130,
+            DataPropertyName = nameof(TurnoCaja.MontoApertura),
+            HeaderText = "Efectivo inicial",
+            Width = 130,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.FechaCierre), HeaderText = "Cierre", Width = 150,
+            DataPropertyName = nameof(TurnoCaja.FechaCierre),
+            HeaderText = "Cierre",
+            Width = 150,
             DefaultCellStyle = new() { Format = "g" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.CierreEfectivo), HeaderText = "Ventas efectivo", Width = 115,
+            DataPropertyName = nameof(TurnoCaja.CierreEfectivo),
+            HeaderText = "Ventas efectivo",
+            Width = 115,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.EfectivoFinal), HeaderText = "Efectivo contado", Width = 125,
+            DataPropertyName = nameof(TurnoCaja.EfectivoFinal),
+            HeaderText = "Efectivo contado",
+            Width = 125,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.EfectivoEsperado), HeaderText = "Efectivo esperado", Width = 125,
+            DataPropertyName = nameof(TurnoCaja.EfectivoEsperado),
+            HeaderText = "Efectivo esperado",
+            Width = 125,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.DiferenciaEfectivo), HeaderText = "Diferencia", Width = 110,
+            DataPropertyName = nameof(TurnoCaja.DiferenciaEfectivo),
+            HeaderText = "Diferencia",
+            Width = 110,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = nameof(TurnoCaja.MotivoDiferencia), HeaderText = "Motivo diferencia", Width = 180 });
+        { DataPropertyName = nameof(TurnoCaja.MotivoDiferencia), HeaderText = "Motivo diferencia", Width = 180 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.CierreTarjeta), HeaderText = "Tarjeta", Width = 115,
+            DataPropertyName = nameof(TurnoCaja.CierreTarjeta),
+            HeaderText = "Tarjeta",
+            Width = 115,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(TurnoCaja.CierreTransferencia), HeaderText = "Transferencia / MP", Width = 145,
+            DataPropertyName = nameof(TurnoCaja.CierreTransferencia),
+            HeaderText = "Transferencia / MP",
+            Width = 145,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = nameof(TurnoCaja.Estado), HeaderText = "Estado", Width = 100 });
+        { DataPropertyName = nameof(TurnoCaja.Estado), HeaderText = "Estado", Width = 100 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(MovimientoEfectivoHistorial.Fecha), HeaderText = "Fecha y hora", Width = 180,
+            DataPropertyName = nameof(MovimientoEfectivoHistorial.Fecha),
+            HeaderText = "Fecha y hora",
+            Width = 180,
             DefaultCellStyle = new() { Format = "g" }
         });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = nameof(MovimientoEfectivoHistorial.Tipo), HeaderText = "Movimiento", Width = 120 });
+        { DataPropertyName = nameof(MovimientoEfectivoHistorial.Tipo), HeaderText = "Movimiento", Width = 120 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(MovimientoEfectivoHistorial.Monto), HeaderText = "Monto", Width = 130,
+            DataPropertyName = nameof(MovimientoEfectivoHistorial.Monto),
+            HeaderText = "Monto",
+            Width = 130,
             DefaultCellStyle = new() { Format = "C2" }
         });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = nameof(MovimientoEfectivoHistorial.Usuario), HeaderText = "Registrado por", Width = 180
+            DataPropertyName = nameof(MovimientoEfectivoHistorial.Usuario),
+            HeaderText = "Registrado por",
+            Width = 180
         });
         var pestañas = new TabControl { Dock = DockStyle.Fill };
         var tabCajas = new TabPage("Turnos de caja");
@@ -313,6 +359,13 @@ public class FrmGestionCaja : Form
                 return;
             }
 
+            if (_logica.ExisteIngreso(caja.IdTurnoCaja))
+            {
+                MessageBox.Show(this, "Ya se registró un ingreso de efectivo en este turno de caja.", "Caja",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             using var f = new FrmIngresoEfectivo(_logica, caja);
             f.ShowDialog(this);
             Actualizar();
@@ -334,7 +387,7 @@ public class FrmGestionCaja : Form
             _cerrar.Enabled = abierta != null && (propia || Sesion.Rol == "Admin");
             _retiro.Visible = true;
             _retiro.Enabled = abierta != null;
-            _agregarEfectivo.Enabled = abierta != null;
+            _agregarEfectivo.Enabled = abierta != null && !_logica.ExisteIngreso(abierta.IdTurnoCaja);
             _historial.DataSource = Sesion.Rol == "Admin"
                 ? _logica.ObtenerTodoHistorial(Sesion.Rol)
                 : _logica.ObtenerHistorial(Sesion.IdUsuario);
@@ -351,27 +404,23 @@ public class FrmGestionCaja : Form
 public class FrmAperturaCaja : Form
 {
     private readonly LogicaCaja _logica;
+    private readonly TextBoxMonto _montoInicial = new() { Text = "0" };
 
     public FrmAperturaCaja(LogicaCaja? logica = null)
     {
         _logica = logica ?? new LogicaCaja();
         EstiloCaja.Preparar(this, "Apertura de Caja");
-        Size = new Size(470, 250);
-        var root = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill, Padding = new Padding(20), FlowDirection = FlowDirection.TopDown,
-            WrapContents = false
-        };
-        var heredado = _logica.ObtenerMontoSiguienteApertura();
-        root.Controls.Add(EstiloCaja.Etiqueta($"Efectivo apertura: {heredado:C2}", true));
+        Size = new Size(470, 300);
         var guardar = EstiloCaja.BotonPuntoVenta("Abrir caja", Color.Green);
-        root.Controls.Add(guardar);
-        Controls.Add(root);
+        Controls.Add(EstiloCaja.Centrar(
+            EstiloCaja.Etiqueta("Ingresá el efectivo con el que se abre la caja."),
+            EstiloCaja.Etiqueta("Monto inicial"), _montoInicial,
+            guardar));
         guardar.Click += (_, _) =>
         {
             try
             {
-                _logica.AbrirCaja(Sesion.IdUsuario);
+                _logica.AbrirCaja(Sesion.IdUsuario, _montoInicial.ObtenerMontoOCero());
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -390,20 +439,16 @@ public class FrmIngresoEfectivo : Form
     private readonly TurnoCaja _caja;
     private readonly TextBoxMonto _monto = new();
 
-    private readonly TextBox _contrasenaAdmin = new()
-        { Width = 220, MaxLength = 8, UseSystemPasswordChar = true, TextAlign = HorizontalAlignment.Center };
-
     public FrmIngresoEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
         _logica = logica;
         _caja = caja;
         EstiloCaja.Preparar(this, "Agregar efectivo");
-        Size = new Size(470, 360);
+        Size = new Size(470, 300);
         var agregar = EstiloCaja.BotonPuntoVenta("Registrar ingreso", Color.Green);
         Controls.Add(EstiloCaja.Centrar(
-            EstiloCaja.Etiqueta("El administrador registra el efectivo que entrega para el cambio."),
+            EstiloCaja.Etiqueta("Registrá el efectivo que se agrega a la caja para el cambio (una sola vez por caja)."),
             EstiloCaja.Etiqueta("Monto a ingresar"), _monto,
-            EstiloCaja.Etiqueta("Contraseña del administrador"), _contrasenaAdmin,
             agregar));
         agregar.Click += (_, _) =>
         {
@@ -417,7 +462,7 @@ public class FrmIngresoEfectivo : Form
 
             try
             {
-                _logica.AgregarEfectivo(_caja.IdTurnoCaja, monto, _contrasenaAdmin.Text);
+                _logica.AgregarEfectivo(_caja.IdTurnoCaja, monto, Sesion.IdUsuario);
                 MessageBox.Show(this, "Ingreso de efectivo registrado.", "Éxito", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 DialogResult = DialogResult.OK;
@@ -438,7 +483,7 @@ public class FrmCierreCaja : Form
     private readonly TurnoCaja _caja;
 
     private readonly NumericUpDown _efectivoContado = new()
-        { Minimum = 0m, Maximum = 999999999m, DecimalPlaces = 2, ThousandsSeparator = true, Width = 180 };
+    { Minimum = 0m, Maximum = 999999999m, DecimalPlaces = 2, ThousandsSeparator = true, Width = 180 };
 
     private readonly TextBox _motivoDiferencia = new() { Width = 280, MaxLength = 250 };
     private readonly decimal _efectivoEsperado;
@@ -453,7 +498,7 @@ public class FrmCierreCaja : Form
         _efectivoContado.Value = Math.Min(_efectivoEsperado, _efectivoContado.Maximum);
         var r = _logica.ObtenerResumen(caja.IdTurnoCaja);
         var root = new TableLayoutPanel
-            { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 1, RowCount = 5 };
+        { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 1, RowCount = 5 };
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -464,38 +509,54 @@ public class FrmCierreCaja : Form
         var apertura = new Label
         {
             Text = $"Caja de {caja.NombreEmpleado} · Fondo inicial de efectivo: {caja.MontoApertura:C2}",
-            Dock = DockStyle.Fill, Padding = new Padding(12), BackColor = Color.White,
-            Font = new Font("Segoe UI", 10F, FontStyle.Bold), AutoSize = true
+            Dock = DockStyle.Fill,
+            Padding = new Padding(12),
+            BackColor = Color.White,
+            Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+            AutoSize = true
         };
         root.Controls.Add(apertura, 0, 1);
         var grilla = new DataGridView
         {
-            Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, AllowUserToDeleteRows = false,
-            RowHeadersVisible = false, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-            BackgroundColor = Color.White, BorderStyle = BorderStyle.FixedSingle,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect, MultiSelect = false
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            RowHeadersVisible = false,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            BackgroundColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            MultiSelect = false
         };
         grilla.EnableHeadersVisualStyles = false;
         grilla.ColumnHeadersDefaultCellStyle.BackColor = Color.Gold;
         grilla.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
         grilla.Columns.Add(new DataGridViewTextBoxColumn
-            { Name = "Metodo", HeaderText = "Método de pago", ReadOnly = true });
+        { Name = "Metodo", HeaderText = "Método de pago", ReadOnly = true });
         grilla.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "Ventas", HeaderText = "Ventas cobradas", ReadOnly = true,
+            Name = "Ventas",
+            HeaderText = "Ventas cobradas",
+            ReadOnly = true,
             DefaultCellStyle = new() { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
         });
         grilla.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "CuentaCorriente", HeaderText = "Cobros de cuenta corriente", ReadOnly = true,
+            Name = "CuentaCorriente",
+            HeaderText = "Cobros de cuenta corriente",
+            ReadOnly = true,
             DefaultCellStyle = new() { Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight }
         });
         grilla.Columns.Add(new DataGridViewTextBoxColumn
         {
-            Name = "Total", HeaderText = "Total", ReadOnly = true,
+            Name = "Total",
+            HeaderText = "Total",
+            ReadOnly = true,
             DefaultCellStyle = new()
             {
-                Format = "C2", Alignment = DataGridViewContentAlignment.MiddleRight,
+                Format = "C2",
+                Alignment = DataGridViewContentAlignment.MiddleRight,
                 Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             }
         });
@@ -507,7 +568,7 @@ public class FrmCierreCaja : Form
             r.CobrosCuentaCorrienteTransferencia, r.Transferencia);
         root.Controls.Add(grilla, 0, 2);
         var pie = new TableLayoutPanel
-            { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true, Padding = new Padding(0, 12, 0, 0) };
+        { Dock = DockStyle.Fill, ColumnCount = 2, AutoSize = true, Padding = new Padding(0, 12, 0, 0) };
         var datosConteo = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Fill, WrapContents = true };
         datosConteo.Controls.Add(EstiloCaja.Etiqueta($"Efectivo esperado: {_efectivoEsperado:C2}"));
         datosConteo.Controls.Add(EstiloCaja.Etiqueta("Efectivo contado"));
@@ -516,14 +577,17 @@ public class FrmCierreCaja : Form
         datosConteo.Controls.Add(_motivoDiferencia);
         var efectivo = new Label
         {
-            Text = $"Diferencia: {_efectivoContado.Value - _efectivoEsperado:C2}", AutoSize = true,
-            Padding = new Padding(12), BackColor = Color.White, Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+            Text = $"Diferencia: {_efectivoContado.Value - _efectivoEsperado:C2}",
+            AutoSize = true,
+            Padding = new Padding(12),
+            BackColor = Color.White,
+            Font = new Font("Segoe UI", 11F, FontStyle.Bold),
             Anchor = AnchorStyles.Left
         };
         _efectivoContado.ValueChanged += (_, _) =>
             efectivo.Text = $"Diferencia: {_efectivoContado.Value - _efectivoEsperado:C2}";
         var acciones = new FlowLayoutPanel
-            { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
+        { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
         var confirmar = EstiloCaja.BotonPuntoVenta("Confirmar cierre", Color.Green);
         var cancelar = EstiloCaja.BotonPuntoVenta("Cancelar", Color.Firebrick);
         acciones.Controls.Add(confirmar);
@@ -559,7 +623,7 @@ public class FrmRetiroEfectivo : Form
     private readonly TextBoxMonto _monto = new();
 
     private readonly TextBox _contrasena = new()
-        { UseSystemPasswordChar = true, Width = 220, MaxLength = 8, TextAlign = HorizontalAlignment.Center };
+    { UseSystemPasswordChar = true, Width = 220, MaxLength = 8, TextAlign = HorizontalAlignment.Center };
 
     public FrmRetiroEfectivo(LogicaCaja logica, TurnoCaja caja)
     {
