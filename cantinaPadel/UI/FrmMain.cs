@@ -47,11 +47,17 @@ namespace cantinaPadel
             btnReportes.Visible = esAdmin;
         }
 
-        // Carga el módulo por defecto al iniciar la aplicación, mostrando el título "Inicio" en la interfaz
+        // Al ingresar al sistema, la primera pantalla es siempre la Caja (para abrirla o ver su estado)
         private void CargarModuloPorDefecto()
         {
+            AbrirCaja();
+        }
 
-            lblTituloModulo.Text = "Inicio";
+        // Muestra el módulo Caja en el panel de contenido
+        private void AbrirCaja()
+        {
+            Navegar("Caja");
+            AbrirEnPanel(new cantinaPadel.UI.FrmGestionCaja());
         }
 
 
@@ -87,8 +93,8 @@ namespace cantinaPadel
             }
         }
 
-        // Evita salir del programa con la X (o Alt+F4) mientras el usuario tenga su caja abierta.
-        // Solo se bloquea el cierre iniciado por el usuario: un apagado de Windows no se frena.
+        // Evita salir del programa con la X (o Alt+F4) mientras el usuario tenga su caja abierta
+        // Solo se bloquea el cierre iniciado por el usuario: un apagado de Windows no se frena
         // Al cerrar sesión, Sesion.CerrarSesion() ya se ejecutó antes de Close(), por eso Sesion.Activa evita volver a validar
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
@@ -118,6 +124,31 @@ namespace cantinaPadel
             }
         }
 
+        // Verifica que el usuario logueado tenga su caja abierta antes de entrar al Punto de Venta
+        private bool PuedeUsarPuntoVenta()
+        {
+            try
+            {
+                var logicaCaja = new LogicaCaja();
+                if (logicaCaja.ObtenerCajaAbierta(Sesion.IdUsuario) != null)
+                    return true;
+
+                var cajaAbierta = logicaCaja.ObtenerCajaAbiertaGeneral();
+                string mensaje = cajaAbierta == null
+                    ? "La caja está cerrada. Abrí la caja para poder usar el Punto de Venta."
+                    : $"La caja está abierta por {cajaAbierta.NombreEmpleado}. Ese turno debe cerrarse y luego abrir tu caja para usar el Punto de Venta.";
+
+                MessageBox.Show(this, mensaje, "Caja cerrada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show(this, "No se pudo verificar el estado de la caja. Intente nuevamente.",
+                    "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            return false;
+        }
+
         private void AvisarCajaAbierta(string accion)
         {
             MessageBox.Show(this,
@@ -142,6 +173,13 @@ namespace cantinaPadel
         }
         private void btnPuntoVenta_Click(object sender, EventArgs e)
         {
+            // Sin caja abierta no se puede vender: se avisa y se lleva al usuario a la pantalla de Caja
+            if (!PuedeUsarPuntoVenta())
+            {
+                AbrirCaja();
+                return;
+            }
+
             Navegar("Punto de Venta");
             cantinaPadel.UI.FrmPuntoVenta frm = new cantinaPadel.UI.FrmPuntoVenta();
             AbrirEnPanel(frm);
@@ -165,11 +203,7 @@ namespace cantinaPadel
             cantinaPadel.UI.FrmCanchas frm = new cantinaPadel.UI.FrmCanchas();
             AbrirEnPanel(frm);
         }
-        private void btnCaja_Click(object sender, EventArgs e)
-        {
-            Navegar("Caja");
-            AbrirEnPanel(new cantinaPadel.UI.FrmGestionCaja());
-        }
+        private void btnCaja_Click(object sender, EventArgs e) => AbrirCaja();
         private void btnProveedores_Click(object sender, EventArgs e)
         {
             Navegar("Proveedores");
