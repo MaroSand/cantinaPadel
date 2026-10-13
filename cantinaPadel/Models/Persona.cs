@@ -82,7 +82,7 @@ namespace cantinaPadel.Models
             Direccion = Direccion?.Trim();
         }
 
-        // Normaliza un nombre o apellido: quita espacios de más (bordes y repetidos) y deja cada palabra capitalizada
+        // Normaliza un nombre o apellido: quita espacios de más (bordes y repetidos) y deja cada palabra capitalizada.
         // Se usa al guardar, así en la base queda siempre un único formato, y se muestra igual en todo el sistema
         public static string CapitalizarNombre(string? texto)
         {
@@ -187,8 +187,9 @@ namespace cantinaPadel.Models
 
         public static void ValidarTelefono(string? telefono)
         {
-            if (!string.IsNullOrWhiteSpace(telefono) && !Regex.IsMatch(telefono, @"^[\d\s\-\+]{6,20}$"))
-                throw new ArgumentException("Ingrese un número de teléfono valido. Por ejemplo: 3644123456");
+            // Solo dígitos (sin espacios, guiones ni "+"), de 8 a 10 números: código de área + número, por ejemplo 3644123456
+            if (!string.IsNullOrWhiteSpace(telefono) && !Regex.IsMatch(telefono, @"^[0-9]{8,10}$"))
+                throw new ArgumentException("Ingrese un número de teléfono válido: solo números, entre 8 y 10 dígitos, sin espacios ni guiones. Por ejemplo: 3644123456");
         }
 
         public static void ValidarCondicionIva(string? condicionIva)

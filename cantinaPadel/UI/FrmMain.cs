@@ -207,7 +207,7 @@ namespace cantinaPadel
         }
         private void btnTurnos_Click(object sender, EventArgs e)
         {
-            Navegar("Alquiler por Dia");
+            Navegar("Turnos");
             cantinaPadel.UI.FrmAlquilerDia frm = new cantinaPadel.UI.FrmAlquilerDia();
             AbrirEnPanel(frm);
         }
