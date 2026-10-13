@@ -242,10 +242,11 @@
             // txtTelefono
             // 
             txtTelefono.Location = new System.Drawing.Point(980, 307);
-            txtTelefono.MaxLength = 20;
+            txtTelefono.MaxLength = 10;
             txtTelefono.Name = "txtTelefono";
             txtTelefono.Size = new System.Drawing.Size(266, 39);
             txtTelefono.TabIndex = 6;
+            txtTelefono.KeyPress += txtTelefono_KeyPress;
             // 
             // lblDireccion
             // 
@@ -287,25 +288,25 @@
 
         #endregion
 
-        private Panel    panelHeader;
+        private Panel panelHeader;
         private System.Windows.Forms.Panel panelCuerpo;
-        private Label    lblTitulo;
+        private Label lblTitulo;
         private System.Windows.Forms.Label lblNombreEmpresa;
         private System.Windows.Forms.TextBox txtNombreEmpresa;
-        private Label    lblNombre;
-        private TextBox  txtNombre;
-        private Label    lblApellido;
-        private TextBox  txtApellido;
-        private Label    lblDni;
-        private TextBox  txtDni;
-        private Label    lblCuit;
-        private TextBox  txtCuit;
-        private Label    lblCondicionIva;
+        private Label lblNombre;
+        private TextBox txtNombre;
+        private Label lblApellido;
+        private TextBox txtApellido;
+        private Label lblDni;
+        private TextBox txtDni;
+        private Label lblCuit;
+        private TextBox txtCuit;
+        private Label lblCondicionIva;
         private ComboBox cmbCondicionIva;
-        private Label    lblTelefono;
-        private TextBox  txtTelefono;
-        private Label    lblDireccion;
-        private TextBox  txtDireccion;
+        private Label lblTelefono;
+        private TextBox txtTelefono;
+        private Label lblDireccion;
+        private TextBox txtDireccion;
         private Button btnGuardar;
         private Button btnCancelar;
     }

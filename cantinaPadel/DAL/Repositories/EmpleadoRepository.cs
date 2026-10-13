@@ -23,15 +23,16 @@ namespace cantinaPadel.DAL.Repositories
                     e.Activo == true);
         }
 
-        // Busca el empleado solo por nombre de usuario (sin validar contraseña)
-        // Se usa en el login para poder distinguir "usuario inexistente" de "contraseña incorrecta"
+        // Busca el empleado solo por nombre de usuario (sin validar contraseña) y sin filtrar por estado
+        // Se usa en el login para poder distinguir "usuario inexistente", "contraseña incorrecta" y "usuario inhabilitado"
+        // (el estado Activo lo evalúa LogicaUsuario)
         public Empleado? ObtenerPorUsuario(string nombreUsuario)
         {
             using var context = new AppDbContext();
 
             return context.Empleados
                 .Include(e => e.Persona)
-                .FirstOrDefault(e => e.NombreUsuario == nombreUsuario && e.Activo == true);
+                .FirstOrDefault(e => e.NombreUsuario == nombreUsuario);
         }
 
         // Listar todo: Trae los empleados con su persona asociada

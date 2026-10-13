@@ -71,8 +71,15 @@ namespace cantinaPadel
                     txtContrasenia.SelectAll();
                     break;
 
+                case ResultadoLogin.UsuarioInhabilitado:
+                    MessageBox.Show("El usuario se encuentra inhabilitado. Comuníquese con un administrador.", "Usuario inhabilitado",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtUsuario.Focus();
+                    txtUsuario.SelectAll();
+                    break;
+
                 case ResultadoLogin.UsuarioNoEncontrado:
-                    MessageBox.Show("No existe un usuario activo con ese nombre.", "Usuario no encontrado",
+                    MessageBox.Show("No existe un usuario con ese nombre.", "Usuario no encontrado",
                                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                     txtUsuario.Focus();
                     txtUsuario.SelectAll();
@@ -106,7 +113,8 @@ namespace cantinaPadel
             }
         }
 
-        // Solo permite dígitos en la contraseña y Backspace, para poder borrar char.IsControl cubre Backspace, Delete, etc. sin bloquear la edición normal
+        // Solo permite dígitos en la contraseña y Backspace, para poder borrar
+        // char.IsControl cubre Backspace, Delete, etc. sin bloquear la edición normal
         private void txtContrasenia_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
