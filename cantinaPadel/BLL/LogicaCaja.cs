@@ -22,10 +22,13 @@ public class LogicaCaja
     public TurnoCaja? ObtenerCajaAbiertaGeneral() => _cajas.ObtenerCajaAbiertaGeneral();
     public List<TurnoCaja> ObtenerHistorial(int idEmpleado) => _cajas.ObtenerHistorial(idEmpleado);
 
+    // El historial de ingresos y retiros de efectivo es solo para el administrador
     public List<MovimientoEfectivoHistorial> ObtenerHistorialEfectivo(int idUsuario, string? rol)
     {
         if (idUsuario <= 0) throw new ArgumentException("No hay un usuario autenticado.");
-        return _cajas.ObtenerHistorialEfectivo(rol == "Admin" ? null : idUsuario);
+        if (rol != "Admin")
+            throw new UnauthorizedAccessException("Solo un administrador puede consultar el historial de ingresos y retiros.");
+        return _cajas.ObtenerHistorialEfectivo(null);
     }
 
     public List<TurnoCaja> ObtenerTodoHistorial(string? rol)
@@ -72,6 +75,13 @@ public class LogicaCaja
         _cajas.Cerrar(idCaja, ObtenerResumen(idCaja), efectivoEsperado, efectivoContado, diferencia,
             motivoDiferencia?.Trim());
     }
+
+    // Total retirado de la caja en el turno (se muestra en el cierre de caja)
+    public decimal ObtenerRetiros(int idCaja) => _cajas.ObtenerDatosEfectivo(idCaja).Retiros;
+
+    // Efectivo ingresado a la caja en el turno, sin contar el fondo inicial
+    public decimal ObtenerIngresos(int idCaja) =>
+        _cajas.ObtenerDatosEfectivo(idCaja).AperturaMasIngresos - _cajas.Obtener(idCaja).MontoApertura;
 
     public decimal ObtenerEfectivoDisponible(int idCaja)
     {

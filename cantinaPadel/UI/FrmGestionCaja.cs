@@ -247,6 +247,13 @@ public class FrmGestionCaja : Form
         });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
+            DataPropertyName = nameof(TurnoCaja.Retiros),
+            HeaderText = "Retiros",
+            Width = 100,
+            DefaultCellStyle = new() { Format = "C2" }
+        });
+        _historial.Columns.Add(new DataGridViewTextBoxColumn
+        {
             DataPropertyName = nameof(TurnoCaja.EfectivoFinal),
             HeaderText = "Efectivo contado",
             Width = 125,
@@ -312,7 +319,8 @@ public class FrmGestionCaja : Form
         var tabMovimientos = new TabPage("Ingresos y retiros");
         tabMovimientos.Controls.Add(_historialEfectivo);
         pestañas.TabPages.Add(tabCajas);
-        pestañas.TabPages.Add(tabMovimientos);
+        // El historial de ingresos y retiros solo lo ve el administrador
+        if (Sesion.Rol == "Admin") pestañas.TabPages.Add(tabMovimientos);
         root.Controls.Add(pestañas);
         Controls.Add(root);
         _abrir.Click += (_, _) =>
@@ -391,7 +399,8 @@ public class FrmGestionCaja : Form
             _historial.DataSource = Sesion.Rol == "Admin"
                 ? _logica.ObtenerTodoHistorial(Sesion.Rol)
                 : _logica.ObtenerHistorial(Sesion.IdUsuario);
-            _historialEfectivo.DataSource = _logica.ObtenerHistorialEfectivo(Sesion.IdUsuario, Sesion.Rol);
+            if (Sesion.Rol == "Admin")
+                _historialEfectivo.DataSource = _logica.ObtenerHistorialEfectivo(Sesion.IdUsuario, Sesion.Rol);
         }
         catch (Exception ex)
         {
@@ -416,6 +425,8 @@ public class FrmAperturaCaja : Form
             EstiloCaja.Etiqueta("Ingresá el efectivo con el que se abre la caja."),
             EstiloCaja.Etiqueta("Monto inicial"), _montoInicial,
             guardar));
+        // Enter confirma la apertura, igual que presionar "Abrir caja"
+        AcceptButton = guardar;
         guardar.Click += (_, _) =>
         {
             try
@@ -450,6 +461,8 @@ public class FrmIngresoEfectivo : Form
             EstiloCaja.Etiqueta("Registrá el efectivo que se agrega a la caja para el cambio (una sola vez por caja)."),
             EstiloCaja.Etiqueta("Monto a ingresar"), _monto,
             agregar));
+        // Enter registra el ingreso, igual que presionar "Registrar ingreso"
+        AcceptButton = agregar;
         agregar.Click += (_, _) =>
         {
             if (!_monto.TryObtenerMonto(out var monto))
@@ -497,6 +510,8 @@ public class FrmCierreCaja : Form
         _efectivoEsperado = _logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja);
         _efectivoContado.Value = Math.Min(_efectivoEsperado, _efectivoContado.Maximum);
         var r = _logica.ObtenerResumen(caja.IdTurnoCaja);
+        var ingresos = _logica.ObtenerIngresos(caja.IdTurnoCaja);
+        var retiros = _logica.ObtenerRetiros(caja.IdTurnoCaja);
         var root = new TableLayoutPanel
         { Dock = DockStyle.Fill, Padding = new Padding(20), ColumnCount = 1, RowCount = 5 };
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
@@ -508,7 +523,7 @@ public class FrmCierreCaja : Form
             0);
         var apertura = new Label
         {
-            Text = $"Caja de {caja.NombreEmpleado} · Fondo inicial de efectivo: {caja.MontoApertura:C2}",
+            Text = $"Caja de {caja.NombreEmpleado} · Fondo inicial: {caja.MontoApertura:C2} · Ingresos: {ingresos:C2} · Retiros: {retiros:C2}",
             Dock = DockStyle.Fill,
             Padding = new Padding(12),
             BackColor = Color.White,
@@ -637,6 +652,8 @@ public class FrmRetiroEfectivo : Form
             EstiloCaja.Etiqueta("Monto a retirar"), _monto,
             EstiloCaja.Etiqueta("Contraseña del administrador"), _contrasena,
             retirar));
+        // Enter confirma el retiro, igual que presionar "Confirmar retiro"
+        AcceptButton = retirar;
         retirar.Click += (_, _) =>
         {
             if (!_monto.TryObtenerMonto(out var monto))

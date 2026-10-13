@@ -25,6 +25,20 @@ public class CajaRepository : ICajaRepository
         return turnos;
     }
 
+    // Completa Retiros (total retirado por turno) con una sola consulta agrupada para toda la lista
+    private static List<TurnoCaja> CompletarRetiros(AppDbContext ctx, List<TurnoCaja> turnos)
+    {
+        var ids = turnos.Select(t => t.IdTurnoCaja).ToList();
+        var totales = ctx.RetirosCaja
+            .Where(r => ids.Contains(r.IdTurnoCaja))
+            .GroupBy(r => r.IdTurnoCaja)
+            .Select(g => new { IdTurnoCaja = g.Key, Total = g.Sum(r => r.Monto) })
+            .ToDictionary(x => x.IdTurnoCaja, x => x.Total);
+        foreach (var turno in turnos)
+            turno.Retiros = totales.GetValueOrDefault(turno.IdTurnoCaja, 0m);
+        return turnos;
+    }
+
     private static TurnoCaja? CompletarNombres(AppDbContext ctx, TurnoCaja? turno)
     {
         if (turno != null) CompletarNombres(ctx, new List<TurnoCaja> { turno });
@@ -49,14 +63,14 @@ public class CajaRepository : ICajaRepository
     public List<TurnoCaja> ObtenerHistorial(int idEmpleado)
     {
         using var ctx = new AppDbContext();
-        return CompletarNombres(ctx,
-            ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado).OrderByDescending(c => c.FechaApertura).ToList());
+        return CompletarRetiros(ctx, CompletarNombres(ctx,
+            ctx.TurnosCaja.Where(c => c.IdEmpleado == idEmpleado).OrderByDescending(c => c.FechaApertura).ToList()));
     }
 
     public List<TurnoCaja> ObtenerTodoHistorial()
     {
         using var ctx = new AppDbContext();
-        return CompletarNombres(ctx, ctx.TurnosCaja.OrderByDescending(c => c.FechaApertura).ToList());
+        return CompletarRetiros(ctx, CompletarNombres(ctx, ctx.TurnosCaja.OrderByDescending(c => c.FechaApertura).ToList()));
     }
 
     public List<MovimientoEfectivoHistorial> ObtenerHistorialEfectivo(int? idEmpleado)

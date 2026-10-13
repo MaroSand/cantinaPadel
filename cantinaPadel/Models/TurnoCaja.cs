@@ -53,4 +53,8 @@ public class TurnoCaja
 
     [NotMapped]
     public string NombreEmpleado { get; set; } = string.Empty;
+
+    // Total retirado en el turno, calculado desde retiros_caja al consultar el historial (no es una columna)
+    [NotMapped]
+    public decimal Retiros { get; set; }
 }
