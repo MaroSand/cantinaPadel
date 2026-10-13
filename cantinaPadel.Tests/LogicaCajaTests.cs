@@ -477,4 +477,67 @@ public class LogicaCajaTests
 
         Assert.ThrowsExactly<ArgumentException>(() => logica.ObtenerHistorialEfectivo(0, "Empleado"));
     }
+
+    // Historial de ingresos y retiros: solo para el administrador
+    [TestMethod]
+    public void ObtenerHistorialEfectivo_ComoEmpleado_Lanza()
+    {
+        var (logica, _) = Crear();
+
+        Assert.ThrowsExactly<UnauthorizedAccessException>(() => logica.ObtenerHistorialEfectivo(IdEmpleadoDuenio, "Empleado"));
+    }
+
+    [TestMethod]
+    public void ObtenerHistorialEfectivo_SinRol_Lanza()
+    {
+        var (logica, _) = Crear();
+
+        Assert.ThrowsExactly<UnauthorizedAccessException>(() => logica.ObtenerHistorialEfectivo(IdEmpleadoDuenio, null));
+    }
+
+    [TestMethod]
+    public void ObtenerHistorialEfectivo_ComoAdmin_NoLanza()
+    {
+        var (logica, _) = Crear();
+
+        Assert.IsNotNull(logica.ObtenerHistorialEfectivo(IdAdmin, "Admin"));
+    }
+
+    // Retiros e ingresos que se muestran en el cierre de caja
+    [TestMethod]
+    public void ObtenerRetiros_DevuelveElTotalRetiradoEnElTurno()
+    {
+        var (logica, repo) = Crear();
+        repo.Datos = new EfectivoCajaDatos(6000m, 2000m, 0m, 1500m);
+
+        Assert.AreEqual(1500m, logica.ObtenerRetiros(1));
+    }
+
+    [TestMethod]
+    public void ObtenerRetiros_SinRetiros_EsCero()
+    {
+        var (logica, repo) = Crear();
+        repo.Datos = new EfectivoCajaDatos(5000m, 2000m, 0m, 0m);
+
+        Assert.AreEqual(0m, logica.ObtenerRetiros(1));
+    }
+
+    [TestMethod]
+    public void ObtenerIngresos_ExcluyeElFondoInicial()
+    {
+        var (logica, repo) = Crear();
+        // El turno del fake abre con 1000; el repositorio informa apertura + ingresos = 2500
+        repo.Datos = new EfectivoCajaDatos(2500m, 0m, 0m, 0m);
+
+        Assert.AreEqual(1500m, logica.ObtenerIngresos(1));
+    }
+
+    [TestMethod]
+    public void ObtenerIngresos_SinIngresos_EsCero()
+    {
+        var (logica, repo) = Crear();
+        repo.Datos = new EfectivoCajaDatos(1000m, 0m, 0m, 0m);
+
+        Assert.AreEqual(0m, logica.ObtenerIngresos(1));
+    }
 }

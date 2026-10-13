@@ -273,7 +273,7 @@ namespace cantinaPadel.UI
                 dgvHorarios.DataSource = null;
                 dgvHorarios.DataSource = horarios;
                 lblSeleccionHorario.Text = horarios.Count == 0
-                    ? "Horarios disponibles: no hay franjas configuradas para mostrar."
+                    ? "No quedan horarios disponibles para hoy."
                     : "Horarios disponibles: seleccione una banda libre.";
             }
             catch (Exception ex)
@@ -462,7 +462,9 @@ namespace cantinaPadel.UI
             string estado = dgvHorarios.CurrentRow.Cells["Estado"].Value?.ToString() ?? string.Empty;
             if (!string.Equals(estado, "Libre", StringComparison.OrdinalIgnoreCase))
             {
-                lblSeleccionHorario.Text = "La banda seleccionada ya esta ocupada.";
+                lblSeleccionHorario.Text = string.Equals(estado, "Iniciado", StringComparison.OrdinalIgnoreCase)
+                    ? "La banda seleccionada ya empezó o ya pasó."
+                    : "La banda seleccionada ya esta ocupada.";
                 return;
             }
 

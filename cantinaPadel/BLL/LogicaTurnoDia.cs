@@ -42,6 +42,9 @@ namespace cantinaPadel.BLL
         private readonly IClienteRepository _clienteRepo;
         private readonly IHorarioCanchaRepository _horarioCanchaRepo;
 
+        // Reloj inyectable: en producción es la hora actual; en los tests se fija para validar horarios "ya pasados"
+        private readonly Func<DateTime> _ahora;
+
         public LogicaTurnoDia()
             : this(new TurnoDíaRepository(), new CanchaRepository(), new ClienteRepository(), new HorarioCanchaRepository())
         {
@@ -53,8 +56,10 @@ namespace cantinaPadel.BLL
             ITurnoDíaRepository turnoRepo,
             ICanchaRepository canchaRepo,
             IClienteRepository clienteRepo,
-            IHorarioCanchaRepository horarioCanchaRepo)
+            IHorarioCanchaRepository horarioCanchaRepo,
+            Func<DateTime>? ahora = null)
         {
+            _ahora = ahora ?? (() => DateTime.Now);
             _turnoRepo = turnoRepo;
             _canchaRepo = canchaRepo;
             _clienteRepo = clienteRepo;
@@ -101,9 +106,13 @@ namespace cantinaPadel.BLL
             var bandas = ObtenerBandasHorarias(idCancha, fecha);
             var reservas = _turnoRepo.ObtenerInstanciasPorFecha(fecha.Date, idCancha);
 
+            var ahora = _ahora();
+
             return GenerarInicios(bandas)
                 // Debe entrar completo dentro de la banda que lo contiene, no puede "saltar" el hueco cerrado entre dos bandas
                 .Where(x => x.Inicio + DuracionTurno <= x.FinBanda)
+                // Los horarios de hoy que ya pasaron o están en curso no se listan
+                .Where(x => !YaIniciado(fecha, x.Inicio, ahora))
                 .Select(x => new HorarioTurnoDiaDisponible
                 {
                     IdCancha = cancha.IdCancha,
@@ -179,6 +188,11 @@ namespace cantinaPadel.BLL
             // ObtenerHorarios (ej: 01:30 -> 25:30), así validación, solapamientos y persistencia usan la misma representación
             (horaInicio, horaFin) = ValidarFranja(idCancha, fechaInicio, horaInicio, horaFin);
 
+            // El primer turno no puede ser un horario que ya pasó o está en curso (ej: a las 16:30 no se reserva el de las 16:00).
+            // Los turnos fijos siguientes caen en fechas futuras, así que alcanza con validar el primero
+            if (YaIniciado(fechaInicio, horaInicio, _ahora()))
+                throw new ArgumentException("No se puede registrar un turno cuyo horario ya pasó o está en curso.");
+
             var fechas = GenerarFechasReserva(modalidad, fechaInicio);
             var fechasOcupadas = fechas
                 .Where(fecha => !_turnoRepo.EstaDisponible(idCancha, fecha, horaInicio, horaFin))
@@ -200,7 +214,7 @@ namespace cantinaPadel.BLL
                 Estado = TurnoReservado.EstadoActivo
             };
 
-   
+
             string diaSemana = ObtenerDiaSemana(fechaInicio);
             var horario = _turnoRepo.ObtenerHorarioPorFranja(idCancha, diaSemana, horaInicio, horaFin)
                 ?? new HorarioCancha
@@ -250,6 +264,11 @@ namespace cantinaPadel.BLL
             // ese día y todos los siguientes, dejando intactos los anteriores
             _turnoRepo.CancelarTurnoDesdeInstancia(idInstancia, instancia.Fecha);
         }
+
+        // Un horario "ya inició" cuando su hora de comienzo es igual o anterior a la hora actual.
+        // horaInicio puede superar las 24hs (banda que cruza medianoche, ej: 25:30 = 01:30 del día siguiente), por eso se suma a la fecha
+        private static bool YaIniciado(DateTime fecha, TimeSpan horaInicio, DateTime ahora) =>
+            fecha.Date + horaInicio <= ahora;
 
         private static void ValidarModalidad(string modalidad)
         {
