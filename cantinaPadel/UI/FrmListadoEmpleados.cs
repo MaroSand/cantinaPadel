@@ -85,7 +85,10 @@ namespace cantinaPadel.UI
                                      (e.Persona?.Nombre != null && e.Persona.Nombre.ToLower().Contains(buscar)) ||
                                      (e.Persona?.Apellido != null && e.Persona.Apellido.ToLower().Contains(buscar)) ||
                                      (e.Persona?.Nombre != null && e.Persona?.Apellido != null && $"{e.Persona.Nombre} {e.Persona.Apellido}".ToLower().Contains(buscar)) ||
-                                     (e.Persona?.Nombre != null && e.Persona?.Apellido != null && $"{e.Persona.Apellido} {e.Persona.Nombre}".ToLower().Contains(buscar));
+                                     (e.Persona?.Nombre != null && e.Persona?.Apellido != null && $"{e.Persona.Apellido} {e.Persona.Nombre}".ToLower().Contains(buscar)) ||
+                                     // Busca por nombre de usuario y por DNI (útil cuando hay empleados con nombres parecidos)
+                                     (e.NombreUsuario != null && e.NombreUsuario.ToLower().Contains(buscar)) ||
+                                     (e.Persona?.Dni != null && e.Persona.Dni.ToLower().Contains(buscar));
 
                 // Se evalúa el estado lógico leyendo el texto del combobox de forma explícita
                 bool coincideEstado = false;

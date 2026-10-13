@@ -79,10 +79,10 @@
             // 
             // txtBuscarNombre
             // 
-            txtBuscarNombre.Location = new System.Drawing.Point(375, 26);
+            txtBuscarNombre.Location = new System.Drawing.Point(425, 26);
             txtBuscarNombre.Margin = new System.Windows.Forms.Padding(5);
             txtBuscarNombre.Name = "txtBuscarNombre";
-            txtBuscarNombre.Size = new System.Drawing.Size(384, 39);
+            txtBuscarNombre.Size = new System.Drawing.Size(360, 39);
             txtBuscarNombre.TabIndex = 1;
             // 
             // label1
@@ -91,9 +91,9 @@
             label1.Location = new System.Drawing.Point(34, 30);
             label1.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             label1.Name = "label1";
-            label1.Size = new System.Drawing.Size(325, 32);
+            label1.Size = new System.Drawing.Size(375, 32);
             label1.TabIndex = 0;
-            label1.Text = "Buscar por Nombre/Empresa:";
+            label1.Text = "Buscar por Nombre/Empresa/DNI:";
             // 
             // panelAcciones
             // 

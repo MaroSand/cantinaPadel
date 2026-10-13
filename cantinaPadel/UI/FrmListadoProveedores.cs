@@ -85,7 +85,8 @@ namespace cantinaPadel.UI
                                      $"{p.Persona.Nombre} {p.Persona.Apellido}".ToLower().Contains(buscar) ||
                                      $"{p.Persona.Apellido} {p.Persona.Nombre}".ToLower().Contains(buscar) ||
                                      (p.NombreEmpresa != null && p.NombreEmpresa.ToLower().Contains(buscar)) ||
-                                     (p.Persona.Cuit != null && p.Persona.Cuit.Contains(buscar));
+                                     (p.Persona.Cuit != null && p.Persona.Cuit.Contains(buscar)) ||
+                                     (p.Persona.Dni != null && p.Persona.Dni.ToLower().Contains(buscar));
 
                 bool coincideEstado = filtroEstado switch
                 {

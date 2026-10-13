@@ -77,10 +77,10 @@
             // 
             // txtBuscarNombre
             // 
-            txtBuscarNombre.Location = new Point(231, 16);
+            txtBuscarNombre.Location = new Point(285, 16);
             txtBuscarNombre.MaxLength = 30;
             txtBuscarNombre.Name = "txtBuscarNombre";
-            txtBuscarNombre.Size = new Size(238, 27);
+            txtBuscarNombre.Size = new Size(215, 27);
             txtBuscarNombre.TabIndex = 1;
             txtBuscarNombre.TextChanged += txtBuscarNombre_TextChanged;
             // 
@@ -91,7 +91,7 @@
             label1.Name = "label1";
             label1.Size = new Size(204, 20);
             label1.TabIndex = 0;
-            label1.Text = "Buscar por Nombre/Apellido:";
+            label1.Text = "Buscar por nombre, usuario o DNI:";
             // 
             // panelAcciones
             // 
