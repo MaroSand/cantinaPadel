@@ -36,13 +36,11 @@
             btnCaja = new Button();
             btnCanchas = new Button();
             btnTurnos = new Button();
-            btnCompras = new Button();
             btnStock = new Button();
             btnPuntoVenta = new Button();
             btnProveedores = new Button();
             btnEmpleados = new Button();
             btnClientes = new Button();
-            btnInicio = new Button();
             pnlSidebarHeader = new Panel();
             lblRolUsuario = new Label();
             lblSistema = new Label();
@@ -106,13 +104,11 @@
             pnlNav.Controls.Add(btnCaja);
             pnlNav.Controls.Add(btnCanchas);
             pnlNav.Controls.Add(btnTurnos);
-            pnlNav.Controls.Add(btnCompras);
             pnlNav.Controls.Add(btnStock);
             pnlNav.Controls.Add(btnPuntoVenta);
             pnlNav.Controls.Add(btnProveedores);
             pnlNav.Controls.Add(btnEmpleados);
             pnlNav.Controls.Add(btnClientes);
-            pnlNav.Controls.Add(btnInicio);
             pnlNav.Dock = DockStyle.Fill;
             pnlNav.Location = new Point(0, 85);
             pnlNav.Margin = new Padding(3, 4, 3, 4);
@@ -122,16 +118,16 @@
             // 
             // btnReportes
             // 
-            btnReportes.BackColor = SystemColors.Info;
+            btnReportes.BackColor = Color.White;
             btnReportes.Dock = DockStyle.Top;
             btnReportes.FlatAppearance.BorderSize = 0;
             btnReportes.FlatStyle = FlatStyle.Flat;
-            btnReportes.Location = new Point(0, 600);
+            btnReportes.Location = new Point(0, 480);
             btnReportes.Margin = new Padding(3, 4, 3, 4);
             btnReportes.Name = "btnReportes";
             btnReportes.Padding = new Padding(11, 0, 0, 0);
             btnReportes.Size = new Size(229, 60);
-            btnReportes.TabIndex = 10;
+            btnReportes.TabIndex = 8;
             btnReportes.Text = "Reportes";
             btnReportes.TextAlign = ContentAlignment.MiddleLeft;
             btnReportes.UseVisualStyleBackColor = false;
@@ -139,11 +135,11 @@
             // 
             // btnCaja
             // 
-            btnCaja.BackColor = Color.White;
+            btnCaja.BackColor = SystemColors.Info;
             btnCaja.Dock = DockStyle.Top;
             btnCaja.FlatAppearance.BorderSize = 0;
             btnCaja.FlatStyle = FlatStyle.Flat;
-            btnCaja.Location = new Point(0, 540);
+            btnCaja.Location = new Point(0, 420);
             btnCaja.Margin = new Padding(3, 4, 3, 4);
             btnCaja.Name = "btnCaja";
             btnCaja.Padding = new Padding(11, 0, 0, 0);
@@ -156,11 +152,11 @@
             // 
             // btnCanchas
             // 
-            btnCanchas.BackColor = SystemColors.Info;
+            btnCanchas.BackColor = Color.White;
             btnCanchas.Dock = DockStyle.Top;
             btnCanchas.FlatAppearance.BorderSize = 0;
             btnCanchas.FlatStyle = FlatStyle.Flat;
-            btnCanchas.Location = new Point(0, 480);
+            btnCanchas.Location = new Point(0, 360);
             btnCanchas.Margin = new Padding(3, 4, 3, 4);
             btnCanchas.Name = "btnCanchas";
             btnCanchas.Padding = new Padding(11, 0, 0, 0);
@@ -173,11 +169,11 @@
             // 
             // btnTurnos
             // 
-            btnTurnos.BackColor = Color.White;
+            btnTurnos.BackColor = SystemColors.Info;
             btnTurnos.Dock = DockStyle.Top;
             btnTurnos.FlatAppearance.BorderSize = 0;
             btnTurnos.FlatStyle = FlatStyle.Flat;
-            btnTurnos.Location = new Point(0, 420);
+            btnTurnos.Location = new Point(0, 300);
             btnTurnos.Margin = new Padding(3, 4, 3, 4);
             btnTurnos.Name = "btnTurnos";
             btnTurnos.Padding = new Padding(11, 0, 0, 0);
@@ -188,35 +184,18 @@
             btnTurnos.UseVisualStyleBackColor = false;
             btnTurnos.Click += btnTurnos_Click;
             // 
-            // btnCompras
-            // 
-            btnCompras.BackColor = SystemColors.Info;
-            btnCompras.Dock = DockStyle.Top;
-            btnCompras.FlatAppearance.BorderSize = 0;
-            btnCompras.FlatStyle = FlatStyle.Flat;
-            btnCompras.Location = new Point(0, 360);
-            btnCompras.Margin = new Padding(3, 4, 3, 4);
-            btnCompras.Name = "btnCompras";
-            btnCompras.Padding = new Padding(11, 0, 0, 0);
-            btnCompras.Size = new Size(229, 60);
-            btnCompras.TabIndex = 4;
-            btnCompras.Text = "Compras";
-            btnCompras.TextAlign = ContentAlignment.MiddleLeft;
-            btnCompras.UseVisualStyleBackColor = false;
-            btnCompras.Click += btnCompras_Click;
-            // 
             // btnStock
             // 
             btnStock.BackColor = Color.White;
             btnStock.Dock = DockStyle.Top;
             btnStock.FlatAppearance.BorderSize = 0;
             btnStock.FlatStyle = FlatStyle.Flat;
-            btnStock.Location = new Point(0, 300);
+            btnStock.Location = new Point(0, 240);
             btnStock.Margin = new Padding(3, 4, 3, 4);
             btnStock.Name = "btnStock";
             btnStock.Padding = new Padding(11, 0, 0, 0);
             btnStock.Size = new Size(229, 60);
-            btnStock.TabIndex = 3;
+            btnStock.TabIndex = 4;
             btnStock.Text = "Inventario";
             btnStock.TextAlign = ContentAlignment.MiddleLeft;
             btnStock.UseVisualStyleBackColor = false;
@@ -228,12 +207,12 @@
             btnPuntoVenta.Dock = DockStyle.Top;
             btnPuntoVenta.FlatAppearance.BorderSize = 0;
             btnPuntoVenta.FlatStyle = FlatStyle.Flat;
-            btnPuntoVenta.Location = new Point(0, 240);
+            btnPuntoVenta.Location = new Point(0, 180);
             btnPuntoVenta.Margin = new Padding(3, 4, 3, 4);
             btnPuntoVenta.Name = "btnPuntoVenta";
             btnPuntoVenta.Padding = new Padding(11, 0, 0, 0);
             btnPuntoVenta.Size = new Size(229, 60);
-            btnPuntoVenta.TabIndex = 2;
+            btnPuntoVenta.TabIndex = 3;
             btnPuntoVenta.Text = "Punto de Venta";
             btnPuntoVenta.TextAlign = ContentAlignment.MiddleLeft;
             btnPuntoVenta.UseVisualStyleBackColor = false;
@@ -245,12 +224,12 @@
             btnProveedores.Dock = DockStyle.Top;
             btnProveedores.FlatAppearance.BorderSize = 0;
             btnProveedores.FlatStyle = FlatStyle.Flat;
-            btnProveedores.Location = new Point(0, 180);
+            btnProveedores.Location = new Point(0, 120);
             btnProveedores.Margin = new Padding(3, 4, 3, 4);
             btnProveedores.Name = "btnProveedores";
             btnProveedores.Padding = new Padding(11, 0, 0, 0);
             btnProveedores.Size = new Size(229, 60);
-            btnProveedores.TabIndex = 8;
+            btnProveedores.TabIndex = 2;
             btnProveedores.Text = "Proveedores";
             btnProveedores.TextAlign = ContentAlignment.MiddleLeft;
             btnProveedores.UseVisualStyleBackColor = false;
@@ -262,12 +241,12 @@
             btnEmpleados.Dock = DockStyle.Top;
             btnEmpleados.FlatAppearance.BorderSize = 0;
             btnEmpleados.FlatStyle = FlatStyle.Flat;
-            btnEmpleados.Location = new Point(0, 120);
+            btnEmpleados.Location = new Point(0, 60);
             btnEmpleados.Margin = new Padding(3, 4, 3, 4);
             btnEmpleados.Name = "btnEmpleados";
             btnEmpleados.Padding = new Padding(11, 0, 0, 0);
             btnEmpleados.Size = new Size(229, 60);
-            btnEmpleados.TabIndex = 9;
+            btnEmpleados.TabIndex = 1;
             btnEmpleados.Text = "Empleados";
             btnEmpleados.TextAlign = ContentAlignment.MiddleLeft;
             btnEmpleados.UseVisualStyleBackColor = false;
@@ -279,33 +258,16 @@
             btnClientes.Dock = DockStyle.Top;
             btnClientes.FlatAppearance.BorderSize = 0;
             btnClientes.FlatStyle = FlatStyle.Flat;
-            btnClientes.Location = new Point(0, 60);
+            btnClientes.Location = new Point(0, 0);
             btnClientes.Margin = new Padding(3, 4, 3, 4);
             btnClientes.Name = "btnClientes";
             btnClientes.Padding = new Padding(11, 0, 0, 0);
             btnClientes.Size = new Size(229, 60);
-            btnClientes.TabIndex = 1;
+            btnClientes.TabIndex = 0;
             btnClientes.Text = "Clientes";
             btnClientes.TextAlign = ContentAlignment.MiddleLeft;
             btnClientes.UseVisualStyleBackColor = false;
             btnClientes.Click += btnClientes_Click;
-            // 
-            // btnInicio
-            // 
-            btnInicio.BackColor = SystemColors.Info;
-            btnInicio.Dock = DockStyle.Top;
-            btnInicio.FlatAppearance.BorderSize = 0;
-            btnInicio.FlatStyle = FlatStyle.Flat;
-            btnInicio.Location = new Point(0, 0);
-            btnInicio.Margin = new Padding(3, 4, 3, 4);
-            btnInicio.Name = "btnInicio";
-            btnInicio.Padding = new Padding(11, 0, 0, 0);
-            btnInicio.Size = new Size(229, 60);
-            btnInicio.TabIndex = 0;
-            btnInicio.Text = "Inicio";
-            btnInicio.TextAlign = ContentAlignment.MiddleLeft;
-            btnInicio.UseVisualStyleBackColor = false;
-            btnInicio.Click += btnInicio_Click;
             // 
             // pnlSidebarHeader
             // 
@@ -421,12 +383,10 @@
         private Label lblRolUsuario;
         private Label lblSistema;
         private System.Windows.Forms.Panel pnlNav;
-        private Button btnInicio;
         private Button btnProveedores;
         private Button btnCaja;
         private Button btnCanchas;
         private Button btnTurnos;
-        private Button btnCompras;
         private Button btnStock;
         private Button btnPuntoVenta;
         private Button btnClientes;

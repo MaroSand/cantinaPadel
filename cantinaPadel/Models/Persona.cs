@@ -21,10 +21,10 @@ namespace cantinaPadel.Models
 
         [Column("dni")]
         public string? Dni { get; set; }
-        
+
         [Column("cuit")]
         public string? Cuit { get; set; }
-        
+
         [Column("condicion_iva")]
         public string? CondicionIva { get; set; }
 
@@ -50,9 +50,9 @@ namespace cantinaPadel.Models
         public bool EsProveedor { get; set; } = false;
 
         // @OneToOne
-        public Empleado?   Empleado   { get; set; }
-        public Cliente?    Cliente    { get; set; }
-        public Proveedor?  Proveedor  { get; set; }
+        public Empleado? Empleado { get; set; }
+        public Cliente? Cliente { get; set; }
+        public Proveedor? Proveedor { get; set; }
 
         public static readonly string[] CondicionesIvaValidas =
         {
@@ -72,13 +72,28 @@ namespace cantinaPadel.Models
 
         public void NormalizarDatosComunes()
         {
-            Nombre = Nombre?.Trim() ?? string.Empty;
-            Apellido = Apellido?.Trim() ?? string.Empty;
+            // Criterio único para nombres: cada palabra con inicial mayúscula y el resto en minúscula ("juan PÉREZ" -> "Juan Pérez")
+            Nombre = CapitalizarNombre(Nombre);
+            Apellido = CapitalizarNombre(Apellido);
             Dni = Dni?.Trim();
             Cuit = Cuit?.Trim();
             CondicionIva = CondicionIva?.Trim();
             Telefono = Telefono?.Trim();
             Direccion = Direccion?.Trim();
+        }
+
+        // Normaliza un nombre o apellido: quita espacios de más (bordes y repetidos) y deja cada palabra capitalizada
+        // Se usa al guardar, así en la base queda siempre un único formato, y se muestra igual en todo el sistema
+        public static string CapitalizarNombre(string? texto)
+        {
+            if (string.IsNullOrWhiteSpace(texto))
+                return string.Empty;
+
+            var cultura = new System.Globalization.CultureInfo("es-AR");
+            var palabras = texto.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+
+            // Se pasa primero a minúscula porque ToTitleCase no modifica las palabras que vienen todas en mayúscula
+            return string.Join(" ", palabras.Select(p => cultura.TextInfo.ToTitleCase(p.ToLower(cultura))));
         }
 
         public void ValidarDatosComunes(bool dniObligatorio = false)

@@ -49,5 +49,22 @@ namespace cantinaPadel.BLL
                 return ResultadoLogin.ErrorConexion;
             }
         }
+
+        // Devuelve "Nombre Apellido" del empleado con ese usuario, o null si no se puede obtener (el login no debe fallar por esto)
+        public string? ObtenerNombreCompleto(string usuario)
+        {
+            try
+            {
+                Empleado? empleado = _repo.ObtenerPorUsuario(usuario);
+                if (empleado?.Persona == null)
+                    return null;
+
+                return $"{empleado.Persona.Nombre} {empleado.Persona.Apellido}".Trim();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

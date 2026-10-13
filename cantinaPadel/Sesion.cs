@@ -9,6 +9,9 @@ namespace cantinaPadel
         public static int IdUsuario { get; set; }
         public static string? Rol { get; set; }
 
+        // Nombre y apellido del empleado logueado (para mostrarlo en el menú principal)
+        public static string? NombreCompleto { get; set; }
+
         // Hay un usuario con sesión iniciada (false después de CerrarSesion)
         public static bool Activa => IdUsuario != 0;
 
@@ -17,6 +20,7 @@ namespace cantinaPadel
         {
             IdUsuario = 0;
             Rol = null;
+            NombreCompleto = null;
         }
     }
 }

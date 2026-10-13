@@ -31,8 +31,16 @@ namespace cantinaPadel
         private void ConfigurarUsuario()
         {
 
-            lblRolUsuario.Text = Sesion.Rol;
-            lblUsuario.Text = "Usuario · " + Sesion.Rol;
+            // Ejemplo: "Juan Pérez - Administrador"
+            string rol = Sesion.Rol == "Admin" ? "Administrador" : (Sesion.Rol ?? string.Empty);
+            string texto = string.IsNullOrWhiteSpace(Sesion.NombreCompleto)
+                ? rol
+                : $"{Sesion.NombreCompleto} - {rol}";
+
+            // Si el texto es largo, que haga salto de línea dentro del encabezado en vez de cortarse
+            lblRolUsuario.MaximumSize = new Size(pnlSidebarHeader.Width - 20, 0);
+            lblRolUsuario.Text = texto;
+            lblUsuario.Text = texto;
         }
 
         // Configura la visibilidad de los botones del menú según el rol del usuario, mostrando solo las opciones permitidas para cada rol
@@ -40,7 +48,6 @@ namespace cantinaPadel
         {
             bool esAdmin = Sesion.Rol == "Admin";
             btnStock.Visible = esAdmin;
-            btnCompras.Visible = esAdmin;
             btnCanchas.Visible = esAdmin;
             btnProveedores.Visible = esAdmin;
             btnEmpleados.Visible = esAdmin;
@@ -107,7 +114,15 @@ namespace cantinaPadel
             {
                 e.Cancel = true;
                 AvisarCajaAbierta("salir del programa");
+                return;
             }
+
+            // Confirmación antes de salir del sistema con la X (o Alt+F4)
+            var confirmacion = MessageBox.Show(
+                this, "¿Está seguro de que desea salir?", "Confirmar salida",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (confirmacion != DialogResult.Yes)
+                e.Cancel = true;
         }
 
         // Indica si el usuario logueado tiene una caja abierta. Si no se puede consultar la base, no se bloquea:
@@ -156,15 +171,15 @@ namespace cantinaPadel
                 "Caja abierta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        // Método para navegar a un módulo específico, actualizando el título del módulo en la interfaz
+        // Método para navegar a un módulo específico, actualizando el título del módulo y el título de la ventana
         private void Navegar(string modulo)
         {
             lblTituloModulo.Text = modulo;
+            this.Text = "Cantina y Pádel - " + modulo;
         }
 
         // Eventos de clic para los botones del menú, cada uno llama al método Navegar con el nombre del módulo correspondiente
         // => es una expresión lambda que simplifica la sintaxis del método, permitiendo escribirlo en una sola línea
-        private void btnInicio_Click(object sender, EventArgs e) => Navegar("Inicio");
         private void btnClientes_Click(object sender, EventArgs e)
         {
             Navegar("Clientes");
@@ -190,7 +205,6 @@ namespace cantinaPadel
             cantinaPadel.UI.FrmListadoProductos frm = new cantinaPadel.UI.FrmListadoProductos();
             AbrirEnPanel(frm);
         }
-        private void btnCompras_Click(object sender, EventArgs e) => Navegar("Compras");
         private void btnTurnos_Click(object sender, EventArgs e)
         {
             Navegar("Alquiler por Dia");

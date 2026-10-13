@@ -24,12 +24,7 @@ namespace cantinaPadel.UI
             // Se modifica el título de la ventana actual
             this.Text = "Gestión de Empleados - Cantina Pádel";
 
-            // Se modifica el título en el formulario principal si está incrustado
-            if (this.ParentForm is FrmMain mainForm)
-            {
-                mainForm.Text = "Cantina Pádel - Listado de Empleados";
-            }
-
+            // El título de la ventana principal lo maneja FrmMain.Navegar(); este formulario no debe modificarlo
             ConfigurarGrilla();
             CargarDatosDesdeBase();
 
@@ -184,8 +179,8 @@ namespace cantinaPadel.UI
                     {
                         // Se invierte el estado lógico actual
                         empleado.Activo = !empleado.Activo;
-                        
-                        
+
+
                         // Se guarda el cambio en la base de datos usando la lógica unificada
                         _logicaEmpleado.RegistrarOGuardar(empleado);
 

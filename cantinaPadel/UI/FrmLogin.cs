@@ -57,6 +57,7 @@ namespace cantinaPadel
                     // Se guardan los datos reales que procesó la capa lógica
                     Sesion.IdUsuario = idUsuarioEncontrado;
                     Sesion.Rol = rolAsignado;
+                    Sesion.NombreCompleto = bll.ObtenerNombreCompleto(usuarioIngresado);
 
                     // Avisa que el Login fue exitoso y cierra
                     this.DialogResult = DialogResult.OK;
@@ -105,8 +106,7 @@ namespace cantinaPadel
             }
         }
 
-        // Solo permite dígitos en la contraseña y Backspace, para poder borrar
-        // char.IsControl cubre Backspace, Delete, etc. sin bloquear la edición normal
+        // Solo permite dígitos en la contraseña y Backspace, para poder borrar char.IsControl cubre Backspace, Delete, etc. sin bloquear la edición normal
         private void txtContrasenia_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
