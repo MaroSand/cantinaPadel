@@ -4,14 +4,14 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.Tests;
 
-// BLL: LogicaCompra - alta y listado de compras a proveedores (US-25)
+// BLL: LogicaCompra - alta y listado de compras a proveedores
 [TestClass]
 public class LogicaCompraTests
 {
     private const int IdProveedorValido = 3;
     private const int IdEmpleadoValido = 5;
 
-    // ---------- Fakes ----------
+    // Fakes
 
     private sealed class CompraRepositoryFake : ICompraRepository
     {
@@ -94,7 +94,7 @@ public class LogicaCompraTests
     private static List<ItemCompra> UnaLinea(int idProducto = 1, int cantidad = 10, decimal costo = 800m)
         => new() { new ItemCompra(CrearProducto(idProducto), cantidad, costo) };
 
-    // ---------- RegistrarCompra ----------
+    // RegistrarCompra
 
     [TestMethod]
     public void RegistrarCompra_Valida_GuardaConUsuarioActivoFechaHoraYTotal()
@@ -287,7 +287,7 @@ public class LogicaCompraTests
         Assert.IsNull(repo.Registrada);
     }
 
-    // ---------- Proveedores ----------
+    // Proveedores
 
     [TestMethod]
     public void ObtenerProveedoresActivos_NoIncluyeLosDadosDeBaja_YArmaElTexto()
@@ -307,7 +307,63 @@ public class LogicaCompraTests
         Assert.HasCount(2, todos);
     }
 
-    // ---------- Buscar ----------
+    [TestMethod]
+    public void ObtenerTodosLosProveedores_IncluyeInactivos_YLosOrdenaPorTexto()
+    {
+        var logica = new LogicaCompra(
+            new CompraRepositoryFake(),
+            new ProveedorRepositoryFake(
+                CrearProveedor(1, activo: true, empresa: "Zeta SA"),
+                CrearProveedor(2, activo: false, empresa: "Alfa SA")),
+            new ProductoRepositoryFake());
+
+        var todos = logica.ObtenerTodosLosProveedores();
+
+        Assert.HasCount(2, todos);
+        Assert.AreEqual(2, todos[0].IdProveedor);
+        Assert.AreEqual(1, todos[1].IdProveedor);
+    }
+
+    [TestMethod]
+    public void ObtenerProveedoresActivos_ConEmpresaVacia_MuestraSoloElContacto()
+    {
+        var logica = new LogicaCompra(
+            new CompraRepositoryFake(),
+            new ProveedorRepositoryFake(CrearProveedor(1, empresa: "   ")),
+            new ProductoRepositoryFake());
+
+        var activos = logica.ObtenerProveedoresActivos();
+
+        Assert.HasCount(1, activos);
+        Assert.AreEqual("Pérez Juan", activos[0].Texto);
+    }
+
+    [TestMethod]
+    public void ObtenerProveedores_SinPersona_NoEsActivoPeroSiAparecenEnTodosConLaEmpresa()
+    {
+        var sinPersona = new Proveedor { IdProveedor = 9, NombreEmpresa = "Sin Contacto SA", Persona = null };
+        var logica = new LogicaCompra(
+            new CompraRepositoryFake(),
+            new ProveedorRepositoryFake(sinPersona),
+            new ProductoRepositoryFake());
+
+        var activos = logica.ObtenerProveedoresActivos();
+        var todos = logica.ObtenerTodosLosProveedores();
+
+        Assert.IsEmpty(activos);
+        Assert.HasCount(1, todos);
+        Assert.AreEqual("Sin Contacto SA", todos[0].Texto);
+    }
+
+    [TestMethod]
+    public void ProveedorOpcion_ToString_DevuelveElTexto()
+    {
+        var opcion = new ProveedorOpcion(4, "Padel Supplies SRL - Gómez Carlos");
+
+        Assert.AreEqual("Padel Supplies SRL - Gómez Carlos", opcion.ToString());
+    }
+
+    // Buscar
 
     [TestMethod]
     public void Buscar_PasaLosFiltrosAlRepositorio()
