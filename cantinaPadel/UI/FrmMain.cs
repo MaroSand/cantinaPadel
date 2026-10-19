@@ -211,12 +211,9 @@ namespace cantinaPadel
         }
         private void btnCompras_Click(object sender, EventArgs e)
         {
-            // TEMPORAL: hasta que exista FrmListadoCompras se abre directamente el alta de compra, para poder probarla.
-            // Cuando esté el listado se reemplaza todo este método por:
-            //     Navegar("Compras");
-            //     AbrirEnPanel(new cantinaPadel.UI.FrmListadoCompras());
-            using var frm = new cantinaPadel.UI.FrmAltaCompra();
-            frm.ShowDialog(this);
+            Navegar("Compras");
+            cantinaPadel.UI.FrmListadoCompras frm = new cantinaPadel.UI.FrmListadoCompras();
+            AbrirEnPanel(frm);
         }
         private void btnTurnos_Click(object sender, EventArgs e)
         {
