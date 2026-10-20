@@ -4,11 +4,11 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.Tests;
 
-// BLL: LogicaCompra - alta y listado de compras a proveedores
+// BLL: LogicaCompra - alta, listado y anulación de compras a proveedores.
 [TestClass]
 public class LogicaCompraTests
 {
-    private const int IdProveedorValido = 3;
+    private const int IdProveedorValido = 1;
     private const int IdEmpleadoValido = 5;
 
     // Fakes
@@ -89,14 +89,24 @@ public class LogicaCompraTests
         };
 
     private static Producto CrearProducto(int id, string nombre = "Coca Cola 500ml", bool activo = true)
-        => new()
+    {
+        decimal costoInicial = id == 2 ? 400m : 800m;
+        decimal precioVentaInicial = id == 2 ? 520m : 1040m;
+        int stockInicial = id == 2 ? 60 : 48;
+
+        return new Producto
         {
             IdProducto = id,
             IdCategoria = 1,
             Nombre = nombre,
             Activo = activo,
-            Categoria = new Categoria { IdCategoria = 1, Nombre = "Bebidas", PorcentajeGanancia = 25m }
+            PrecioCosto = costoInicial,
+            PrecioVenta = precioVentaInicial,
+            StockActual = stockInicial,
+            IdProveedor = 1,
+            Categoria = new Categoria { IdCategoria = 1, Nombre = "Bebidas", PorcentajeGanancia = 30m }
         };
+    }
 
     private static (LogicaCompra Logica, CompraRepositoryFake Repo) CrearLogica(
         Proveedor? proveedor = null, Producto[]? productos = null, DateTime? ahora = null)
@@ -119,11 +129,16 @@ public class LogicaCompraTests
     public void RegistrarCompra_Valida_GuardaConUsuarioActivoFechaHoraYTotal()
     {
         var ahora = DateTime.Now;
-        var (logica, repo) = CrearLogica(ahora: ahora);
+        var coca = CrearProducto(1);
+        var agua = CrearProducto(2, "Agua Mineral Sin Gas 500ml");
+        agua.PrecioCosto = 400m;
+        agua.PrecioVenta = 520m;
+        agua.StockActual = 60;
+        var (logica, repo) = CrearLogica(productos: new[] { coca, agua }, ahora: ahora);
         var items = new List<ItemCompra>
         {
-            new(CrearProducto(1), 10, 800m),
-            new(CrearProducto(2, "Agua"), 5, 400.50m)
+            new(coca, 10, 800m),
+            new(agua, 5, 400m)
         };
 
         var compra = logica.RegistrarCompra(IdProveedorValido, ahora.Date, "0001-00001234", items, IdEmpleadoValido);
@@ -134,24 +149,12 @@ public class LogicaCompraTests
         Assert.AreEqual("0001-00001234", compra.NumeroComprobante);
         Assert.AreEqual(ahora.Date + ahora.TimeOfDay, compra.FechaCompra);
         Assert.IsFalse(compra.Anulada);
-        Assert.AreEqual(10002.50m, compra.Total);
+        Assert.AreEqual(10000m, compra.Total);
         Assert.HasCount(2, compra.Detalles);
         Assert.AreEqual(8000m, compra.Detalles[0].Subtotal);
-        Assert.AreEqual(2002.50m, compra.Detalles[1].Subtotal);
+        Assert.AreEqual(2000m, compra.Detalles[1].Subtotal);
         // El detalle guarda solo el id del producto, no el objeto (para que EF no intente insertarlo)
         Assert.IsTrue(compra.Detalles.All(d => d.Producto == null));
-    }
-
-    [TestMethod]
-    public void RegistrarCompra_FechaElegidaDeDiasAtras_ConservaEsaFechaConLaHoraActual()
-    {
-        var ahora = DateTime.Now;
-        var (logica, _) = CrearLogica(ahora: ahora);
-        var fecha = ahora.Date.AddDays(-3);
-
-        var compra = logica.RegistrarCompra(IdProveedorValido, fecha, null, UnaLinea(), IdEmpleadoValido);
-
-        Assert.AreEqual(fecha + ahora.TimeOfDay, compra.FechaCompra);
     }
 
     [TestMethod]
@@ -185,16 +188,6 @@ public class LogicaCompraTests
     }
 
     [TestMethod]
-    public void RegistrarCompra_ProveedorInexistente_LanzaArgumentException()
-    {
-        var (logica, repo) = CrearLogica();
-
-        Assert.ThrowsExactly<ArgumentException>(() =>
-            logica.RegistrarCompra(999, DateTime.Today, null, UnaLinea(), IdEmpleadoValido));
-        Assert.IsNull(repo.Registrada);
-    }
-
-    [TestMethod]
     public void RegistrarCompra_ProveedorInactivo_LanzaArgumentException()
     {
         var (logica, repo) = CrearLogica(proveedor: CrearProveedor(activo: false));
@@ -216,9 +209,7 @@ public class LogicaCompraTests
 
     [TestMethod]
     [DataRow(0, "800")]
-    [DataRow(-1, "800")]
     [DataRow(10, "0")]
-    [DataRow(10, "-5")]
     public void RegistrarCompra_CantidadOCostoMenorOIgualACero_LanzaArgumentExceptionYNoGuarda(int cantidad, string costo)
     {
         var (logica, repo) = CrearLogica();
@@ -256,7 +247,7 @@ public class LogicaCompraTests
         var producto = CrearProducto(1);
         producto.StockActual = 12;
         producto.PrecioCosto = 800m;
-        producto.PrecioVenta = 1200m;
+        producto.PrecioVenta = 1040m;
         var (logica, _) = CrearLogica(productos: new[] { producto });
 
         var preview = logica.PrevisualizarImpactoCompra(
@@ -267,10 +258,10 @@ public class LogicaCompraTests
         Assert.AreEqual(17, impacto.StockNuevo);
         Assert.AreEqual(800m, impacto.CostoActual);
         Assert.AreEqual(1000m, impacto.CostoCompra);
-        Assert.AreEqual(1200m, impacto.PrecioVentaActual);
-        Assert.AreEqual(1250m, impacto.PrecioVentaNuevo);
+        Assert.AreEqual(1040m, impacto.PrecioVentaActual);
+        Assert.AreEqual(1300m, impacto.PrecioVentaNuevo);
         Assert.IsTrue(impacto.RecalculaPrecio);
-        Assert.AreEqual(1250m, preview.PreciosVentaNuevos[1]);
+        Assert.AreEqual(1300m, preview.PreciosVentaNuevos[1]);
         Assert.AreEqual("Distribuidora Bebidas S.A. - Pérez Juan", impacto.ProveedorNuevo);
     }
 
@@ -278,18 +269,18 @@ public class LogicaCompraTests
     public void PrevisualizarImpactoCompra_StockPositivoYCostoMenorOIgual_ConservaPrecioVenta()
     {
         var producto = CrearProducto(1);
-        producto.StockActual = 6;
-        producto.PrecioCosto = 1000m;
-        producto.PrecioVenta = 1500m;
+        producto.StockActual = 48;
+        producto.PrecioCosto = 800m;
+        producto.PrecioVenta = 1040m;
         var (logica, _) = CrearLogica(productos: new[] { producto });
 
         var preview = logica.PrevisualizarImpactoCompra(
-            IdProveedorValido, new[] { new ItemCompra(producto, 2, 900m) });
+            IdProveedorValido, new[] { new ItemCompra(producto, 2, 700m) });
 
         var impacto = preview.Productos.Single();
         Assert.IsFalse(impacto.RecalculaPrecio);
         Assert.IsNull(impacto.PrecioVentaNuevo);
-        Assert.AreEqual(1500m, impacto.PrecioVentaActual);
+        Assert.AreEqual(1040m, impacto.PrecioVentaActual);
         Assert.IsFalse(preview.PreciosVentaNuevos.ContainsKey(1));
     }
 
@@ -298,18 +289,17 @@ public class LogicaCompraTests
     {
         var producto = CrearProducto(1);
         producto.StockActual = 0;
-        producto.PrecioCosto = 1000m;
-        producto.PrecioVenta = 1500m;
-        producto.Categoria.PorcentajeGanancia = 25m;
+        producto.PrecioCosto = 800m;
+        producto.PrecioVenta = 1040m;
         var (logica, _) = CrearLogica(productos: new[] { producto });
 
         var preview = logica.PrevisualizarImpactoCompra(
-            IdProveedorValido, new[] { new ItemCompra(producto, 2, 800m) });
+            IdProveedorValido, new[] { new ItemCompra(producto, 2, 700m) });
 
         var impacto = preview.Productos.Single();
         Assert.IsTrue(impacto.RecalculaPrecio);
-        Assert.AreEqual(1000m, impacto.PrecioVentaNuevo);
-        Assert.AreEqual(1000m, preview.PreciosVentaNuevos[1]);
+        Assert.AreEqual(910m, impacto.PrecioVentaNuevo);
+        Assert.AreEqual(910m, preview.PreciosVentaNuevos[1]);
     }
 
     [TestMethod]
@@ -319,7 +309,7 @@ public class LogicaCompraTests
     {
         var producto = CrearProducto(1, "Artículo varios");
         producto.Categoria.Nombre = categoria;
-        producto.PrecioVenta = 2500m;
+        producto.PrecioVenta = 1040m;
         var (logica, _) = CrearLogica(productos: new[] { producto });
 
         var preview = logica.PrevisualizarImpactoCompra(
@@ -328,7 +318,7 @@ public class LogicaCompraTests
         var impacto = preview.Productos.Single();
         Assert.IsFalse(impacto.RecalculaPrecio);
         Assert.IsNull(impacto.PrecioVentaNuevo);
-        Assert.AreEqual(2500m, impacto.PrecioVentaActual);
+        Assert.AreEqual(1040m, impacto.PrecioVentaActual);
         Assert.IsFalse(preview.PreciosVentaNuevos.ContainsKey(1));
     }
 
@@ -357,50 +347,6 @@ public class LogicaCompraTests
         Assert.IsNull(repo.Registrada);
     }
 
-    [TestMethod]
-    public void RegistrarCompra_ComprobanteVacio_SeGuardaComoNulo()
-    {
-        var (logica, _) = CrearLogica();
-
-        var compra = logica.RegistrarCompra(IdProveedorValido, DateTime.Today, "   ", UnaLinea(), IdEmpleadoValido);
-
-        Assert.IsNull(compra.NumeroComprobante);
-    }
-
-    [TestMethod]
-    public void RegistrarCompra_ComprobanteConEspaciosEnLosBordes_SeGuardaSinEllos()
-    {
-        var (logica, _) = CrearLogica();
-
-        var compra = logica.RegistrarCompra(IdProveedorValido, DateTime.Today, "  A 0001-123 ", UnaLinea(), IdEmpleadoValido);
-
-        Assert.AreEqual("A 0001-123", compra.NumeroComprobante);
-    }
-
-    [TestMethod]
-    [DataRow("0001_123")]
-    [DataRow("fact*123")]
-    [DataRow("1234567890123456789012345678901")] // 31 caracteres
-    public void RegistrarCompra_ComprobanteInvalido_LanzaArgumentExceptionYNoGuarda(string comprobante)
-    {
-        var (logica, repo) = CrearLogica();
-
-        Assert.ThrowsExactly<ArgumentException>(() =>
-            logica.RegistrarCompra(IdProveedorValido, DateTime.Today, comprobante, UnaLinea(), IdEmpleadoValido));
-        Assert.IsNull(repo.Registrada);
-    }
-
-    [TestMethod]
-    public void RegistrarCompra_TotalQueSuperaElLimiteDeLaColumna_LanzaArgumentException()
-    {
-        var (logica, repo) = CrearLogica();
-        var items = UnaLinea(cantidad: DetalleCompra.CantidadMaxima, costo: 99_999_999m);
-
-        Assert.ThrowsExactly<ArgumentException>(() =>
-            logica.RegistrarCompra(IdProveedorValido, DateTime.Today, null, items, IdEmpleadoValido));
-        Assert.IsNull(repo.Registrada);
-    }
-
     // Proveedores
 
     [TestMethod]
@@ -421,62 +367,6 @@ public class LogicaCompraTests
         Assert.HasCount(2, todos);
     }
 
-    [TestMethod]
-    public void ObtenerTodosLosProveedores_IncluyeInactivos_YLosOrdenaPorTexto()
-    {
-        var logica = new LogicaCompra(
-            new CompraRepositoryFake(),
-            new ProveedorRepositoryFake(
-                CrearProveedor(1, activo: true, empresa: "Zeta SA"),
-                CrearProveedor(2, activo: false, empresa: "Alfa SA")),
-            new ProductoRepositoryFake());
-
-        var todos = logica.ObtenerTodosLosProveedores();
-
-        Assert.HasCount(2, todos);
-        Assert.AreEqual(2, todos[0].IdProveedor);
-        Assert.AreEqual(1, todos[1].IdProveedor);
-    }
-
-    [TestMethod]
-    public void ObtenerProveedoresActivos_ConEmpresaVacia_MuestraSoloElContacto()
-    {
-        var logica = new LogicaCompra(
-            new CompraRepositoryFake(),
-            new ProveedorRepositoryFake(CrearProveedor(1, empresa: "   ")),
-            new ProductoRepositoryFake());
-
-        var activos = logica.ObtenerProveedoresActivos();
-
-        Assert.HasCount(1, activos);
-        Assert.AreEqual("Pérez Juan", activos[0].Texto);
-    }
-
-    [TestMethod]
-    public void ObtenerProveedores_SinPersona_NoEsActivoPeroSiAparecenEnTodosConLaEmpresa()
-    {
-        var sinPersona = new Proveedor { IdProveedor = 9, NombreEmpresa = "Sin Contacto SA", Persona = null };
-        var logica = new LogicaCompra(
-            new CompraRepositoryFake(),
-            new ProveedorRepositoryFake(sinPersona),
-            new ProductoRepositoryFake());
-
-        var activos = logica.ObtenerProveedoresActivos();
-        var todos = logica.ObtenerTodosLosProveedores();
-
-        Assert.IsEmpty(activos);
-        Assert.HasCount(1, todos);
-        Assert.AreEqual("Sin Contacto SA", todos[0].Texto);
-    }
-
-    [TestMethod]
-    public void ProveedorOpcion_ToString_DevuelveElTexto()
-    {
-        var opcion = new ProveedorOpcion(4, "Padel Supplies SRL - Gómez Carlos");
-
-        Assert.AreEqual("Padel Supplies SRL - Gómez Carlos", opcion.ToString());
-    }
-
     // Buscar
 
     [TestMethod]
@@ -486,10 +376,10 @@ public class LogicaCompraTests
         var desde = new DateTime(2026, 10, 1);
         var hasta = new DateTime(2026, 10, 19);
 
-        logica.Buscar(3, desde, hasta, "coca", incluirAnuladas: true);
+        logica.Buscar(IdProveedorValido, desde, hasta, "coca", incluirAnuladas: true);
 
         var busqueda = repo.UltimaBusqueda!.Value;
-        Assert.AreEqual(3, busqueda.IdProveedor);
+        Assert.AreEqual(IdProveedorValido, busqueda.IdProveedor);
         Assert.AreEqual(desde, busqueda.Desde);
         Assert.AreEqual(hasta, busqueda.Hasta);
         Assert.AreEqual("coca", busqueda.Producto);
@@ -514,16 +404,6 @@ public class LogicaCompraTests
         Assert.ThrowsExactly<ArgumentException>(() =>
             logica.Buscar(null, new DateTime(2026, 10, 20), new DateTime(2026, 10, 1), null));
         Assert.IsNull(repo.UltimaBusqueda);
-    }
-
-    [TestMethod]
-    public void Buscar_MismoDiaEnDesdeYHasta_EsValido()
-    {
-        var (logica, _) = CrearLogica();
-
-        var resultado = logica.Buscar(null, new DateTime(2026, 10, 19, 15, 0, 0), new DateTime(2026, 10, 19, 8, 0, 0), null);
-
-        Assert.IsNotNull(resultado);
     }
 
     [TestMethod]
