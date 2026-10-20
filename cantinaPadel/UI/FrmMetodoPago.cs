@@ -10,6 +10,8 @@ public class FrmMetodoPago : Form
     private readonly IReadOnlyCollection<ItemCarrito> _items;
     private readonly decimal _total;
     private readonly TextBox _txtBuscarCliente = new() { Width = 260 };
+    // Búsqueda en vivo: espera 300ms sin que se tipee nada antes de consultar la bd (igual que el resto de los buscadores del sistema)
+    private readonly System.Windows.Forms.Timer _debounceBusquedaCliente = new() { Interval = 300 };
     private readonly DataGridView _dgvClientes = new();
     private readonly Label _lblCliente = new() { AutoSize = true, Text = "Cliente: Consumidor Final (por defecto)" };
     private readonly CheckBox _chkEfectivo = new() { Text = "Efectivo", AutoSize = true, Checked = true };
@@ -58,14 +60,30 @@ public class FrmMetodoPago : Form
         layout.Controls.Add(lblTotal, 0, 0);
 
         var busqueda = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true };
-        var btnBuscar = new Button { Text = "Buscar cliente", AutoSize = true };
         var btnSeleccionar = new Button { Text = "Seleccionar cliente", AutoSize = true };
-        btnBuscar.Click += (_, _) => BuscarClientes();
         btnSeleccionar.Click += (_, _) => SeleccionarCliente();
-        _txtBuscarCliente.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; BuscarClientes(); } };
+
+        // Único mecanismo de búsqueda: automática mientras se escribe (Enter la lanza al instante, sin esperar el retardo)
+        _debounceBusquedaCliente.Tick += (_, _) =>
+        {
+            _debounceBusquedaCliente.Stop();
+            BuscarClientes();
+        };
+        _txtBuscarCliente.TextChanged += (_, _) =>
+        {
+            _debounceBusquedaCliente.Stop();
+            _debounceBusquedaCliente.Start();
+        };
+        _txtBuscarCliente.KeyDown += (_, e) =>
+        {
+            if (e.KeyCode != Keys.Enter) return;
+            e.SuppressKeyPress = true;
+            _debounceBusquedaCliente.Stop();
+            BuscarClientes();
+        };
+        Disposed += (_, _) => _debounceBusquedaCliente.Dispose();
         busqueda.Controls.Add(new Label { Text = "Cliente", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
         busqueda.Controls.Add(_txtBuscarCliente);
-        busqueda.Controls.Add(btnBuscar);
         busqueda.Controls.Add(btnSeleccionar);
         busqueda.Controls.Add(_lblCliente);
         layout.Controls.Add(busqueda, 0, 1);
@@ -106,7 +124,7 @@ public class FrmMetodoPago : Form
     // Los checks se comportan como selección única (tipo radio buttons).
     private void SeleccionarMetodoUnico(CheckBox seleccionado)
     {
-        if (_actualizandoChecks) return; 
+        if (_actualizandoChecks) return;
         _actualizandoChecks = true;
         try
         {

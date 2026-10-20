@@ -48,6 +48,7 @@
             pnlTopbar = new Panel();
             lblUsuario = new Label();
             lblTituloModulo = new Label();
+            btnCompras = new Button();
             pnlSidebar.SuspendLayout();
             pnlSidebarFooter.SuspendLayout();
             pnlNav.SuspendLayout();
@@ -104,6 +105,7 @@
             pnlNav.Controls.Add(btnCaja);
             pnlNav.Controls.Add(btnCanchas);
             pnlNav.Controls.Add(btnTurnos);
+            pnlNav.Controls.Add(btnCompras);
             pnlNav.Controls.Add(btnStock);
             pnlNav.Controls.Add(btnPuntoVenta);
             pnlNav.Controls.Add(btnProveedores);
@@ -118,11 +120,11 @@
             // 
             // btnReportes
             // 
-            btnReportes.BackColor = Color.White;
+            btnReportes.BackColor = SystemColors.Info;
             btnReportes.Dock = DockStyle.Top;
             btnReportes.FlatAppearance.BorderSize = 0;
             btnReportes.FlatStyle = FlatStyle.Flat;
-            btnReportes.Location = new Point(0, 480);
+            btnReportes.Location = new Point(0, 540);
             btnReportes.Margin = new Padding(3, 4, 3, 4);
             btnReportes.Name = "btnReportes";
             btnReportes.Padding = new Padding(11, 0, 0, 0);
@@ -135,11 +137,11 @@
             // 
             // btnCaja
             // 
-            btnCaja.BackColor = SystemColors.Info;
+            btnCaja.BackColor = Color.White;
             btnCaja.Dock = DockStyle.Top;
             btnCaja.FlatAppearance.BorderSize = 0;
             btnCaja.FlatStyle = FlatStyle.Flat;
-            btnCaja.Location = new Point(0, 420);
+            btnCaja.Location = new Point(0, 480);
             btnCaja.Margin = new Padding(3, 4, 3, 4);
             btnCaja.Name = "btnCaja";
             btnCaja.Padding = new Padding(11, 0, 0, 0);
@@ -152,11 +154,11 @@
             // 
             // btnCanchas
             // 
-            btnCanchas.BackColor = Color.White;
+            btnCanchas.BackColor = SystemColors.Info;
             btnCanchas.Dock = DockStyle.Top;
             btnCanchas.FlatAppearance.BorderSize = 0;
             btnCanchas.FlatStyle = FlatStyle.Flat;
-            btnCanchas.Location = new Point(0, 360);
+            btnCanchas.Location = new Point(0, 420);
             btnCanchas.Margin = new Padding(3, 4, 3, 4);
             btnCanchas.Name = "btnCanchas";
             btnCanchas.Padding = new Padding(11, 0, 0, 0);
@@ -169,11 +171,11 @@
             // 
             // btnTurnos
             // 
-            btnTurnos.BackColor = SystemColors.Info;
+            btnTurnos.BackColor = Color.White;
             btnTurnos.Dock = DockStyle.Top;
             btnTurnos.FlatAppearance.BorderSize = 0;
             btnTurnos.FlatStyle = FlatStyle.Flat;
-            btnTurnos.Location = new Point(0, 300);
+            btnTurnos.Location = new Point(0, 360);
             btnTurnos.Margin = new Padding(3, 4, 3, 4);
             btnTurnos.Name = "btnTurnos";
             btnTurnos.Padding = new Padding(11, 0, 0, 0);
@@ -347,6 +349,22 @@
             lblTituloModulo.TabIndex = 0;
             lblTituloModulo.Text = "Dashboard ";
             // 
+            // btnCompras
+            // 
+            btnCompras.BackColor = SystemColors.Info;
+            btnCompras.Dock = DockStyle.Top;
+            btnCompras.FlatAppearance.BorderSize = 0;
+            btnCompras.FlatStyle = FlatStyle.Flat;
+            btnCompras.Location = new Point(0, 300);
+            btnCompras.Margin = new Padding(3, 4, 3, 4);
+            btnCompras.Name = "btnCompras";
+            btnCompras.Padding = new Padding(11, 0, 0, 0);
+            btnCompras.Size = new Size(229, 60);
+            btnCompras.TabIndex = 9;
+            btnCompras.Text = "Compras";
+            btnCompras.TextAlign = ContentAlignment.MiddleLeft;
+            btnCompras.UseVisualStyleBackColor = false;
+            // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -394,5 +412,6 @@
         private Button btnCerrarSesion;
         private Button btnReportes;
         private Button btnEmpleados;
+        private Button btnCompras;
     }
 }

@@ -7,8 +7,14 @@ public class CuentaCorrienteControl : UserControl
 {
     private readonly LogicaCuentaCorriente _logica;
 
+    private const int MinimoCaracteresBusqueda = 2;
+
     private readonly TextBox _txtBuscarCliente = new() { Width = 260 };
-    private readonly DataGridView _dgvClientes = new();
+    // Búsqueda en vivo: espera 300ms sin que se tipee nada antes de consultar la bd (igual que el resto de los buscadores del sistema)
+    private readonly System.Windows.Forms.Timer _debounceBusquedaCliente = new() { Interval = 300 };
+    // Se activa cuando el texto del buscador se completa por código (CargarCliente), para que no dispare una búsqueda que pise la grilla
+    private bool _suprimirBusquedaAutomatica;
+    private readonly GrillaClientes _dgvClientes = new();
     private readonly DataGridView _dgvDeuda = new();
     private readonly Label _lblClienteSeleccionado = new() { AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), Text = "Ningún cliente seleccionado" };
     private readonly Label _lblCredito = new() { AutoSize = true };
@@ -34,7 +40,21 @@ public class CuentaCorrienteControl : UserControl
         Font = new Font("Segoe UI", 10, FontStyle.Italic),
         Text = "Buscá un cliente por DNI, apellido o nombre para ver su cuenta corriente."
     };
-    private readonly NumericUpDown _nudMonto = new() { DecimalPlaces = 2, Maximum = 99999999, Minimum = 0, Width = 140 };
+    // Monto a cobrar: campo de texto simple (sin flechitas) que agrega solo los puntos de miles. Lo máximo que se puede cobrar es la deuda neta
+    private readonly TextBox _txtMonto = new() { Width = 140, TextAlign = HorizontalAlignment.Right, MaxLength = 14, Text = "0" };
+    private decimal _montoMaximo;
+    private bool _formateandoMonto;
+
+    // Mensaje que ocupa el lugar de la grilla de clientes cuando no hay nada para mostrar (sin buscar todavía, o sin coincidencias)
+    private const string MensajeInicialBusqueda = "Escriba el nombre, apellido o DNI del cliente para buscarlo.";
+    private readonly Label _lblMensajeBusqueda = new()
+    {
+        Dock = DockStyle.Fill,
+        TextAlign = ContentAlignment.MiddleCenter,
+        BackColor = Color.White,
+        Font = new Font("Segoe UI", 10.5f, FontStyle.Italic),
+        ForeColor = Color.DimGray
+    };
     private readonly ComboBox _cmbTipoPago = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 150 };
     // Pago en efectivo: con cuánto entrega el cliente (puede ser más de lo que debe) y el vuelto resultante. Solo visibles con forma de pago Efectivo
     private readonly Label _lblPagaCon = new() { Text = "Paga con", AutoSize = true, Margin = new Padding(12, 7, 6, 0) };
@@ -70,16 +90,54 @@ public class CuentaCorrienteControl : UserControl
 
         // Búsqueda de cliente
         var busqueda = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true };
-        var btnBuscar = new Button { Text = "Buscar cliente", AutoSize = true };
-        btnBuscar.Click += (_, _) => BuscarClientes();
-        _txtBuscarCliente.KeyDown += (_, e) => { if (e.KeyCode == Keys.Enter) { e.SuppressKeyPress = true; BuscarClientes(); } };
+        // Único mecanismo de búsqueda: automática mientras se escribe (Enter la lanza al instante, sin esperar el retardo)
+        _debounceBusquedaCliente.Tick += (_, _) =>
+        {
+            _debounceBusquedaCliente.Stop();
+            BuscarClientes();
+        };
+        _txtBuscarCliente.TextChanged += (_, _) =>
+        {
+            if (_suprimirBusquedaAutomatica) return;
+            _debounceBusquedaCliente.Stop();
+            _debounceBusquedaCliente.Start();
+        };
+        // Desde el buscador se puede navegar los resultados con ↑ ↓ y, con Enter, traer la cuenta corriente del cliente marcado
+        _txtBuscarCliente.KeyDown += (_, e) =>
+        {
+            switch (e.KeyCode)
+            {
+                case Keys.Down:
+                    e.Handled = e.SuppressKeyPress = true;
+                    MoverSeleccionCliente(1);
+                    break;
+                case Keys.Up:
+                    e.Handled = e.SuppressKeyPress = true;
+                    MoverSeleccionCliente(-1);
+                    break;
+                case Keys.Enter:
+                    e.Handled = e.SuppressKeyPress = true;
+                    // Si Enter llega antes de que pase el retardo de la búsqueda automática, se busca ya mismo para no elegir sobre resultados viejos
+                    if (_debounceBusquedaCliente.Enabled)
+                    {
+                        _debounceBusquedaCliente.Stop();
+                        BuscarClientes();
+                    }
+                    SeleccionarClienteDeGrilla();
+                    break;
+            }
+        };
+        Disposed += (_, _) => _debounceBusquedaCliente.Dispose();
         busqueda.Controls.Add(new Label { Text = "Cliente (DNI, apellido o nombre)", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
         busqueda.Controls.Add(_txtBuscarCliente);
-        busqueda.Controls.Add(btnBuscar);
         layout.Controls.Add(busqueda, 0, 0);
 
         ConfigurarGrillaClientes();
-        layout.Controls.Add(_dgvClientes, 0, 1);
+        // Grilla y mensaje comparten lugar: se alterna la visibilidad según haya o no resultados que mostrar
+        var contenedorClientes = new Panel { Dock = DockStyle.Fill };
+        contenedorClientes.Controls.Add(_dgvClientes);
+        contenedorClientes.Controls.Add(_lblMensajeBusqueda);
+        layout.Controls.Add(contenedorClientes, 0, 1);
 
         var encabezadoCuenta = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, WrapContents = true, Padding = new Padding(0, 10, 0, 0) };
         encabezadoCuenta.Controls.Add(_lblClienteSeleccionado);
@@ -107,7 +165,7 @@ public class CuentaCorrienteControl : UserControl
         var espaciador = new Label { Width = 24 };
         panelPago.Controls.Add(espaciador);
         panelPago.Controls.Add(new Label { Text = "Monto a cobrar", AutoSize = true, Margin = new Padding(0, 7, 6, 0) });
-        panelPago.Controls.Add(_nudMonto);
+        panelPago.Controls.Add(_txtMonto);
         _cmbTipoPago.DisplayMember = "Texto";
         _cmbTipoPago.ValueMember = "Valor";
         // Mismas formas de pago que el Punto de Venta (MetodoPago de LogicaVenta), sin Cuenta Corriente
@@ -120,7 +178,7 @@ public class CuentaCorrienteControl : UserControl
         panelPago.Controls.Add(_txtPagaCon);
         panelPago.Controls.Add(_lblVuelto);
         _cmbTipoPago.SelectedIndexChanged += (_, _) => ActualizarVuelto();
-        _nudMonto.ValueChanged += (_, _) => ActualizarVuelto();
+        ConfigurarCampoMonto();
         _txtPagaCon.TextChanged += (_, _) => ActualizarVuelto();
         _btnRegistrarPago.Click += btnRegistrarPago_Click;
         panelPago.Controls.Add(_btnRegistrarPago);
@@ -131,6 +189,7 @@ public class CuentaCorrienteControl : UserControl
         Controls.Add(layout);
 
         MostrarEstadoVacio();
+        MostrarMensajeBusqueda(MensajeInicialBusqueda, esError: false);
         ActualizarVuelto();
     }
 
@@ -145,7 +204,7 @@ public class CuentaCorrienteControl : UserControl
         _lblVuelto.Visible = efectivo;
         if (!efectivo) return;
 
-        decimal montoACobrar = _nudMonto.Value;
+        decimal montoACobrar = ObtenerMonto();
         if (!CalculadorVuelto.TryParsearMonto(_txtPagaCon.Text, out var pagaCon) || pagaCon <= 0m)
         {
             _lblVuelto.ForeColor = Color.DimGray;
@@ -178,7 +237,7 @@ public class CuentaCorrienteControl : UserControl
     {
         _lblEstadoVacio.Visible = true;
         _dgvDeuda.Visible = false;
-        _nudMonto.Enabled = false;
+        _txtMonto.Enabled = false;
         _cmbTipoPago.Enabled = false;
         _txtPagaCon.Enabled = false;
         _btnRegistrarPago.Enabled = false;
@@ -197,6 +256,48 @@ public class CuentaCorrienteControl : UserControl
         _dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Nombre", HeaderText = "Nombre", Width = 150 });
         _dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Email", HeaderText = "Email", Width = 220 });
         _dgvClientes.CellDoubleClick += (_, e) => { if (e.RowIndex >= 0) SeleccionarClienteDeGrilla(); };
+        // Enter sobre la grilla (por ejemplo después de navegar con las flechas) trae la cuenta del cliente marcado
+        _dgvClientes.EnterPresionado += (_, _) => SeleccionarClienteDeGrilla();
+        AplicarEstiloBlanco(_dgvClientes);
+        EstirarColumnas(_dgvClientes);
+    }
+
+    // Las columnas se estiran para ocupar todo el ancho de la grilla, manteniendo la proporción de los anchos con que se definieron
+    // (la columna más ancha, como Email o Producto, recibe proporcionalmente más espacio). Debe llamarse con las columnas ya agregadas
+    private static void EstirarColumnas(DataGridView dgv)
+    {
+        foreach (DataGridViewColumn columna in dgv.Columns)
+        {
+            columna.FillWeight = columna.Width;
+            columna.MinimumWidth = 60;
+        }
+
+        dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+    }
+
+    // Grilla completamente blanca: fondo (incluido el espacio vacío debajo de las filas y a la derecha de las columnas), celdas, filas
+    // alternas y encabezados. La fila seleccionada conserva un celeste muy suave para que se vea cuál está elegida
+    private static void AplicarEstiloBlanco(DataGridView dgv)
+    {
+        dgv.BackgroundColor = Color.White;
+        dgv.BorderStyle = BorderStyle.None;
+        dgv.GridColor = Color.Gainsboro;
+        dgv.RowHeadersVisible = false;
+
+        dgv.DefaultCellStyle.BackColor = Color.White;
+        dgv.DefaultCellStyle.ForeColor = Color.Black;
+        dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(222, 236, 252);
+        dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
+        dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.White;
+
+        // Sin esto, Windows ignora los colores del encabezado y los dibuja con el tema del sistema (gris)
+        dgv.EnableHeadersVisualStyles = false;
+        dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+        dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.White;
+        dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.Black;
+        dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 9, FontStyle.Bold);
+        dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.White;
+        dgv.ColumnHeadersDefaultCellStyle.SelectionForeColor = Color.Black;
     }
 
     private void ConfigurarGrillaDeuda()
@@ -210,21 +311,86 @@ public class CuentaCorrienteControl : UserControl
         _dgvDeuda.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "IdVenta", HeaderText = "Nº Venta", Width = 80 });
         _dgvDeuda.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NombreProducto", HeaderText = "Producto", Width = 260 });
         _dgvDeuda.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Monto", HeaderText = "Monto adeudado", Width = 130, DefaultCellStyle = new DataGridViewCellStyle { Format = "C2" } });
+        AplicarEstiloBlanco(_dgvDeuda);
+        EstirarColumnas(_dgvDeuda);
     }
 
     private void BuscarClientes()
     {
         try
         {
-            _clientesEncontrados = _logica.BuscarClientes(_txtBuscarCliente.Text);
+            string texto = _txtBuscarCliente.Text.Trim();
+
+            // No se consulta la bd con el campo vacío o con un solo caracter: serían demasiados resultados que no sirven para elegir un cliente.
+            // La consulta, además, siempre está limitada a 25 filas (ClienteRepository.Buscar)
+            if (texto.Length < MinimoCaracteresBusqueda)
+            {
+                _clientesEncontrados = new List<Cliente>();
+                _dgvClientes.DataSource = null;
+                MostrarMensajeBusqueda(MensajeInicialBusqueda, esError: false);
+                return;
+            }
+
+            _clientesEncontrados = _logica.BuscarClientes(texto);
+
+            // Sin coincidencias: se avisa en el lugar de la grilla (sin ventana emergente)
+            if (_clientesEncontrados.Count == 0)
+            {
+                _dgvClientes.DataSource = null;
+                MostrarMensajeBusqueda(
+                    $"No se encontró ningún cliente que coincida con “{texto}”.",
+                    esError: true);
+                return;
+            }
+
             _dgvClientes.DataSource = _clientesEncontrados
                 .Select(c => new { c.IdCliente, c.Persona.Dni, c.Persona.Apellido, c.Persona.Nombre, c.Email })
                 .ToList();
+            MostrarGrillaClientes();
+
+            // Queda marcado el primer resultado, así alcanza con apretar Enter (o moverse con ↑ ↓ y luego Enter)
+            MarcarFilaCliente(0);
         }
         catch (Exception ex)
         {
             MessageBox.Show(this, ex.Message, "No se pudo buscar clientes", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void MostrarMensajeBusqueda(string mensaje, bool esError)
+    {
+        _lblMensajeBusqueda.Text = mensaje;
+        _lblMensajeBusqueda.ForeColor = esError ? Color.Firebrick : Color.DimGray;
+        _lblMensajeBusqueda.Visible = true;
+        _dgvClientes.Visible = false;
+    }
+
+    private void MostrarGrillaClientes()
+    {
+        _lblMensajeBusqueda.Visible = false;
+        _dgvClientes.Visible = true;
+    }
+
+    // Marca (fila actual + seleccionada) la fila indicada de la grilla de clientes. La celda actual debe ser de una columna visible
+    private void MarcarFilaCliente(int indice)
+    {
+        if (_dgvClientes.Rows.Count == 0) return;
+
+        indice = Math.Clamp(indice, 0, _dgvClientes.Rows.Count - 1);
+        var columna = _dgvClientes.Columns.GetFirstColumn(DataGridViewElementStates.Visible);
+        if (columna == null) return;
+
+        _dgvClientes.ClearSelection();
+        _dgvClientes.CurrentCell = _dgvClientes.Rows[indice].Cells[columna.Index];
+        _dgvClientes.Rows[indice].Selected = true;
+    }
+
+    private void MoverSeleccionCliente(int desplazamiento)
+    {
+        if (!_dgvClientes.Visible || _dgvClientes.Rows.Count == 0) return;
+
+        int actual = _dgvClientes.CurrentRow?.Index ?? -1;
+        MarcarFilaCliente(actual + desplazamiento);
     }
 
     private void SeleccionarClienteDeGrilla()
@@ -235,6 +401,10 @@ public class CuentaCorrienteControl : UserControl
 
         _clienteSeleccionado = cliente;
         CargarCuenta();
+
+        // Con la cuenta ya cargada, el cursor pasa al monto para poder cobrar enseguida (si el cliente no tiene deuda queda deshabilitado)
+        if (_txtMonto.Enabled)
+            _txtMonto.Focus();
     }
 
     // Si el cajero ya eligió un cliente para la venta, "Ver Cuenta Corriente" llama a este método y evita que el cliente se tenga que buscar dos veces
@@ -244,10 +414,15 @@ public class CuentaCorrienteControl : UserControl
 
         _clienteSeleccionado = cliente;
         _clientesEncontrados = new List<Cliente> { cliente };
-        _txtBuscarCliente.Text = $"{cliente.Persona.Apellido}, {cliente.Persona.Nombre}";
+        // Se completa el texto sin disparar la búsqueda automática: reemplazaría la grilla con el único cliente por el resultado de buscar ese texto
+        _debounceBusquedaCliente.Stop();
+        _suprimirBusquedaAutomatica = true;
+        try { _txtBuscarCliente.Text = $"{cliente.Persona.Apellido}, {cliente.Persona.Nombre}"; }
+        finally { _suprimirBusquedaAutomatica = false; }
         _dgvClientes.DataSource = _clientesEncontrados
             .Select(c => new { c.IdCliente, c.Persona.Dni, c.Persona.Apellido, c.Persona.Nombre, c.Email })
             .ToList();
+        MostrarGrillaClientes();
 
         CargarCuenta();
     }
@@ -288,13 +463,157 @@ public class CuentaCorrienteControl : UserControl
             : string.Empty;
 
         // No se puede cobrar más de lo que se debe (evita generar un saldo a favor que no corresponde)
-        _nudMonto.Value = 0;
-        _nudMonto.Maximum = hayDeuda ? resumen.DeudaNeta : 0;
-        _nudMonto.Enabled = hayDeuda;
+        _montoMaximo = hayDeuda ? resumen.DeudaNeta : 0m;
+        _txtMonto.Text = "0";
+        _txtMonto.Enabled = hayDeuda;
         _txtPagaCon.Clear();
         _txtPagaCon.Enabled = hayDeuda;
         _cmbTipoPago.Enabled = hayDeuda;
         _btnRegistrarPago.Enabled = hayDeuda;
+    }
+
+    // ---- Campo "Monto a cobrar" ----
+
+    private void ConfigurarCampoMonto()
+    {
+        // Solo números: los puntos de los miles se agregan solos y no hace falta escribir decimales
+        _txtMonto.KeyPress += (_, e) =>
+        {
+            if (!(e.KeyChar >= '0' && e.KeyChar <= '9') && !char.IsControl(e.KeyChar))
+                e.Handled = true;
+        };
+
+        // Al entrar al campo desaparece el "0" para escribir el importe directamente; si ya hay un monto, queda seleccionado para reemplazarlo
+        _txtMonto.Enter += (_, _) =>
+        {
+            if (ObtenerMonto() == 0m)
+                _txtMonto.Clear();
+            else
+                BeginInvoke(new Action(() => _txtMonto.SelectAll()));
+        };
+
+        // Si se sale del campo sin escribir nada, vuelve a mostrar 0
+        _txtMonto.Leave += (_, _) =>
+        {
+            if (string.IsNullOrWhiteSpace(_txtMonto.Text))
+                _txtMonto.Text = "0";
+        };
+
+        _txtMonto.TextChanged += (_, _) =>
+        {
+            if (_formateandoMonto) return;
+            FormatearMonto();
+            ActualizarVuelto();
+        };
+    }
+
+    // Monto numérico del campo (0 si está vacío)
+    private decimal ObtenerMonto()
+    {
+        string texto = _txtMonto.Text.Replace(".", string.Empty).Replace(',', '.');
+        return decimal.TryParse(texto, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var monto)
+            ? monto
+            : 0m;
+    }
+
+    // Va armando el importe a medida que se escribe: 1500 -> 1.500, 25000 -> 25.000. Nunca deja superar la deuda: si se pasa, se ajusta al máximo
+    // (que puede tener centavos si la deuda los tiene; en ese caso se muestra con coma, y se puede borrar con normalidad)
+    private void FormatearMonto()
+    {
+        string texto = _txtMonto.Text;
+        int cursor = Math.Min(_txtMonto.SelectionStart, texto.Length);
+        int digitosAntesDelCursor = texto.Take(cursor).Count(char.IsDigit);
+
+        int posComa = texto.IndexOf(',');
+        string parteEntera = posComa >= 0 ? texto[..posComa] : texto;
+        string parteDecimal = posComa >= 0
+            ? new string(texto[(posComa + 1)..].Where(char.IsDigit).Take(2).ToArray())
+            : string.Empty;
+
+        string enteros = new string(parteEntera.Where(char.IsDigit).ToArray());
+        string sinCeros = enteros.TrimStart('0');
+        if (sinCeros.Length == 0 && enteros.Length > 0)
+            sinCeros = "0";
+
+        decimal monto = decimal.Parse(
+            (sinCeros.Length == 0 ? "0" : sinCeros) + (parteDecimal.Length > 0 ? "." + parteDecimal : string.Empty),
+            System.Globalization.CultureInfo.InvariantCulture);
+
+        string nuevoTexto;
+        bool cursorAlFinal = false;
+        if (monto > _montoMaximo)
+        {
+            nuevoTexto = FormatearImporte(_montoMaximo);
+            cursorAlFinal = true;
+        }
+        else
+        {
+            nuevoTexto = AgruparMiles(sinCeros) + (posComa >= 0 ? "," + parteDecimal : string.Empty);
+        }
+
+        if (nuevoTexto == texto) return;
+
+        _formateandoMonto = true;
+        try
+        {
+            _txtMonto.Text = nuevoTexto;
+
+            // El cursor queda después del mismo dígito en el que estaba, aunque hayan aparecido o desaparecido puntos
+            int nuevaPosicion = nuevoTexto.Length;
+            if (!cursorAlFinal)
+            {
+                nuevaPosicion = 0;
+                int contados = 0;
+                while (nuevaPosicion < nuevoTexto.Length && contados < digitosAntesDelCursor)
+                {
+                    if (char.IsDigit(nuevoTexto[nuevaPosicion])) contados++;
+                    nuevaPosicion++;
+                }
+            }
+            _txtMonto.SelectionStart = nuevaPosicion;
+        }
+        finally
+        {
+            _formateandoMonto = false;
+        }
+    }
+
+    // 1234567 -> "1.234.567"
+    private static string AgruparMiles(string digitos)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = digitos.Length - 1, n = 0; i >= 0; i--, n++)
+        {
+            if (n > 0 && n % 3 == 0) sb.Insert(0, '.');
+            sb.Insert(0, digitos[i]);
+        }
+        return sb.ToString();
+    }
+
+    // 1234 -> "1.234"; 1234.5 -> "1.234,50"
+    private static string FormatearImporte(decimal importe)
+    {
+        decimal enteros = Math.Truncate(importe);
+        string texto = AgruparMiles(((long)enteros).ToString());
+        int centavos = (int)Math.Round((importe - enteros) * 100m);
+        return centavos > 0 ? $"{texto},{centavos:00}" : texto;
+    }
+
+    // Grilla que avisa cuando se aprieta Enter (por defecto, el DataGridView usa Enter para bajar a la fila siguiente)
+    private sealed class GrillaClientes : DataGridView
+    {
+        public event EventHandler? EnterPresionado;
+
+        protected override bool ProcessDialogKey(Keys keyData)
+        {
+            if (keyData == Keys.Enter)
+            {
+                EnterPresionado?.Invoke(this, EventArgs.Empty);
+                return true;
+            }
+
+            return base.ProcessDialogKey(keyData);
+        }
     }
 
     // "Saldo a favor" solo aparece si el cliente pagó de más. Si debe algo, lo que ya entregó para el próximo producto se muestra como crédito
@@ -316,7 +635,7 @@ public class CuentaCorrienteControl : UserControl
             return;
         }
 
-        decimal monto = _nudMonto.Value;
+        decimal monto = ObtenerMonto();
         if (monto <= 0)
         {
             MessageBox.Show(this, "Ingresá un monto mayor a cero.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);

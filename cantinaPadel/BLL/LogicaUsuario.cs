@@ -10,6 +10,7 @@ namespace cantinaPadel.BLL
         Ok,
         UsuarioNoEncontrado,
         ContrasenaIncorrecta,
+        UsuarioInhabilitado,
         ErrorConexion
     }
 
@@ -18,8 +19,13 @@ namespace cantinaPadel.BLL
         private readonly IEmpleadoRepository _repo;
 
         public LogicaUsuario()
+            : this(new EmpleadoRepository())
         {
-            _repo = new EmpleadoRepository();
+        }
+
+        public LogicaUsuario(IEmpleadoRepository repo)
+        {
+            _repo = repo;
         }
 
         public ResultadoLogin ValidarCredenciales(string usuario, string contrasena, out int idUsuario, out string? rol)
@@ -37,6 +43,11 @@ namespace cantinaPadel.BLL
 
                 if (empleado.Contrasena != contrasena)
                     return ResultadoLogin.ContrasenaIncorrecta;
+
+                // Credenciales correctas pero el empleado fue dado de baja: no puede ingresar, y se informa distinto a un error de credenciales
+                // Se evalúa después de la contraseña para no revelar el estado de la cuenta a quien no la conoce
+                if (!empleado.Activo)
+                    return ResultadoLogin.UsuarioInhabilitado;
 
                 // Credenciales correctas: asigna las variables de salida para la sesión
                 idUsuario = empleado.IdEmpleado;

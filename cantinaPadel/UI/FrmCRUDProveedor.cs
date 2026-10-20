@@ -112,7 +112,7 @@ namespace cantinaPadel.UI
             txtUsuarioEmpleado = new TextBox { Location = new Point(inputDer, 348), Size = inputSize, MaxLength = 50 };
             lblContrasenaEmpleado = new Label { Text = "Contraseña:", Location = new Point(labelDer, 410), AutoSize = true };
             txtContrasenaEmpleado = new TextBox
-            {Location = new Point(inputDer, 403),Size = inputSize, MaxLength = 8, UseSystemPasswordChar = true};
+            { Location = new Point(inputDer, 403), Size = inputSize, MaxLength = 8, UseSystemPasswordChar = true };
             lblRolEmpleado = new Label { Text = "Rol:", Location = new Point(labelDer, 465), AutoSize = true };
             cmbRolEmpleado = new ComboBox { Location = new Point(inputDer, 458), Size = new Size(inputSize.Width, 40), DropDownStyle = ComboBoxStyle.DropDownList };
             cmbRolEmpleado.Items.AddRange(new object[] { "Admin", "Empleado" });
@@ -261,6 +261,14 @@ namespace cantinaPadel.UI
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
+        }
+
+        // El teléfono solo admite números (el largo máximo lo limita MaxLength = 10 y el formato final lo valida Persona.ValidarTelefono,
+        // que también cubre lo pegado con Ctrl+V, ya que KeyPress solo filtra lo tipeado)
+        private void txtTelefono_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+                e.Handled = true;
         }
 
         private void txtCuit_KeyPress(object sender, KeyPressEventArgs e)

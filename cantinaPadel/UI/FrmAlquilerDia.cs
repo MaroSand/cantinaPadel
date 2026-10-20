@@ -9,7 +9,6 @@ namespace cantinaPadel.UI
         private ComboBox cmbCancha = null!;
         private DateTimePicker dtpFecha = null!;
         private TextBox txtBuscarCliente = null!;
-        private Button btnBuscarCliente = null!;
         private CheckBox chkIncluirCancelados = null!;
         private DataGridView dgvClientes = null!;
         private DataGridView dgvHorarios = null!;
@@ -43,7 +42,7 @@ namespace cantinaPadel.UI
 
         private void InicializarComponentes()
         {
-            Text = "Alquiler por Dia";
+            Text = "Turnos";
             BackColor = Color.White;
             Dock = DockStyle.Fill;
             Padding = new Padding(16);
@@ -94,7 +93,8 @@ namespace cantinaPadel.UI
             };
             txtBuscarCliente.KeyDown += txtBuscarCliente_KeyDown;
 
-            // Búsqueda en vivo, espera 300ms sin que se tipee nada antes de consultar la bd
+            // Único mecanismo de búsqueda de clientes: búsqueda en vivo (Enter la lanza al instante).
+            // Espera 300ms sin que se tipee nada antes de consultar la bd
             _debounceBusquedaCliente = new System.Windows.Forms.Timer { Interval = 300 };
             _debounceBusquedaCliente.Tick += (_, _) =>
             {
@@ -106,9 +106,6 @@ namespace cantinaPadel.UI
                 _debounceBusquedaCliente.Stop();
                 _debounceBusquedaCliente.Start();
             };
-
-            btnBuscarCliente = CrearBoton("Buscar cliente");
-            btnBuscarCliente.Click += (_, _) => BuscarClientes();
 
             chkIncluirCancelados = new CheckBox
             {
@@ -130,7 +127,6 @@ namespace cantinaPadel.UI
             filtros.Controls.Add(CrearCampo("Primera fecha", dtpFecha));
             filtros.Controls.Add(modalidad);
             filtros.Controls.Add(CrearCampo("Buscar cliente", txtBuscarCliente));
-            filtros.Controls.Add(btnBuscarCliente);
             filtros.Controls.Add(chkIncluirCancelados);
             filtros.Controls.Add(btnActualizar);
             filtros.Controls.Add(btnReservar);

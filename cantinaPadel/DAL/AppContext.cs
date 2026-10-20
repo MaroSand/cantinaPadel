@@ -28,6 +28,8 @@ namespace cantinaPadel.DAL
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVenta> DetallesVenta { get; set; }
         public DbSet<MovimientoCuentaCorriente> MovimientosCuentaCorriente { get; set; }
+        public DbSet<Compra> Compras { get; set; }
+        public DbSet<DetalleCompra> DetallesCompra { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -81,6 +83,12 @@ namespace cantinaPadel.DAL
                 .HasOne<Venta>()
                 .WithMany()
                 .HasForeignKey(v => v.IdVentaPadre);
+
+            // Compra -> sus líneas de detalle (1 a N). Al guardar una compra, EF inserta también sus detalles
+            modelBuilder.Entity<Compra>()
+                .HasMany(c => c.Detalles)
+                .WithOne()
+                .HasForeignKey(d => d.IdCompra);
         }
     }
 }
