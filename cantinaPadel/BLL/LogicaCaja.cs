@@ -20,6 +20,19 @@ public class LogicaCaja
 
     public TurnoCaja? ObtenerCajaAbierta(int idEmpleado) => _cajas.ObtenerCajaAbierta(idEmpleado);
     public TurnoCaja? ObtenerCajaAbiertaGeneral() => _cajas.ObtenerCajaAbiertaGeneral();
+
+    // Caja que el empleado dejó abierta en una sesión anterior (cierre abrupto del programa, corte de luz, etc.).
+    // Como el sistema no deja cerrar sesión ni salir con la caja abierta, si al loguearse tiene una abierta
+    // es porque quedó colgada: debe cerrarla antes de hacer cualquier otra cosa.
+    public TurnoCaja? ObtenerCajaPendienteDeCierre(int idEmpleado) => _cajas.ObtenerCajaAbierta(idEmpleado);
+
+    // Todas las cajas abiertas (paralelas). Solo el administrador puede verlas y cerrarlas
+    public List<TurnoCaja> ObtenerCajasAbiertas(string? rol)
+    {
+        if (rol != "Admin")
+            throw new UnauthorizedAccessException("Solo un administrador puede consultar todas las cajas abiertas.");
+        return _cajas.ObtenerCajasAbiertas();
+    }
     public List<TurnoCaja> ObtenerHistorial(int idEmpleado) => _cajas.ObtenerHistorial(idEmpleado);
 
     // El historial de ingresos y retiros de efectivo es solo para el administrador
@@ -43,9 +56,9 @@ public class LogicaCaja
     {
         if (idEmpleado <= 0) throw new ArgumentException("No hay un usuario autenticado.");
         if (montoInicial < 0m) throw new ArgumentException("El monto inicial no puede ser negativo.");
-        if (_cajas.ObtenerCajaAbiertaGeneral() != null)
-            throw new InvalidOperationException(
-                "La caja física ya está abierta por otro usuario. Cerrala antes de iniciar el siguiente turno.");
+        // Cajas paralelas: cada empleado puede tener su propia caja abierta, pero solo una a la vez
+        if (_cajas.ObtenerCajaAbierta(idEmpleado) != null)
+            throw new InvalidOperationException("Ya tenés una caja abierta. Cerrala antes de abrir otra.");
         return _cajas.Abrir(idEmpleado, montoInicial);
     }
 
@@ -95,8 +108,8 @@ public class LogicaCaja
         if (monto <= 0) throw new ArgumentException("El monto del retiro debe ser mayor a cero.");
         var admin = ObtenerAdminAutorizado(contrasenaAdmin);
         var caja = _cajas.Obtener(idTurnoCaja);
-        if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idTurnoCaja)
-            throw new InvalidOperationException("Solo se puede retirar efectivo de la caja física abierta.");
+        if (!EstaAbierta(caja))
+            throw new InvalidOperationException("Solo se puede retirar efectivo de una caja abierta.");
         if (ObtenerEfectivoDisponible(idTurnoCaja) < monto)
             throw new InvalidOperationException("El retiro supera el efectivo disponible en caja.");
         _cajas.RegistrarRetiro(new RetiroCaja
@@ -110,8 +123,8 @@ public class LogicaCaja
         if (idEmpleado <= 0) throw new ArgumentException("No hay un usuario autenticado.");
         if (monto <= 0m) throw new ArgumentException("El monto a agregar debe ser mayor a cero.");
         var caja = _cajas.Obtener(idTurnoCaja);
-        if (caja.Estado != TurnoCaja.EstadoAbierta || _cajas.ObtenerCajaAbiertaGeneral()?.IdTurnoCaja != idTurnoCaja)
-            throw new InvalidOperationException("Solo se puede agregar efectivo a la caja física abierta.");
+        if (!EstaAbierta(caja))
+            throw new InvalidOperationException("Solo se puede agregar efectivo a una caja abierta.");
         if (_cajas.ExisteIngreso(idTurnoCaja))
             throw new InvalidOperationException("Ya se registró un ingreso de efectivo en este turno de caja.");
         _cajas.RegistrarIngreso(new IngresoCaja
@@ -119,6 +132,11 @@ public class LogicaCaja
     }
 
     public bool ExisteIngreso(int idTurnoCaja) => _cajas.ExisteIngreso(idTurnoCaja);
+
+    // El turno sigue abierto: figura como abierto y es la caja abierta actual de su empleado
+    private bool EstaAbierta(TurnoCaja caja) =>
+        caja.Estado == TurnoCaja.EstadoAbierta &&
+        _cajas.ObtenerCajaAbierta(caja.IdEmpleado)?.IdTurnoCaja == caja.IdTurnoCaja;
 
     private Empleado ObtenerAdminAutorizado(string contrasena)
     {

@@ -6,6 +6,7 @@ namespace cantinaPadel.DAL.Repositories
     {
         TurnoCaja? ObtenerCajaAbierta(int idEmpleado);
         TurnoCaja? ObtenerCajaAbiertaGeneral() => null;
+        List<TurnoCaja> ObtenerCajasAbiertas() => new();
         TurnoCaja? ObtenerUltimaCajaCerrada() => null;
         List<TurnoCaja> ObtenerHistorial(int idEmpleado) => new();
         List<TurnoCaja> ObtenerTodoHistorial() => new();

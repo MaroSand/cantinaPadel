@@ -218,6 +218,8 @@ public class FrmGestionCaja : Form
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         { DataPropertyName = nameof(TurnoCaja.NombreEmpleado), HeaderText = "Empleado", Width = 150 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
+        { DataPropertyName = nameof(TurnoCaja.Estado), HeaderText = "Estado", Width = 90 });
+        _historial.Columns.Add(new DataGridViewTextBoxColumn
         {
             DataPropertyName = nameof(TurnoCaja.FechaApertura),
             HeaderText = "Apertura",
@@ -289,8 +291,6 @@ public class FrmGestionCaja : Form
             Width = 145,
             DefaultCellStyle = new() { Format = "C2" }
         });
-        _historial.Columns.Add(new DataGridViewTextBoxColumn
-        { DataPropertyName = nameof(TurnoCaja.Estado), HeaderText = "Estado", Width = 100 });
         _historialEfectivo.Columns.Add(new DataGridViewTextBoxColumn
         {
             DataPropertyName = nameof(MovimientoEfectivoHistorial.Fecha),
@@ -330,25 +330,18 @@ public class FrmGestionCaja : Form
         };
         _cerrar.Click += (_, _) =>
         {
-            var caja = Sesion.Rol == "Admin"
-                ? _logica.ObtenerCajaAbiertaGeneral()
-                : _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
-            if (caja == null)
-            {
-                MessageBox.Show(this, Sesion.Rol == "Admin" ? "No hay una caja abierta." : "No tenés una caja abierta.",
-                    "Caja", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
+            var caja = ElegirCajaACerrar();
+            if (caja == null) return;
 
             using var f = new FrmCierreCaja(_logica, caja);
             if (f.ShowDialog(this) == DialogResult.OK) Actualizar();
         };
         _retiro.Click += (_, _) =>
         {
-            var caja = _logica.ObtenerCajaAbiertaGeneral();
+            var caja = _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
             if (caja == null)
             {
-                MessageBox.Show(this, "No hay una caja abierta.", "Caja", MessageBoxButtons.OK,
+                MessageBox.Show(this, "No tenés una caja abierta.", "Caja", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
             }
@@ -359,10 +352,10 @@ public class FrmGestionCaja : Form
         };
         _agregarEfectivo.Click += (_, _) =>
         {
-            var caja = _logica.ObtenerCajaAbiertaGeneral();
+            var caja = _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
             if (caja == null)
             {
-                MessageBox.Show(this, "No hay una caja abierta.", "Caja", MessageBoxButtons.OK,
+                MessageBox.Show(this, "No tenés una caja abierta.", "Caja", MessageBoxButtons.OK,
                     MessageBoxIcon.Information);
                 return;
             }
@@ -381,21 +374,51 @@ public class FrmGestionCaja : Form
         Load += (_, _) => Actualizar();
     }
 
+    // Caja que se va a cerrar: la propia. El Admin, si hay varias cajas abiertas, elige cuál (por ejemplo,
+    // la de un empleado que no volvió a loguearse después de un corte de luz)
+    private TurnoCaja? ElegirCajaACerrar()
+    {
+        if (Sesion.Rol != "Admin")
+        {
+            var propia = _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
+            if (propia == null)
+                MessageBox.Show(this, "No tenés una caja abierta.", "Caja", MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
+            return propia;
+        }
+
+        var abiertas = _logica.ObtenerCajasAbiertas(Sesion.Rol);
+        if (abiertas.Count == 0)
+        {
+            MessageBox.Show(this, "No hay cajas abiertas.", "Caja", MessageBoxButtons.OK,
+                MessageBoxIcon.Information);
+            return null;
+        }
+
+        if (abiertas.Count == 1) return abiertas[0];
+
+        using var elegir = new FrmElegirCajaAbierta(abiertas);
+        return elegir.ShowDialog(this) == DialogResult.OK ? elegir.CajaElegida : null;
+    }
+
     private void Actualizar()
     {
         try
         {
-            var abierta = _logica.ObtenerCajaAbiertaGeneral();
-            var propia = abierta?.IdEmpleado == Sesion.IdUsuario;
-            _estado.Text = abierta == null
-                ? "Caja física cerrada"
-                : $"Caja abierta por {abierta.NombreEmpleado} · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(abierta.IdTurnoCaja):C2}";
-            _abrir.Enabled = abierta == null;
+            var propia = _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
+            var esAdmin = Sesion.Rol == "Admin";
+            var abiertas = esAdmin ? _logica.ObtenerCajasAbiertas(Sesion.Rol) : new List<TurnoCaja>();
+            _estado.Text = propia == null
+                ? "No tenés una caja abierta"
+                : $"Tu caja está abierta · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(propia.IdTurnoCaja):C2}";
+            if (esAdmin) _estado.Text += $" · Cajas abiertas en total: {abiertas.Count}";
+            // Cada empleado tiene su propia caja (cajas paralelas): solo puede abrir una si no tiene otra abierta
+            _abrir.Enabled = propia == null;
             // El empleado cierra solo su caja; el Admin puede cerrar la de cualquiera (por ejemplo, si quedó abierta por un corte de luz)
-            _cerrar.Enabled = abierta != null && (propia || Sesion.Rol == "Admin");
+            _cerrar.Enabled = propia != null || (esAdmin && abiertas.Count > 0);
             _retiro.Visible = true;
-            _retiro.Enabled = abierta != null;
-            _agregarEfectivo.Enabled = abierta != null && !_logica.ExisteIngreso(abierta.IdTurnoCaja);
+            _retiro.Enabled = propia != null;
+            _agregarEfectivo.Enabled = propia != null && !_logica.ExisteIngreso(propia.IdTurnoCaja);
             _historial.DataSource = Sesion.Rol == "Admin"
                 ? _logica.ObtenerTodoHistorial(Sesion.Rol)
                 : _logica.ObtenerHistorial(Sesion.IdUsuario);
@@ -501,11 +524,17 @@ public class FrmCierreCaja : Form
     private readonly TextBox _motivoDiferencia = new() { Width = 280, MaxLength = 250 };
     private readonly decimal _efectivoEsperado;
 
-    public FrmCierreCaja(LogicaCaja logica, TurnoCaja caja)
+    private readonly bool _obligatorio;
+
+    // obligatorio = true: caja que quedó abierta de una sesión anterior. No se puede cancelar ni cerrar la ventana:
+    // el usuario tiene que cerrar la caja para poder seguir usando el sistema
+    public FrmCierreCaja(LogicaCaja logica, TurnoCaja caja, bool obligatorio = false)
     {
         _logica = logica;
         _caja = caja;
-        EstiloCaja.Preparar(this, "Cierre de Caja");
+        _obligatorio = obligatorio;
+        EstiloCaja.Preparar(this, obligatorio ? "Cierre de Caja pendiente" : "Cierre de Caja");
+        if (obligatorio) ControlBox = false;
         Size = new Size(760, 520);
         _efectivoEsperado = _logica.ObtenerEfectivoDisponible(caja.IdTurnoCaja);
         _efectivoContado.Value = Math.Min(_efectivoEsperado, _efectivoContado.Maximum);
@@ -519,8 +548,10 @@ public class FrmCierreCaja : Form
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.Controls.Add(EstiloCaja.Etiqueta("Revisá los ingresos del turno antes de confirmar el cierre", true), 0,
-            0);
+        root.Controls.Add(EstiloCaja.Etiqueta(
+            obligatorio
+                ? "Tu caja quedó abierta de una sesión anterior. Cerrala para poder continuar"
+                : "Revisá los ingresos del turno antes de confirmar el cierre", true), 0, 0);
         var apertura = new Label
         {
             Text = $"Caja de {caja.NombreEmpleado} · Fondo inicial: {caja.MontoApertura:C2} · Ingresos: {ingresos:C2} · Retiros: {retiros:C2}",
@@ -606,7 +637,7 @@ public class FrmCierreCaja : Form
         var confirmar = EstiloCaja.BotonPuntoVenta("Confirmar cierre", Color.Green);
         var cancelar = EstiloCaja.BotonPuntoVenta("Cancelar", Color.Firebrick);
         acciones.Controls.Add(confirmar);
-        acciones.Controls.Add(cancelar);
+        if (!obligatorio) acciones.Controls.Add(cancelar);
         pie.Controls.Add(efectivo, 0, 0);
         pie.Controls.Add(acciones, 1, 0);
         root.Controls.Add(datosConteo, 0, 3);
@@ -626,6 +657,54 @@ public class FrmCierreCaja : Form
                 MessageBox.Show(this, ex.Message, "No se pudo cerrar la caja", MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
+        };
+        cancelar.Click += (_, _) => Close();
+    }
+
+    // Con el cierre obligatorio la ventana solo se cierra si la caja se cerró bien (Alt+F4 incluido)
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (_obligatorio && DialogResult != DialogResult.OK && e.CloseReason == CloseReason.UserClosing)
+            e.Cancel = true;
+        base.OnFormClosing(e);
+    }
+}
+
+// El Admin elige cuál de las cajas abiertas quiere cerrar
+public class FrmElegirCajaAbierta : Form
+{
+    private readonly ListBox _lista = new() { Dock = DockStyle.Fill, Font = new Font("Segoe UI", 10F) };
+    private readonly List<TurnoCaja> _cajas;
+
+    public TurnoCaja? CajaElegida { get; private set; }
+
+    public FrmElegirCajaAbierta(List<TurnoCaja> cajas)
+    {
+        _cajas = cajas;
+        EstiloCaja.Preparar(this, "Elegir caja a cerrar");
+        Size = new Size(520, 360);
+        foreach (var c in cajas)
+            _lista.Items.Add($"{c.NombreEmpleado} · abierta desde {c.FechaApertura:g}");
+        _lista.SelectedIndex = 0;
+        var aceptar = EstiloCaja.BotonPuntoVenta("Cerrar esa caja", Color.Gold);
+        var cancelar = EstiloCaja.BotonPuntoVenta("Cancelar", Color.Firebrick);
+        var botones = new FlowLayoutPanel
+        { Dock = DockStyle.Bottom, AutoSize = true, FlowDirection = FlowDirection.RightToLeft };
+        botones.Controls.Add(aceptar);
+        botones.Controls.Add(cancelar);
+        var titulo = EstiloCaja.Etiqueta("Hay varias cajas abiertas. ¿Cuál querés cerrar?");
+        titulo.Dock = DockStyle.Top;
+        Controls.Add(_lista);
+        Controls.Add(botones);
+        Controls.Add(titulo);
+        AcceptButton = aceptar;
+        CancelButton = cancelar;
+        aceptar.Click += (_, _) =>
+        {
+            if (_lista.SelectedIndex < 0) return;
+            CajaElegida = _cajas[_lista.SelectedIndex];
+            DialogResult = DialogResult.OK;
+            Close();
         };
         cancelar.Click += (_, _) => Close();
     }
