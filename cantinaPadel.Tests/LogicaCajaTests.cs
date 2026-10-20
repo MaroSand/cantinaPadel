@@ -28,6 +28,7 @@ public class LogicaCajaTests
 
         public TurnoCaja? ObtenerCajaAbierta(int idEmpleado) => Cerrada || Turno.IdEmpleado != idEmpleado ? null : Turno;
         public TurnoCaja? ObtenerCajaAbiertaGeneral() => Cerrada ? null : Turno;
+        public List<TurnoCaja> ObtenerCajasAbiertas() => Cerrada ? new() : new() { Turno };
         public TurnoCaja Abrir(int idEmpleado, decimal montoInicial)
         {
             MontoAperturaRegistrado = montoInicial;
@@ -194,6 +195,78 @@ public class LogicaCajaTests
 
         Assert.ThrowsExactly<InvalidOperationException>(() => logica.AbrirCaja(IdEmpleadoDuenio, 1000m));
         Assert.IsNull(repo.MontoAperturaRegistrado);
+    }
+
+    // Cajas paralelas: que otro empleado tenga su caja abierta no impide abrir la propia
+    [TestMethod]
+    public void AbrirCaja_OtroEmpleadoTieneCajaAbierta_AbreCajaParalela()
+    {
+        var (logica, repo) = Crear();
+
+        logica.AbrirCaja(IdEmpleadoSinPermiso, 500m);
+
+        Assert.AreEqual(500m, repo.MontoAperturaRegistrado);
+    }
+
+    [TestMethod]
+    public void AbrirCaja_AdminConCajaDeEmpleadoAbierta_AbreCajaParalela()
+    {
+        var (logica, repo) = Crear();
+
+        logica.AbrirCaja(IdAdmin);
+
+        Assert.AreEqual(0m, repo.MontoAperturaRegistrado);
+    }
+
+    // Cierre obligatorio al volver a loguearse: si el empleado tiene una caja abierta, es una que quedó colgada
+    [TestMethod]
+    public void ObtenerCajaPendienteDeCierre_EmpleadoConCajaAbierta_DevuelveEsaCaja()
+    {
+        var (logica, repo) = Crear();
+
+        var pendiente = logica.ObtenerCajaPendienteDeCierre(IdEmpleadoDuenio);
+
+        Assert.IsNotNull(pendiente);
+        Assert.AreEqual(repo.Turno.IdTurnoCaja, pendiente.IdTurnoCaja);
+    }
+
+    [TestMethod]
+    public void ObtenerCajaPendienteDeCierre_EmpleadoSinCajaAbierta_DevuelveNull()
+    {
+        var (logica, _) = Crear();
+
+        Assert.IsNull(logica.ObtenerCajaPendienteDeCierre(IdEmpleadoSinPermiso));
+    }
+
+    [TestMethod]
+    public void ObtenerCajaPendienteDeCierre_DespuesDeCerrarla_DevuelveNullYPuedeAbrirOtra()
+    {
+        var (logica, repo) = Crear();
+
+        logica.CerrarCaja(1, IdEmpleadoDuenio, 1000m, null, "Empleado");
+        logica.AbrirCaja(IdEmpleadoDuenio, 200m);
+
+        Assert.IsNull(logica.ObtenerCajaPendienteDeCierre(IdEmpleadoDuenio));
+        Assert.AreEqual(200m, repo.MontoAperturaRegistrado);
+    }
+
+    // Si el empleado no vuelve a loguearse, el Admin puede ver y cerrar la caja que quedó abierta
+    [TestMethod]
+    public void ObtenerCajasAbiertas_Admin_DevuelveLasCajasAbiertas()
+    {
+        var (logica, _) = Crear();
+
+        var abiertas = logica.ObtenerCajasAbiertas("Admin");
+
+        Assert.AreEqual(1, abiertas.Count);
+    }
+
+    [TestMethod]
+    public void ObtenerCajasAbiertas_Empleado_Lanza()
+    {
+        var (logica, _) = Crear();
+
+        Assert.ThrowsExactly<UnauthorizedAccessException>(() => logica.ObtenerCajasAbiertas("Empleado"));
     }
 
     [TestMethod]

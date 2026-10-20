@@ -53,6 +53,14 @@ public class CajaRepository : ICajaRepository
                 .FirstOrDefault());
     }
 
+    // Todas las cajas abiertas (hay una por empleado como máximo), de la más antigua a la más reciente
+    public List<TurnoCaja> ObtenerCajasAbiertas()
+    {
+        using var ctx = new AppDbContext();
+        return CompletarNombres(ctx,
+            ctx.TurnosCaja.Where(c => c.Estado == TurnoCaja.EstadoAbierta).OrderBy(c => c.FechaApertura).ToList());
+    }
+
     public TurnoCaja? ObtenerUltimaCajaCerrada()
     {
         using var ctx = new AppDbContext();
@@ -114,9 +122,9 @@ public class CajaRepository : ICajaRepository
     public TurnoCaja Abrir(int idEmpleado, decimal montoInicial)
     {
         using var ctx = new AppDbContext();
-        if (ctx.TurnosCaja.Any(c => c.Estado == TurnoCaja.EstadoAbierta))
-            throw new InvalidOperationException(
-                "La caja física ya está abierta por otro usuario. Cerrala antes de iniciar el siguiente turno.");
+        // Se permiten cajas paralelas: solo se impide que el mismo empleado tenga dos cajas abiertas a la vez
+        if (ctx.TurnosCaja.Any(c => c.IdEmpleado == idEmpleado && c.Estado == TurnoCaja.EstadoAbierta))
+            throw new InvalidOperationException("Ya tenés una caja abierta. Cerrala antes de abrir otra.");
         var caja = ctx.Cajas.FirstOrDefault(c => c.IdEmpleado == idEmpleado);
         if (caja == null)
         {

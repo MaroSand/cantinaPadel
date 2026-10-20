@@ -17,6 +17,29 @@ namespace cantinaPadel
         public FrmMain()
         {
             InitializeComponent();
+            Shown += FrmMain_Shown;
+        }
+
+        // Si el usuario dejó una caja abierta en una sesión anterior (cierre abrupto del programa, corte de luz),
+        // se lo obliga a cerrarla antes de poder hacer cualquier otra cosa. Después puede abrir una caja nueva
+        private void FrmMain_Shown(object? sender, EventArgs e)
+        {
+            try
+            {
+                var logicaCaja = new LogicaCaja();
+                var pendiente = logicaCaja.ObtenerCajaPendienteDeCierre(Sesion.IdUsuario);
+                if (pendiente == null) return;
+
+                using var cierre = new cantinaPadel.UI.FrmCierreCaja(logicaCaja, pendiente, obligatorio: true);
+                cierre.ShowDialog(this);
+                MessageBox.Show(this, "La caja quedó cerrada. Abrí una caja nueva para poder vender.", "Caja cerrada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AbrirCaja();
+            }
+            catch (Exception)
+            {
+                // Sin conexión a la base no se puede consultar ni cerrar la caja: no se bloquea el ingreso
+            }
 
             // El clic del botón Compras se conecta acá y no en el Designer, para que no quede duplicado
             btnCompras.Click += btnCompras_Click;
@@ -152,12 +175,8 @@ namespace cantinaPadel
                 if (logicaCaja.ObtenerCajaAbierta(Sesion.IdUsuario) != null)
                     return true;
 
-                var cajaAbierta = logicaCaja.ObtenerCajaAbiertaGeneral();
-                string mensaje = cajaAbierta == null
-                    ? "La caja está cerrada. Abrí la caja para poder usar el Punto de Venta."
-                    : $"La caja está abierta por {cajaAbierta.NombreEmpleado}. Ese turno debe cerrarse y luego abrir tu caja para usar el Punto de Venta.";
-
-                MessageBox.Show(this, mensaje, "Caja cerrada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "No tenés una caja abierta. Abrí tu caja para poder usar el Punto de Venta.",
+                    "Caja cerrada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception)
             {
