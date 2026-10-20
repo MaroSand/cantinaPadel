@@ -10,8 +10,7 @@ using cantinaPadel.Models;
 
 namespace cantinaPadel.UI
 {
-    // Alta de una compra a un proveedor. Se abre como ventana modal desde FrmListadoCompras
-    // Los controles se crean en el Designer y acá solo se les asigna comportamiento: los eventos se suscriben en el constructor/Load
+    // Alta de una compra a un proveedor
     public partial class FrmAltaCompra : Form
     {
         // Importes y costos siempre con formato argentino: 1.500,50

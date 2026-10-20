@@ -39,6 +39,7 @@
             lblProveedor = new Label();
             panelBuscador = new Panel();
             lblInfoProducto = new Label();
+            btnAgregar = new Button();
             txtCostoUnitario = new TextBox();
             lblCosto = new Label();
             nudCantidad = new NumericUpDown();
@@ -53,7 +54,6 @@
             lblTotal = new Label();
             btnQuitar = new Button();
             dgvCompra = new DataGridView();
-            btnAgregar = new Button();
             panelHeader.SuspendLayout();
             panelDatos.SuspendLayout();
             panelBuscador.SuspendLayout();
@@ -69,7 +69,7 @@
             panelHeader.Dock = DockStyle.Top;
             panelHeader.Location = new Point(0, 0);
             panelHeader.Name = "panelHeader";
-            panelHeader.Size = new Size(882, 74);
+            panelHeader.Size = new Size(951, 74);
             panelHeader.TabIndex = 0;
             // 
             // lblTitulo
@@ -77,7 +77,7 @@
             lblTitulo.Anchor = AnchorStyles.Top;
             lblTitulo.AutoSize = true;
             lblTitulo.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(327, 24);
+            lblTitulo.Location = new Point(361, 24);
             lblTitulo.Name = "lblTitulo";
             lblTitulo.Size = new Size(172, 31);
             lblTitulo.TabIndex = 0;
@@ -95,7 +95,7 @@
             panelDatos.Dock = DockStyle.Top;
             panelDatos.Location = new Point(0, 74);
             panelDatos.Name = "panelDatos";
-            panelDatos.Size = new Size(882, 110);
+            panelDatos.Size = new Size(951, 110);
             panelDatos.TabIndex = 1;
             // 
             // txtComprobante
@@ -166,7 +166,7 @@
             panelBuscador.Dock = DockStyle.Top;
             panelBuscador.Location = new Point(0, 184);
             panelBuscador.Name = "panelBuscador";
-            panelBuscador.Size = new Size(882, 140);
+            panelBuscador.Size = new Size(951, 140);
             panelBuscador.TabIndex = 2;
             // 
             // lblInfoProducto
@@ -175,9 +175,20 @@
             lblInfoProducto.ForeColor = Color.DimGray;
             lblInfoProducto.Location = new Point(-3, 110);
             lblInfoProducto.Name = "lblInfoProducto";
-            lblInfoProducto.Size = new Size(882, 30);
+            lblInfoProducto.Size = new Size(951, 30);
             lblInfoProducto.TabIndex = 9;
             lblInfoProducto.Text = "label1";
+            // 
+            // btnAgregar
+            // 
+            btnAgregar.BackColor = Color.White;
+            btnAgregar.FlatStyle = FlatStyle.Flat;
+            btnAgregar.Location = new Point(547, 65);
+            btnAgregar.Name = "btnAgregar";
+            btnAgregar.Size = new Size(197, 36);
+            btnAgregar.TabIndex = 8;
+            btnAgregar.Text = "Agregar";
+            btnAgregar.UseVisualStyleBackColor = false;
             // 
             // txtCostoUnitario
             // 
@@ -260,9 +271,9 @@
             panelAcciones.Controls.Add(lblTotal);
             panelAcciones.Controls.Add(btnQuitar);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 381);
+            panelAcciones.Location = new Point(0, 516);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(882, 80);
+            panelAcciones.Size = new Size(951, 80);
             panelAcciones.TabIndex = 3;
             // 
             // btnCancelar
@@ -272,7 +283,7 @@
             btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(711, 28);
+            btnCancelar.Location = new Point(780, 28);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(159, 33);
             btnCancelar.TabIndex = 3;
@@ -286,7 +297,7 @@
             btnConfirmar.FlatStyle = FlatStyle.Flat;
             btnConfirmar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConfirmar.ForeColor = Color.White;
-            btnConfirmar.Location = new Point(524, 28);
+            btnConfirmar.Location = new Point(593, 28);
             btnConfirmar.Name = "btnConfirmar";
             btnConfirmar.Size = new Size(163, 33);
             btnConfirmar.TabIndex = 2;
@@ -298,7 +309,7 @@
             lblTotal.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblTotal.AutoSize = true;
             lblTotal.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotal.Location = new Point(280, 28);
+            lblTotal.Location = new Point(349, 28);
             lblTotal.Name = "lblTotal";
             lblTotal.Size = new Size(143, 31);
             lblTotal.TabIndex = 1;
@@ -324,25 +335,14 @@
             dgvCompra.Location = new Point(0, 324);
             dgvCompra.Name = "dgvCompra";
             dgvCompra.RowHeadersWidth = 51;
-            dgvCompra.Size = new Size(882, 57);
+            dgvCompra.Size = new Size(951, 192);
             dgvCompra.TabIndex = 4;
-            // 
-            // btnAgregar
-            // 
-            btnAgregar.BackColor = Color.White;
-            btnAgregar.FlatStyle = FlatStyle.Flat;
-            btnAgregar.Location = new Point(547, 65);
-            btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(197, 36);
-            btnAgregar.TabIndex = 8;
-            btnAgregar.Text = "Agregar";
-            btnAgregar.UseVisualStyleBackColor = false;
             // 
             // FrmAltaCompra
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(882, 461);
+            ClientSize = new Size(951, 596);
             Controls.Add(dgvCompra);
             Controls.Add(panelAcciones);
             Controls.Add(panelBuscador);
