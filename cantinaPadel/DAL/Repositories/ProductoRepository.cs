@@ -103,7 +103,7 @@ namespace cantinaPadel.DAL.Repositories
         // Después de modificar el precio se reaplica el crédito de los clientes afectados porque con un precio menor el crédito que ya tenían
         // puede alcanzar para saldar una unidad
         // Guarda los cambios con SaveChanges, el llamador maneja la transacción
-        private static void ReajustarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IReadOnlyCollection<Producto> productosActualizados)
+        internal static void ReajustarDeudaPendientePorCambioDePrecio(AppDbContext ctx, IReadOnlyCollection<Producto> productosActualizados)
         {
             if (productosActualizados.Count == 0) return;
 

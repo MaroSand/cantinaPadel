@@ -17,6 +17,31 @@ namespace cantinaPadel
         public FrmMain()
         {
             InitializeComponent();
+            // El botón debe quedar conectado independientemente de si hay una caja pendiente de cierre.
+            btnCompras.Click += btnCompras_Click;
+            Shown += FrmMain_Shown;
+        }
+
+        // Si el usuario dejó una caja abierta en una sesión anterior (cierre abrupto del programa, corte de luz),
+        // se lo obliga a cerrarla antes de poder hacer cualquier otra cosa. Después puede abrir una caja nueva
+        private void FrmMain_Shown(object? sender, EventArgs e)
+        {
+            try
+            {
+                var logicaCaja = new LogicaCaja();
+                var pendiente = logicaCaja.ObtenerCajaPendienteDeCierre(Sesion.IdUsuario);
+                if (pendiente == null) return;
+
+                using var cierre = new cantinaPadel.UI.FrmCierreCaja(logicaCaja, pendiente, obligatorio: true);
+                cierre.ShowDialog(this);
+                MessageBox.Show(this, "La caja quedó cerrada. Abrí una caja nueva para poder vender.", "Caja cerrada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AbrirCaja();
+            }
+            catch (Exception)
+            {
+                // Sin conexión a la base no se puede consultar ni cerrar la caja: no se bloquea el ingreso
+            }
         }
 
         // Evento que se ejecuta al cargar el formulario, configura la información del usuario, el menú según el rol y el módulo por defecto
@@ -48,6 +73,7 @@ namespace cantinaPadel
         {
             bool esAdmin = Sesion.Rol == "Admin";
             btnStock.Visible = esAdmin;
+            btnCompras.Visible = esAdmin; // Compras mueve stock y costos, por eso es solo para administradores
             btnCanchas.Visible = esAdmin;
             btnProveedores.Visible = esAdmin;
             btnEmpleados.Visible = esAdmin;
@@ -148,12 +174,8 @@ namespace cantinaPadel
                 if (logicaCaja.ObtenerCajaAbierta(Sesion.IdUsuario) != null)
                     return true;
 
-                var cajaAbierta = logicaCaja.ObtenerCajaAbiertaGeneral();
-                string mensaje = cajaAbierta == null
-                    ? "La caja está cerrada. Abrí la caja para poder usar el Punto de Venta."
-                    : $"La caja está abierta por {cajaAbierta.NombreEmpleado}. Ese turno debe cerrarse y luego abrir tu caja para usar el Punto de Venta.";
-
-                MessageBox.Show(this, mensaje, "Caja cerrada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "No tenés una caja abierta. Abrí tu caja para poder usar el Punto de Venta.",
+                    "Caja cerrada", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception)
             {
@@ -203,6 +225,12 @@ namespace cantinaPadel
         {
             Navegar("Stock");
             cantinaPadel.UI.FrmListadoProductos frm = new cantinaPadel.UI.FrmListadoProductos();
+            AbrirEnPanel(frm);
+        }
+        private void btnCompras_Click(object sender, EventArgs e)
+        {
+            Navegar("Compras");
+            cantinaPadel.UI.FrmListadoCompras frm = new cantinaPadel.UI.FrmListadoCompras();
             AbrirEnPanel(frm);
         }
         private void btnTurnos_Click(object sender, EventArgs e)
