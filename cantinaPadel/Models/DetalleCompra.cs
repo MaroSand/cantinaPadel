@@ -6,6 +6,8 @@ namespace cantinaPadel.Models;
 [Table("detalles_compra")]
 public class DetalleCompra
 {
+    public const decimal CostoMaximo = 9_999_999_999.99m;
+
     // Tope razonable por línea: evita errores de tipeo (ej: 1000000 en vez de 100) y desbordes del INT / DECIMAL(12,2)
     public const int CantidadMaxima = 1_000_000;
 
@@ -29,6 +31,14 @@ public class DetalleCompra
     [Column("subtotal")]
     public decimal Subtotal { get; set; }
 
+    // Estado anterior del producto, necesario para revertir la primera compra activa si se anula.
+    // Es nullable para permitir la migración de compras históricas anteriores a US-27.
+    [Column("costo_anterior")]
+    public decimal? CostoAnterior { get; set; }
+
+    [Column("id_proveedor_anterior")]
+    public int? IdProveedorAnterior { get; set; }
+
     // Solo para mostrar (detalle de la compra). Al registrar una compra se completa únicamente IdProducto, para que EF no intente insertar el producto
     [ForeignKey("IdProducto")]
     public Producto? Producto { get; set; }
@@ -47,6 +57,9 @@ public class DetalleCompra
     {
         if (costoUnitario <= 0)
             throw new ArgumentException("El costo unitario debe ser mayor a cero.");
+
+        if (costoUnitario > CostoMaximo)
+            throw new ArgumentException("El costo unitario supera el máximo permitido por la base de datos.");
 
         if (decimal.Round(costoUnitario, 2) != costoUnitario)
             throw new ArgumentException("El costo unitario admite como máximo 2 decimales.");

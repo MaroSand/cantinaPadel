@@ -33,6 +33,7 @@
             panelDatos = new Panel();
             txtComprobante = new TextBox();
             lblComprobante = new Label();
+            lblAyudaComprobante = new Label();
             dtpFecha = new DateTimePicker();
             lblFecha = new Label();
             cmbProveedor = new ComboBox();
@@ -88,6 +89,7 @@
             panelDatos.BackColor = SystemColors.Info;
             panelDatos.Controls.Add(txtComprobante);
             panelDatos.Controls.Add(lblComprobante);
+            panelDatos.Controls.Add(lblAyudaComprobante);
             panelDatos.Controls.Add(dtpFecha);
             panelDatos.Controls.Add(lblFecha);
             panelDatos.Controls.Add(cmbProveedor);
@@ -103,6 +105,7 @@
             txtComprobante.Location = new Point(686, 14);
             txtComprobante.MaxLength = 30;
             txtComprobante.Name = "txtComprobante";
+            txtComprobante.PlaceholderText = "Ej.: A-0001-00001234";
             txtComprobante.Size = new Size(184, 27);
             txtComprobante.TabIndex = 5;
             // 
@@ -113,7 +116,16 @@
             lblComprobante.Name = "lblComprobante";
             lblComprobante.Size = new Size(242, 20);
             lblComprobante.TabIndex = 4;
-            lblComprobante.Text = "N° de comprobante del proveedor:";
+            lblComprobante.Text = "Factura/remito (opcional):";
+            //
+            // lblAyudaComprobante
+            //
+            lblAyudaComprobante.ForeColor = Color.DimGray;
+            lblAyudaComprobante.Location = new Point(438, 47);
+            lblAyudaComprobante.Name = "lblAyudaComprobante";
+            lblAyudaComprobante.Size = new Size(465, 48);
+            lblAyudaComprobante.TabIndex = 6;
+            lblAyudaComprobante.Text = "Copie el número que figura en el comprobante. El número interno de compra se asigna automáticamente.";
             // 
             // dtpFecha
             // 
@@ -251,6 +263,7 @@
             txtBuscarProducto.Location = new Point(154, 15);
             txtBuscarProducto.MaxLength = 100;
             txtBuscarProducto.Name = "txtBuscarProducto";
+            txtBuscarProducto.PlaceholderText = "Nombre o código de barras...";
             txtBuscarProducto.Size = new Size(254, 27);
             txtBuscarProducto.TabIndex = 1;
             // 
@@ -376,6 +389,7 @@
         private Label lblProveedor;
         private TextBox txtComprobante;
         private Label lblComprobante;
+        private Label lblAyudaComprobante;
         private DateTimePicker dtpFecha;
         private Label lblFecha;
         private Panel panelBuscador;
