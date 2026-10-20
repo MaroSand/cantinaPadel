@@ -17,6 +17,9 @@ namespace cantinaPadel
         public FrmMain()
         {
             InitializeComponent();
+
+            // El clic del botón Compras se conecta acá y no en el Designer, para que no quede duplicado
+            btnCompras.Click += btnCompras_Click;
         }
 
         // Evento que se ejecuta al cargar el formulario, configura la información del usuario, el menú según el rol y el módulo por defecto
@@ -48,6 +51,7 @@ namespace cantinaPadel
         {
             bool esAdmin = Sesion.Rol == "Admin";
             btnStock.Visible = esAdmin;
+            btnCompras.Visible = esAdmin; // Compras mueve stock y costos, por eso es solo para administradores
             btnCanchas.Visible = esAdmin;
             btnProveedores.Visible = esAdmin;
             btnEmpleados.Visible = esAdmin;
@@ -204,6 +208,15 @@ namespace cantinaPadel
             Navegar("Stock");
             cantinaPadel.UI.FrmListadoProductos frm = new cantinaPadel.UI.FrmListadoProductos();
             AbrirEnPanel(frm);
+        }
+        private void btnCompras_Click(object sender, EventArgs e)
+        {
+            // TEMPORAL: hasta que exista FrmListadoCompras se abre directamente el alta de compra, para poder probarla.
+            // Cuando esté el listado se reemplaza todo este método por:
+            //     Navegar("Compras");
+            //     AbrirEnPanel(new cantinaPadel.UI.FrmListadoCompras());
+            using var frm = new cantinaPadel.UI.FrmAltaCompra();
+            frm.ShowDialog(this);
         }
         private void btnTurnos_Click(object sender, EventArgs e)
         {
