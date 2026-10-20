@@ -17,6 +17,8 @@ namespace cantinaPadel
         public FrmMain()
         {
             InitializeComponent();
+            // El botón debe quedar conectado independientemente de si hay una caja pendiente de cierre.
+            btnCompras.Click += btnCompras_Click;
             Shown += FrmMain_Shown;
         }
 
@@ -40,9 +42,6 @@ namespace cantinaPadel
             {
                 // Sin conexión a la base no se puede consultar ni cerrar la caja: no se bloquea el ingreso
             }
-
-            // El clic del botón Compras se conecta acá y no en el Designer, para que no quede duplicado
-            btnCompras.Click += btnCompras_Click;
         }
 
         // Evento que se ejecuta al cargar el formulario, configura la información del usuario, el menú según el rol y el módulo por defecto

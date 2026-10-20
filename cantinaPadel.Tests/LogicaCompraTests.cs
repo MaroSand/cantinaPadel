@@ -16,12 +16,15 @@ public class LogicaCompraTests
     private sealed class CompraRepositoryFake : ICompraRepository
     {
         public Compra? Registrada { get; private set; }
+        public IReadOnlyDictionary<int, decimal>? PreciosVentaRegistrados { get; private set; }
         public (int? IdProveedor, DateTime? Desde, DateTime? Hasta, string? Producto, bool IncluirAnuladas)? UltimaBusqueda { get; private set; }
+        public int? IdCompraAnulada { get; private set; }
 
-        public Compra Registrar(Compra compra)
+        public Compra Registrar(Compra compra, IReadOnlyDictionary<int, decimal> preciosVentaNuevos)
         {
             compra.IdCompra = 1;
             Registrada = compra;
+            PreciosVentaRegistrados = preciosVentaNuevos;
             return compra;
         }
 
@@ -32,6 +35,15 @@ public class LogicaCompraTests
         }
 
         public Compra? ObtenerPorId(int idCompra) => Registrada;
+
+        public Compra Anular(int idCompra)
+        {
+            IdCompraAnulada = idCompra;
+            if (Registrada == null || Registrada.IdCompra != idCompra)
+                throw new InvalidOperationException("La compra seleccionada ya no existe.");
+            Registrada.Anulada = true;
+            return Registrada;
+        }
     }
 
     private sealed class ProveedorRepositoryFake : IProveedorRepository
@@ -77,7 +89,14 @@ public class LogicaCompraTests
         };
 
     private static Producto CrearProducto(int id, string nombre = "Coca Cola 500ml", bool activo = true)
-        => new() { IdProducto = id, Nombre = nombre, Activo = activo };
+        => new()
+        {
+            IdProducto = id,
+            IdCategoria = 1,
+            Nombre = nombre,
+            Activo = activo,
+            Categoria = new Categoria { IdCategoria = 1, Nombre = "Bebidas", PorcentajeGanancia = 25m }
+        };
 
     private static (LogicaCompra Logica, CompraRepositoryFake Repo) CrearLogica(
         Proveedor? proveedor = null, Producto[]? productos = null, DateTime? ahora = null)
@@ -229,6 +248,101 @@ public class LogicaCompraTests
         Assert.AreEqual(12000m, coca.Subtotal);
         Assert.AreEqual(13200m, compra.Total);
         Assert.IsNotNull(repo.Registrada);
+    }
+
+    [TestMethod]
+    public void PrevisualizarImpactoCompra_CalculaStockCostoProveedorYPrecioNuevo()
+    {
+        var producto = CrearProducto(1);
+        producto.StockActual = 12;
+        producto.PrecioCosto = 800m;
+        producto.PrecioVenta = 1200m;
+        var (logica, _) = CrearLogica(productos: new[] { producto });
+
+        var preview = logica.PrevisualizarImpactoCompra(
+            IdProveedorValido, UnaLinea(idProducto: 1, cantidad: 5, costo: 1000m));
+
+        var impacto = preview.Productos.Single();
+        Assert.AreEqual(12, impacto.StockActual);
+        Assert.AreEqual(17, impacto.StockNuevo);
+        Assert.AreEqual(800m, impacto.CostoActual);
+        Assert.AreEqual(1000m, impacto.CostoCompra);
+        Assert.AreEqual(1200m, impacto.PrecioVentaActual);
+        Assert.AreEqual(1250m, impacto.PrecioVentaNuevo);
+        Assert.IsTrue(impacto.RecalculaPrecio);
+        Assert.AreEqual(1250m, preview.PreciosVentaNuevos[1]);
+        Assert.AreEqual("Distribuidora Bebidas S.A. - Pérez Juan", impacto.ProveedorNuevo);
+    }
+
+    [TestMethod]
+    public void PrevisualizarImpactoCompra_StockPositivoYCostoMenorOIgual_ConservaPrecioVenta()
+    {
+        var producto = CrearProducto(1);
+        producto.StockActual = 6;
+        producto.PrecioCosto = 1000m;
+        producto.PrecioVenta = 1500m;
+        var (logica, _) = CrearLogica(productos: new[] { producto });
+
+        var preview = logica.PrevisualizarImpactoCompra(
+            IdProveedorValido, new[] { new ItemCompra(producto, 2, 900m) });
+
+        var impacto = preview.Productos.Single();
+        Assert.IsFalse(impacto.RecalculaPrecio);
+        Assert.IsNull(impacto.PrecioVentaNuevo);
+        Assert.AreEqual(1500m, impacto.PrecioVentaActual);
+        Assert.IsFalse(preview.PreciosVentaNuevos.ContainsKey(1));
+    }
+
+    [TestMethod]
+    public void PrevisualizarImpactoCompra_StockCero_RecalculaAunqueElCostoSeaMenor()
+    {
+        var producto = CrearProducto(1);
+        producto.StockActual = 0;
+        producto.PrecioCosto = 1000m;
+        producto.PrecioVenta = 1500m;
+        producto.Categoria.PorcentajeGanancia = 25m;
+        var (logica, _) = CrearLogica(productos: new[] { producto });
+
+        var preview = logica.PrevisualizarImpactoCompra(
+            IdProveedorValido, new[] { new ItemCompra(producto, 2, 800m) });
+
+        var impacto = preview.Productos.Single();
+        Assert.IsTrue(impacto.RecalculaPrecio);
+        Assert.AreEqual(1000m, impacto.PrecioVentaNuevo);
+        Assert.AreEqual(1000m, preview.PreciosVentaNuevos[1]);
+    }
+
+    [TestMethod]
+    [DataRow("Varios")]
+    [DataRow("Sin Categoria")]
+    public void PrevisualizarImpactoCompra_CategoriaDePrecioManual_ConservaPrecio(string categoria)
+    {
+        var producto = CrearProducto(1, "Artículo varios");
+        producto.Categoria.Nombre = categoria;
+        producto.PrecioVenta = 2500m;
+        var (logica, _) = CrearLogica(productos: new[] { producto });
+
+        var preview = logica.PrevisualizarImpactoCompra(
+            IdProveedorValido, UnaLinea(idProducto: 1, cantidad: 2, costo: 900m));
+
+        var impacto = preview.Productos.Single();
+        Assert.IsFalse(impacto.RecalculaPrecio);
+        Assert.IsNull(impacto.PrecioVentaNuevo);
+        Assert.AreEqual(2500m, impacto.PrecioVentaActual);
+        Assert.IsFalse(preview.PreciosVentaNuevos.ContainsKey(1));
+    }
+
+    [TestMethod]
+    public void RegistrarCompra_PasaLosPreciosCalculadosAlRepositorio()
+    {
+        var producto = CrearProducto(1);
+        producto.Categoria.PorcentajeGanancia = 30m;
+        var (logica, repo) = CrearLogica(productos: new[] { producto });
+
+        logica.RegistrarCompra(IdProveedorValido, DateTime.Today, null,
+            UnaLinea(idProducto: 1, cantidad: 3, costo: 1000m), IdEmpleadoValido);
+
+        Assert.AreEqual(1300m, repo.PreciosVentaRegistrados![1]);
     }
 
     [TestMethod]
@@ -410,5 +524,34 @@ public class LogicaCompraTests
         var resultado = logica.Buscar(null, new DateTime(2026, 10, 19, 15, 0, 0), new DateTime(2026, 10, 19, 8, 0, 0), null);
 
         Assert.IsNotNull(resultado);
+    }
+
+    [TestMethod]
+    public void AnularCompra_Administrador_DelegaAlRepositorio()
+    {
+        var repo = new CompraRepositoryFake();
+        var logica = new LogicaCompra(repo,
+            new ProveedorRepositoryFake(CrearProveedor()),
+            new ProductoRepositoryFake(CrearProducto(1)),
+            rolActual: () => "Admin");
+        logica.RegistrarCompra(IdProveedorValido, DateTime.Today, null, UnaLinea(), IdEmpleadoValido);
+
+        var anulada = logica.AnularCompra(1);
+
+        Assert.IsTrue(anulada.Anulada);
+        Assert.AreEqual(1, repo.IdCompraAnulada);
+    }
+
+    [TestMethod]
+    public void AnularCompra_Empleado_LanzaYNoLlegaAlRepositorio()
+    {
+        var repo = new CompraRepositoryFake();
+        var logica = new LogicaCompra(repo,
+            new ProveedorRepositoryFake(CrearProveedor()),
+            new ProductoRepositoryFake(CrearProducto(1)),
+            rolActual: () => "Empleado");
+
+        Assert.ThrowsExactly<UnauthorizedAccessException>(() => logica.AnularCompra(1));
+        Assert.IsNull(repo.IdCompraAnulada);
     }
 }

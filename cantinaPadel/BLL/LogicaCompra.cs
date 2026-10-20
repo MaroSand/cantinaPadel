@@ -9,22 +9,45 @@ public sealed record ProveedorOpcion(int IdProveedor, string Texto)
     public override string ToString() => Texto;
 }
 
+public sealed record ImpactoProductoCompra(
+    int IdProducto,
+    string Nombre,
+    int Cantidad,
+    int StockActual,
+    int StockNuevo,
+    decimal CostoActual,
+    decimal CostoCompra,
+    string Categoria,
+    decimal PrecioVentaActual,
+    decimal? PrecioVentaNuevo,
+    bool RecalculaPrecio,
+    string? MotivoPrecioSinCambio,
+    string ProveedorActual,
+    string ProveedorNuevo);
+
+public sealed record PrevisualizacionImpactoCompra(
+    IReadOnlyList<ImpactoProductoCompra> Productos,
+    IReadOnlyDictionary<int, decimal> PreciosVentaNuevos);
+
 public class LogicaCompra
 {
     private readonly ICompraRepository _compras;
     private readonly IProveedorRepository _proveedores;
     private readonly IProductoRepository _productos;
     private readonly Func<DateTime> _ahora;
+    private readonly Func<string?> _rolActual;
 
     public LogicaCompra() : this(new CompraRepository(), new ProveedorRepository(), new ProductoRepository()) { }
 
     // "ahora" se puede reemplazar en las pruebas para no depender del reloj real
-    public LogicaCompra(ICompraRepository compras, IProveedorRepository proveedores, IProductoRepository productos, Func<DateTime>? ahora = null)
+    public LogicaCompra(ICompraRepository compras, IProveedorRepository proveedores, IProductoRepository productos,
+        Func<DateTime>? ahora = null, Func<string?>? rolActual = null)
     {
         _compras = compras;
         _proveedores = proveedores;
         _productos = productos;
         _ahora = ahora ?? (() => DateTime.Now);
+        _rolActual = rolActual ?? (() => global::cantinaPadel.Sesion.Rol);
     }
 
     // Proveedores activos: los que se pueden elegir al cargar una compra nueva
@@ -79,25 +102,13 @@ public class LogicaCompra
         if (fecha.Date > ahora.Date)
             throw new ArgumentException("La fecha de la compra no puede ser posterior a hoy.");
 
-        // Aunque la pantalla ya evita repetidos, se agrupa por las dudas: un producto = una línea, con las cantidades sumadas
-        // (si vinieran costos distintos, queda el de la última línea, igual que en LogicaCarritoCompra)
-        var lineas = items
-            .GroupBy(i => i.Producto.IdProducto)
-            .Select(g => new { IdProducto = g.Key, Cantidad = g.Sum(i => i.Cantidad), Costo = g.Last().PrecioCostoUnitario })
-            .ToList();
+        // Se recalcula la vista previa al confirmar para guardar los precios calculados por la BLL.
+        var impacto = PrevisualizarImpactoCompra(idProveedor, items);
+        var lineas = AgruparLineas(items);
 
         var detalles = new List<DetalleCompra>();
         foreach (var linea in lineas)
         {
-            // Solo se valida que el producto exista y esté activo. En el detalle se guarda únicamente su id (no el objeto Producto)
-            var producto = _productos.ObtenerPorId(linea.IdProducto);
-            if (producto == null || !producto.Activo)
-                throw new ArgumentException($"El producto '{items.First(i => i.Producto.IdProducto == linea.IdProducto).Producto.Nombre}' ya no está disponible.");
-
-            // Se validan cantidad y costo antes de calcular el subtotal para que el mensaje sea el de la regla incumplida
-            DetalleCompra.ValidarCantidad(linea.Cantidad);
-            DetalleCompra.ValidarCosto(linea.Costo);
-
             detalles.Add(new DetalleCompra
             {
                 IdProducto = linea.IdProducto,
@@ -118,8 +129,91 @@ public class LogicaCompra
         };
 
         compra.Validar();
-        return _compras.Registrar(compra);
+        return _compras.Registrar(compra, impacto.PreciosVentaNuevos);
     }
+
+    // Calcula y devuelve el impacto que se mostrará antes de confirmar la compra.
+    // El precio se recalcula si el stock previo era cero o el nuevo costo supera al costo registrado.
+    // Las categorías de precio manual actualizan stock, costo y proveedor, pero conservan su precio de venta.
+    public PrevisualizacionImpactoCompra PrevisualizarImpactoCompra(int idProveedor, IReadOnlyCollection<ItemCompra> items)
+    {
+        if (idProveedor <= 0)
+            throw new ArgumentException("Seleccione un proveedor.");
+        if (items == null || items.Count == 0)
+            throw new ArgumentException("La compra debe tener al menos un producto.");
+
+        var proveedor = _proveedores.ObtenerPorId(idProveedor)
+            ?? throw new ArgumentException("El proveedor seleccionado no existe.");
+        if (proveedor.Persona == null || !proveedor.Persona.Activo)
+            throw new ArgumentException("El proveedor seleccionado está inactivo.");
+
+        var preciosVenta = new Dictionary<int, decimal>();
+        var productos = new List<ImpactoProductoCompra>();
+        var proveedorNuevo = AOpcion(proveedor).Texto;
+
+        foreach (var linea in AgruparLineas(items))
+        {
+            var producto = _productos.ObtenerPorId(linea.IdProducto);
+            if (producto == null || !producto.Activo)
+                throw new ArgumentException($"El producto '{linea.Nombre}' ya no está disponible.");
+
+            DetalleCompra.ValidarCantidad(linea.Cantidad);
+            DetalleCompra.ValidarCosto(linea.Costo);
+            var stockNuevo = CalculadorCompra.CalcularStockNuevo(producto.StockActual, linea.Cantidad);
+
+            if (producto.Categoria == null)
+                throw new InvalidOperationException($"No se pudo cargar la categoría del producto '{producto.Nombre}'.");
+
+            bool precioManual = CalculadorCompra.EsPrecioVentaManual(producto.Categoria.Nombre);
+            bool recalculaPrecio = !precioManual &&
+                                   (producto.StockActual == 0 || linea.Costo > producto.PrecioCosto);
+            decimal? precioVentaNuevo = null;
+            if (recalculaPrecio)
+            {
+                precioVentaNuevo = CalculadorCompra.CalcularPrecioVentaBase(
+                    linea.Costo, producto.Categoria.PorcentajeGanancia);
+                preciosVenta.Add(producto.IdProducto, precioVentaNuevo.Value);
+            }
+
+            var proveedorActual = producto.IdProveedor.HasValue
+                ? _proveedores.ObtenerPorId(producto.IdProveedor.Value)
+                : null;
+
+            productos.Add(new ImpactoProductoCompra(
+                producto.IdProducto,
+                producto.Nombre,
+                linea.Cantidad,
+                producto.StockActual,
+                stockNuevo,
+                producto.PrecioCosto,
+                linea.Costo,
+                producto.Categoria.Nombre,
+                producto.PrecioVenta,
+                precioVentaNuevo,
+                recalculaPrecio,
+                recalculaPrecio
+                    ? null
+                    : precioManual
+                        ? "precio manual"
+                        : "el costo nuevo no supera el registrado y había stock",
+                proveedorActual == null ? "Sin proveedor" : AOpcion(proveedorActual).Texto,
+                proveedorNuevo));
+        }
+
+        return new PrevisualizacionImpactoCompra(productos, preciosVenta);
+    }
+
+    private static List<LineaCompra> AgruparLineas(IReadOnlyCollection<ItemCompra> items)
+        => items
+            .GroupBy(i => i.Producto.IdProducto)
+            .Select(g => new LineaCompra(
+                g.Key,
+                g.First().Producto.Nombre,
+                g.Sum(i => i.Cantidad),
+                g.Last().PrecioCostoUnitario))
+            .ToList();
+
+    private sealed record LineaCompra(int IdProducto, string Nombre, int Cantidad, decimal Costo);
 
     // Listado de compras. Todos los filtros son opcionales y se combinan (AND). Por defecto no trae las anuladas
     public List<Compra> Buscar(int? idProveedor, DateTime? desde, DateTime? hasta, string? producto, bool incluirAnuladas = false)
@@ -131,4 +225,15 @@ public class LogicaCompra
     }
 
     public Compra? ObtenerPorId(int idCompra) => _compras.ObtenerPorId(idCompra);
+
+    public Compra AnularCompra(int idCompra)
+    {
+        if (idCompra <= 0)
+            throw new ArgumentException("Seleccione una compra válida.", nameof(idCompra));
+
+        if (!string.Equals(_rolActual(), "Admin", StringComparison.Ordinal))
+            throw new UnauthorizedAccessException("Solo un administrador puede anular compras.");
+
+        return _compras.Anular(idCompra);
+    }
 }

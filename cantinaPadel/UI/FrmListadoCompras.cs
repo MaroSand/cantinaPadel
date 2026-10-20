@@ -29,6 +29,7 @@ namespace cantinaPadel.UI
         // Cada cambio en un filtro reinicia este timer y la consulta real se hace cuando se deja de tocar 300ms
         // (así, por ejemplo, tipear en el filtro de producto no consulta la base en cada letra)
         private readonly System.Windows.Forms.Timer _debounce = new() { Interval = 300 };
+        private readonly ToolTip _ayudaFiltros = new();
 
         // Evita consultar la base mientras se arman o se reinician los filtros por código (cada asignación dispara eventos)
         private bool _armandoFiltros;
@@ -39,12 +40,21 @@ namespace cantinaPadel.UI
             _logica = new LogicaCompra();
 
             Load += FrmListadoCompras_Load;
+            Disposed += (_, _) => _ayudaFiltros.Dispose();
         }
 
         // ================= Carga inicial =================
 
         private void FrmListadoCompras_Load(object? sender, EventArgs e)
         {
+            if (!EsAdministrador())
+            {
+                MessageBox.Show(this, "El módulo de compras está disponible solo para el Administrador.",
+                    "Acceso restringido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Close();
+                return;
+            }
+
             Text = "Listado de Compras";
 
             ConfigurarGrilla();
@@ -72,7 +82,14 @@ namespace cantinaPadel.UI
                 dtpDesde.MaxDate = DateTime.Today;
                 dtpHasta.MaxDate = DateTime.Today;
 
+                _ayudaFiltros.SetToolTip(dtpDesde, "Desmarcá la casilla para quitar el límite de fecha inicial.");
+                _ayudaFiltros.SetToolTip(dtpHasta, "Desmarcá la casilla para quitar el límite de fecha final.");
+                _ayudaFiltros.SetToolTip(cmbProveedor, "Escribí para buscar un proveedor o elegí “Todos los proveedores”.");
+                _ayudaFiltros.SetToolTip(txtProducto, "Filtra las compras que incluyan este producto.");
+                _ayudaFiltros.SetToolTip(chkIncluirAnuladas, "Incluye las compras anuladas en la grilla.");
+
                 txtProducto.MaxLength = 100;
+                txtProducto.PlaceholderText = "Nombre del producto...";
                 RestablecerFiltros();
             }
             finally
@@ -122,10 +139,14 @@ namespace cantinaPadel.UI
             dgvCompras.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             dgvCompras.RowHeadersVisible = false;
             dgvCompras.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dgvCompras.RowTemplate.Height = 30;
+            dgvCompras.ColumnHeadersHeight = 34;
+            dgvCompras.BackgroundColor = Color.White;
+            dgvCompras.GridColor = SystemColors.ControlLight;
 
             // Name es la clave para Cells["..."], DataPropertyName bindea con el objeto de la fila
             dgvCompras.Columns.Clear();
-            dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdCompra", DataPropertyName = "IdCompra", HeaderText = "N°", FillWeight = 8 });
+            dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdCompra", DataPropertyName = "IdCompra", HeaderText = "N.º compra", FillWeight = 10 });
             dgvCompras.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "Fecha",
@@ -135,7 +156,7 @@ namespace cantinaPadel.UI
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy HH:mm" }
             });
             dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "Proveedor", DataPropertyName = "Proveedor", HeaderText = "Proveedor", FillWeight = 28 });
-            dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "Comprobante", DataPropertyName = "Comprobante", HeaderText = "N° de comprobante", FillWeight = 18 });
+            dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "Comprobante", DataPropertyName = "Comprobante", HeaderText = "Factura/remito", FillWeight = 18 });
             dgvCompras.Columns.Add(new DataGridViewTextBoxColumn { Name = "RegistradaPor", DataPropertyName = "RegistradaPor", HeaderText = "Registrada por", FillWeight = 20 });
             dgvCompras.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -168,7 +189,14 @@ namespace cantinaPadel.UI
 
             btnLimpiar.Click += btnLimpiar_Click;
             btnNueva.Click += btnNueva_Click;
+            btnDetalle.Click += btnDetalle_Click;
+            btnAnular.Click += btnAnular_Click;
             dgvCompras.DataBindingComplete += dgvCompras_DataBindingComplete;
+            dgvCompras.SelectionChanged += (_, _) => ActualizarEstadoAcciones();
+            dgvCompras.CellDoubleClick += (_, e) =>
+            {
+                if (e.RowIndex >= 0) btnDetalle.PerformClick();
+            };
 
             _debounce.Tick += (_, _) =>
             {
@@ -205,8 +233,10 @@ namespace cantinaPadel.UI
 
             if (!TryObtenerProveedorFiltrado(out int? idProveedor))
             {
-                // Se escribió algo que no corresponde a ningún proveedor: se avisa en pantalla (no en una ventana) y la grilla queda como estaba
+                // Si falla un filtro, se limpia la grilla para no dejar resultados anteriores que parezcan vigentes.
+                dgvCompras.DataSource = null;
                 MostrarResumen("No hay ningún proveedor con ese nombre. Elíjalo de la lista desplegable.", esError: true);
+                ActualizarEstadoAcciones();
                 return;
             }
 
@@ -220,14 +250,18 @@ namespace cantinaPadel.UI
             }
             catch (ArgumentException ex)
             {
-                // Filtros inconsistentes (por ejemplo, "desde" posterior a "hasta"): se explica en pantalla y se conserva la grilla anterior
+                // Filtros inconsistentes (por ejemplo, "desde" posterior a "hasta") se explican en el resumen.
+                dgvCompras.DataSource = null;
                 MostrarResumen(ex.Message, esError: true);
+                ActualizarEstadoAcciones();
                 return;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error al conectar con la base de datos: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                dgvCompras.DataSource = null;
+                ActualizarEstadoAcciones();
                 return;
             }
 
@@ -292,6 +326,15 @@ namespace cantinaPadel.UI
                 bool anulada = (fila.Cells["Estado"].Value as string) == "Anulada";
                 fila.DefaultCellStyle.ForeColor = anulada ? Color.Gray : Color.Black;
             }
+            ActualizarEstadoAcciones();
+        }
+
+        private void ActualizarEstadoAcciones()
+        {
+            bool haySeleccion = dgvCompras.SelectedRows.Count > 0;
+            btnDetalle.Enabled = haySeleccion;
+            btnAnular.Enabled = haySeleccion && EsAdministrador() &&
+                (dgvCompras.SelectedRows[0].Cells["Estado"].Value as string) != "Anulada";
         }
 
         //Resumen debajo de la grilla
@@ -351,5 +394,117 @@ namespace cantinaPadel.UI
                 BuscarCompras();
             }
         }
+
+        private void btnDetalle_Click(object? sender, EventArgs e)
+        {
+            if (!TryObtenerCompraSeleccionada(out int idCompra))
+                return;
+
+            try
+            {
+                var compra = _logica.ObtenerPorId(idCompra);
+                if (compra == null)
+                {
+                    MessageBox.Show(this, "La compra seleccionada ya no existe.", "Compra no encontrada",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    BuscarCompras();
+                    return;
+                }
+
+                using var detalle = new FrmDetalleCompra(compra);
+                detalle.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo cargar el detalle de la compra: {ex.Message}",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnAnular_Click(object? sender, EventArgs e)
+        {
+            if (!EsAdministrador())
+            {
+                MessageBox.Show(this, "Solo un administrador puede anular compras.",
+                    "Acceso restringido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (!TryObtenerCompraSeleccionada(out int idCompra))
+                return;
+
+            Compra? compra;
+            try
+            {
+                compra = _logica.ObtenerPorId(idCompra);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo consultar la compra: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (compra == null)
+            {
+                MessageBox.Show(this, "La compra seleccionada ya no existe.", "Compra no encontrada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                BuscarCompras();
+                return;
+            }
+
+            if (compra.Anulada)
+            {
+                MessageBox.Show(this, "Esta compra ya está anulada.", "Compra anulada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var confirmacion = MessageBox.Show(this,
+                $"¿Seguro que quiere anular la compra N° {compra.IdCompra}?\n\nSe descontará el stock ingresado. Esta acción no se puede deshacer.",
+                "Confirmar anulación", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirmacion != DialogResult.Yes)
+                return;
+
+            try
+            {
+                _logica.AnularCompra(idCompra);
+                MessageBox.Show(this, "La compra fue anulada y se actualizó el stock, costo y proveedor de sus productos.",
+                    "Compra anulada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                BuscarCompras();
+            }
+            catch (InvalidOperationException ex)
+            {
+                MessageBox.Show(this, ex.Message, "No se pudo anular la compra",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                MessageBox.Show(this, ex.Message, "Acceso restringido",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo anular la compra: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool TryObtenerCompraSeleccionada(out int idCompra)
+        {
+            idCompra = 0;
+            if (dgvCompras.SelectedRows.Count == 0 ||
+                !int.TryParse(dgvCompras.SelectedRows[0].Cells["IdCompra"].Value?.ToString(), out idCompra))
+            {
+                MessageBox.Show(this, "Seleccione una compra de la grilla.", "Sin selección",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool EsAdministrador()
+            => string.Equals(global::cantinaPadel.Sesion.Rol, "Admin", StringComparison.Ordinal);
     }
 }

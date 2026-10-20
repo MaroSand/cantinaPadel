@@ -6,6 +6,8 @@ namespace cantinaPadel.Models
     [Table("productos")]
     public class Producto
     {
+        public const decimal PrecioVentaMaximo = 9_999_999_999.99m;
+
         [Key]
         [Column("id_producto")]
         public int IdProducto { get; set; }

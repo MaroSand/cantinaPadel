@@ -19,6 +19,7 @@ namespace cantinaPadel.UI
         private readonly LogicaCompra _logicaCompra;
         private readonly LogicaProducto _logicaProducto;
         private readonly LogicaCarritoCompra _carrito;
+        private readonly ErrorProvider _errores = new() { BlinkStyle = ErrorBlinkStyle.NeverBlink };
 
         // Timer de debounce del buscador: cada tecla lo reinicia y la búsqueda real se hace cuando se deja de tipear 300ms
         // Como el lector de código de barras "tipea" muy rápido, la búsqueda se dispara recién cuando termina de leer
@@ -51,6 +52,7 @@ namespace cantinaPadel.UI
 
             Load += FrmAltaCompra_Load;
             FormClosing += FrmAltaCompra_FormClosing;
+            Disposed += (_, _) => _errores.Dispose();
         }
 
         // ================= Carga inicial =================
@@ -68,6 +70,7 @@ namespace cantinaPadel.UI
             }
 
             ActualizarTotal();
+            ActualizarEstadoAcciones();
             cmbProveedor.Focus();
         }
 
@@ -86,7 +89,9 @@ namespace cantinaPadel.UI
             dtpFecha.Value = DateTime.Today;
 
             txtComprobante.MaxLength = Compra.LargoMaximoComprobante;
+            _errores.ContainerControl = this;
             txtBuscarProducto.MaxLength = 100;
+            txtBuscarProducto.PlaceholderText = "Nombre o código de barras...";
             txtCostoUnitario.MaxLength = 14;
             txtCostoUnitario.TextAlign = HorizontalAlignment.Right;
 
@@ -108,11 +113,15 @@ namespace cantinaPadel.UI
             txtCostoUnitario.KeyPress += txtCostoUnitario_KeyPress;
             txtCostoUnitario.KeyDown += txtCostoUnitario_KeyDown;
             txtCostoUnitario.Leave += txtCostoUnitario_Leave;
+            txtCostoUnitario.TextChanged += (_, _) => _errores.SetError(txtCostoUnitario, string.Empty);
+            cmbProveedor.SelectedIndexChanged += (_, _) => _errores.SetError(cmbProveedor, string.Empty);
+            txtBuscarProducto.TextChanged += (_, _) => _errores.SetError(txtBuscarProducto, string.Empty);
             btnAgregar.Click += btnAgregar_Click;
             btnQuitar.Click += btnQuitar_Click;
             dgvCompra.KeyDown += dgvCompra_KeyDown;
             btnConfirmar.Click += btnConfirmar_Click;
             btnCancelar.Click += btnCancelar_Click;
+            dgvCompra.SelectionChanged += (_, _) => ActualizarEstadoAcciones();
             _debounceBusqueda.Tick += _debounceBusqueda_Tick;
             Disposed += (_, _) => _debounceBusqueda.Dispose();
         }
@@ -348,6 +357,7 @@ namespace cantinaPadel.UI
         private void ElegirProducto(Producto producto)
         {
             _productoElegido = producto;
+            _errores.SetError(txtBuscarProducto, string.Empty);
 
             _suprimirBusqueda = true;
             try { txtBuscarProducto.Text = producto.Nombre; }
@@ -455,17 +465,23 @@ namespace cantinaPadel.UI
         {
             if (_productoElegido == null)
             {
-                MessageBox.Show("Busque y elija un producto antes de agregarlo a la compra.",
-                    "Falta el producto", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _errores.SetError(txtBuscarProducto, "Busque y elija un producto de la lista.");
+                MostrarInfo("Busque el producto y selecciónelo en la lista de coincidencias.", esError: true);
                 txtBuscarProducto.Focus();
                 return;
             }
 
-            if (!TryLeerCosto(out decimal costo))
+            if (!TryLeerCosto(out decimal costo) || costo <= 0m)
             {
-                MessageBox.Show("Ingrese el costo unitario del producto. Por ejemplo: 1500 o 1500,50",
-                    "Falta el costo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                string mensaje = string.IsNullOrWhiteSpace(txtCostoUnitario.Text)
+                    ? "Ingrese el costo unitario."
+                    : !TryLeerCosto(out _)
+                        ? "Use un monto válido, por ejemplo 1.500,50."
+                        : "El costo debe ser mayor que $0.";
+                _errores.SetError(txtCostoUnitario, mensaje);
+                MostrarInfo(mensaje, esError: true);
                 txtCostoUnitario.Focus();
+                txtCostoUnitario.SelectAll();
                 return;
             }
 
@@ -507,6 +523,8 @@ namespace cantinaPadel.UI
             LimpiarCombo();
             nudCantidad.Value = 1;
             txtCostoUnitario.Clear();
+            _errores.SetError(txtCostoUnitario, string.Empty);
+            _errores.SetError(txtBuscarProducto, string.Empty);
             lblInfoProducto.Text = string.Empty;
         }
 
@@ -547,9 +565,16 @@ namespace cantinaPadel.UI
                 CostoUnitario = i.PrecioCostoUnitario,
                 i.Subtotal
             }).ToList();
+            ActualizarEstadoAcciones();
         }
 
         private void ActualizarTotal() => lblTotal.Text = $"Total: {_carrito.Total.ToString("C2", Es)}";
+
+        private void ActualizarEstadoAcciones()
+        {
+            btnConfirmar.Enabled = _carrito.Items.Count > 0;
+            btnQuitar.Enabled = _carrito.Items.Count > 0 && dgvCompra.CurrentRow != null;
+        }
 
         //Confirmar / cancelar 
 
@@ -557,8 +582,7 @@ namespace cantinaPadel.UI
         {
             if (cmbProveedor.SelectedItem is not ProveedorOpcion proveedor)
             {
-                MessageBox.Show("Seleccione el proveedor de la compra.",
-                    "Falta el proveedor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _errores.SetError(cmbProveedor, "Seleccione el proveedor de la compra.");
                 cmbProveedor.Focus();
                 return;
             }
@@ -571,16 +595,15 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            var confirmacion = MessageBox.Show(
-                $"¿Registrar la compra a {proveedor.Texto} por {_carrito.Total.ToString("C2", Es)}?",
-                "Confirmar compra", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if (confirmacion != DialogResult.Yes) return;
-
             try
             {
+                var items = _carrito.Items.ToList();
+                var impacto = _logicaCompra.PrevisualizarImpactoCompra(proveedor.IdProveedor, items);
+                if (!ConfirmarImpactoCompra(proveedor, impacto, _carrito.Total)) return;
+
                 // El usuario activo y la fecha/hora de registro los resuelve LogicaCompra a partir de la sesión y la fecha elegida
                 var compra = _logicaCompra.RegistrarCompra(
-                    proveedor.IdProveedor, dtpFecha.Value.Date, txtComprobante.Text, _carrito.Items.ToList(), Sesion.IdUsuario);
+                    proveedor.IdProveedor, dtpFecha.Value.Date, txtComprobante.Text, items, Sesion.IdUsuario);
 
                 CompraRegistrada = true;
                 MessageBox.Show($"La compra N° {compra.IdCompra} se registró correctamente.",
@@ -597,6 +620,143 @@ namespace cantinaPadel.UI
                 MessageBox.Show($"No se pudo registrar la compra y no se guardó nada: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        // Vista previa de los cambios de inventario y precios antes de confirmar la compra.
+        private bool ConfirmarImpactoCompra(
+            ProveedorOpcion proveedor,
+            PrevisualizacionImpactoCompra impacto,
+            decimal total)
+        {
+            using var vista = new Form
+            {
+                Text = "Revisar impacto de la compra",
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false,
+                Font = new Font("Segoe UI", 9F),
+                BackColor = SystemColors.Info,
+                Size = new Size(1080, 540)
+            };
+
+            var contenido = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(14),
+                ColumnCount = 1,
+                RowCount = 4,
+                BackColor = SystemColors.Info
+            };
+            contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            contenido.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            contenido.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            contenido.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+
+            var titulo = new Label
+            {
+                Text = $"Proveedor: {proveedor.Texto}    ·    Total de la compra: {total.ToString("C2", Es)}",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 10F, FontStyle.Bold),
+                Margin = new Padding(4, 4, 4, 12)
+            };
+
+            var grilla = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AutoGenerateColumns = false,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                MultiSelect = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                RowHeadersVisible = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                BackgroundColor = Color.White
+            };
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Producto", HeaderText = "Producto", FillWeight = 28 });
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Cantidad", HeaderText = "Ingresa", FillWeight = 9 });
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Stock", HeaderText = "Stock: actual + ingreso = nuevo", FillWeight = 19 });
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Costo", HeaderText = "Costo unitario: actual → compra", FillWeight = 20 });
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Precio", HeaderText = "Precio de venta base: actual → nuevo", FillWeight = 23 });
+            grilla.Columns.Add(new DataGridViewTextBoxColumn
+            { DataPropertyName = "Proveedor", HeaderText = "Proveedor: anterior → nuevo", FillWeight = 21 });
+
+            grilla.DataSource = impacto.Productos.Select(p => new
+            {
+                Producto = p.Nombre,
+                Cantidad = p.Cantidad.ToString("N0", Es),
+                Stock = $"{p.StockActual.ToString("N0", Es)} + {p.Cantidad.ToString("N0", Es)} = {p.StockNuevo.ToString("N0", Es)}",
+                Costo = $"{p.CostoActual.ToString("C2", Es)} → {p.CostoCompra.ToString("C2", Es)}",
+                Precio = p.RecalculaPrecio
+                    ? $"{p.PrecioVentaActual.ToString("C2", Es)} → {p.PrecioVentaNuevo!.Value.ToString("C2", Es)}"
+                    : $"{p.PrecioVentaActual.ToString("C2", Es)} → sin cambio ({p.MotivoPrecioSinCambio})",
+                Proveedor = $"{p.ProveedorActual} → {p.ProveedorNuevo}"
+            }).ToList();
+
+            var aclaracion = new Label
+            {
+                Text = "El precio de venta se actualiza si el stock anterior era cero o si el costo de compra supera al registrado. Varios y Sin Categoria conservan el precio manual.",
+                AutoSize = true,
+                ForeColor = Color.DimGray,
+                Margin = new Padding(4, 10, 4, 8)
+            };
+
+            var acciones = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoSize = true,
+                FlowDirection = FlowDirection.RightToLeft,
+                WrapContents = false
+            };
+            var registrar = new Button
+            {
+                Text = "Registrar compra",
+                Size = new Size(176, 40),
+                BackColor = Color.Green,
+                ForeColor = Color.White,
+                UseVisualStyleBackColor = false,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Margin = new Padding(6)
+            };
+            var volver = new Button
+            {
+                Text = "Volver",
+                Size = new Size(176, 40),
+                BackColor = Color.Gold,
+                ForeColor = Color.Black,
+                UseVisualStyleBackColor = false,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Margin = new Padding(6)
+            };
+            acciones.Controls.Add(registrar);
+            acciones.Controls.Add(volver);
+
+            contenido.Controls.Add(titulo, 0, 0);
+            contenido.Controls.Add(grilla, 0, 1);
+            contenido.Controls.Add(aclaracion, 0, 2);
+            contenido.Controls.Add(acciones, 0, 3);
+            vista.Controls.Add(contenido);
+            vista.AcceptButton = registrar;
+            vista.CancelButton = volver;
+            registrar.Click += (_, _) =>
+            {
+                vista.DialogResult = DialogResult.Yes;
+                vista.Close();
+            };
+            volver.Click += (_, _) =>
+            {
+                vista.DialogResult = DialogResult.No;
+                vista.Close();
+            };
+
+            return vista.ShowDialog(this) == DialogResult.Yes;
         }
 
         // Cancelar (o Esc): si ya hay productos cargados, se pide confirmación para no perder el trabajo por accidente

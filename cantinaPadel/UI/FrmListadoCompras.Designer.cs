@@ -30,6 +30,8 @@
         {
             panelAcciones = new Panel();
             btnNueva = new Button();
+            btnDetalle = new Button();
+            btnAnular = new Button();
             lblResumen = new Label();
             panelFiltros = new Panel();
             btnLimpiar = new Button();
@@ -47,10 +49,12 @@
             panelFiltros.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCompras).BeginInit();
             SuspendLayout();
-            // 
+            //
             // panelAcciones
-            // 
+            //
             panelAcciones.BackColor = SystemColors.Info;
+            panelAcciones.Controls.Add(btnAnular);
+            panelAcciones.Controls.Add(btnDetalle);
             panelAcciones.Controls.Add(btnNueva);
             panelAcciones.Controls.Add(lblResumen);
             panelAcciones.Dock = DockStyle.Bottom;
@@ -58,24 +62,48 @@
             panelAcciones.Name = "panelAcciones";
             panelAcciones.Size = new Size(1344, 80);
             panelAcciones.TabIndex = 0;
-            // 
+            //
             // btnNueva
-            // 
+            //
             btnNueva.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnNueva.BackColor = Color.White;
             btnNueva.FlatStyle = FlatStyle.Flat;
-            btnNueva.Location = new Point(1094, 14);
             btnNueva.Name = "btnNueva";
-            btnNueva.Size = new Size(226, 46);
-            btnNueva.TabIndex = 1;
+            btnNueva.Size = new Size(244, 46);
+            btnNueva.Location = new Point(1076, 14);
+            btnNueva.TabIndex = 3;
             btnNueva.Text = "Nueva compra";
             btnNueva.UseVisualStyleBackColor = false;
+            //
+            // btnDetalle
+            //
+            btnDetalle.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnDetalle.BackColor = Color.White;
+            btnDetalle.FlatStyle = FlatStyle.Flat;
+            btnDetalle.Location = new Point(916, 14);
+            btnDetalle.Name = "btnDetalle";
+            btnDetalle.Size = new Size(150, 46);
+            btnDetalle.TabIndex = 2;
+            btnDetalle.Text = "Ver detalle";
+            btnDetalle.UseVisualStyleBackColor = false;
+            //
+            // btnAnular
+            //
+            btnAnular.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnAnular.BackColor = Color.White;
+            btnAnular.FlatStyle = FlatStyle.Flat;
+            btnAnular.Location = new Point(726, 14);
+            btnAnular.Name = "btnAnular";
+            btnAnular.Size = new Size(180, 46);
+            btnAnular.TabIndex = 1;
+            btnAnular.Text = "Anular compra";
+            btnAnular.UseVisualStyleBackColor = false;
             // 
             // lblResumen
             // 
             lblResumen.Location = new Point(34, 20);
             lblResumen.Name = "lblResumen";
-            lblResumen.Size = new Size(1000, 40);
+            lblResumen.Size = new Size(670, 40);
             lblResumen.TabIndex = 0;
             lblResumen.Text = "label1";
             lblResumen.TextAlign = ContentAlignment.MiddleLeft;
@@ -107,7 +135,7 @@
             btnLimpiar.Name = "btnLimpiar";
             btnLimpiar.Size = new Size(170, 46);
             btnLimpiar.TabIndex = 9;
-            btnLimpiar.Text = "Limpiar filtros";
+            btnLimpiar.Text = "Restablecer filtros";
             btnLimpiar.UseVisualStyleBackColor = false;
             // 
             // chkIncluirAnuladas
@@ -123,6 +151,7 @@
             // txtProducto
             // 
             txtProducto.Location = new Point(180, 87);
+            txtProducto.PlaceholderText = "Nombre del producto...";
             txtProducto.Name = "txtProducto";
             txtProducto.Size = new Size(400, 27);
             txtProducto.TabIndex = 7;
@@ -231,5 +260,7 @@
         private Button btnLimpiar;
         private CheckBox chkIncluirAnuladas;
         private Button btnNueva;
+        private Button btnDetalle;
+        private Button btnAnular;
     }
 }
