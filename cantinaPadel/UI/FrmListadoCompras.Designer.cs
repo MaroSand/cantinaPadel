@@ -29,9 +29,9 @@
         private void InitializeComponent()
         {
             panelAcciones = new Panel();
-            btnNueva = new Button();
-            btnDetalle = new Button();
             btnAnular = new Button();
+            btnDetalle = new Button();
+            btnNueva = new Button();
             lblResumen = new Label();
             panelFiltros = new Panel();
             btnLimpiar = new Button();
@@ -49,55 +49,60 @@
             panelFiltros.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCompras).BeginInit();
             SuspendLayout();
-            //
+            // 
             // panelAcciones
-            //
+            // 
             panelAcciones.BackColor = SystemColors.Info;
             panelAcciones.Controls.Add(btnAnular);
             panelAcciones.Controls.Add(btnDetalle);
             panelAcciones.Controls.Add(btnNueva);
             panelAcciones.Controls.Add(lblResumen);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 407);
+            panelAcciones.Location = new Point(0, 364);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(1344, 80);
+            panelAcciones.Size = new Size(1344, 123);
             panelAcciones.TabIndex = 0;
-            //
-            // btnNueva
-            //
-            btnNueva.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnNueva.BackColor = Color.White;
-            btnNueva.FlatStyle = FlatStyle.Flat;
-            btnNueva.Name = "btnNueva";
-            btnNueva.Size = new Size(244, 46);
-            btnNueva.Location = new Point(1076, 14);
-            btnNueva.TabIndex = 3;
-            btnNueva.Text = "Nueva compra";
-            btnNueva.UseVisualStyleBackColor = false;
-            //
-            // btnDetalle
-            //
-            btnDetalle.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnDetalle.BackColor = Color.White;
-            btnDetalle.FlatStyle = FlatStyle.Flat;
-            btnDetalle.Location = new Point(916, 14);
-            btnDetalle.Name = "btnDetalle";
-            btnDetalle.Size = new Size(150, 46);
-            btnDetalle.TabIndex = 2;
-            btnDetalle.Text = "Ver detalle";
-            btnDetalle.UseVisualStyleBackColor = false;
-            //
+            // 
             // btnAnular
-            //
+            // 
             btnAnular.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnAnular.BackColor = Color.White;
+            btnAnular.BackColor = Color.IndianRed;
             btnAnular.FlatStyle = FlatStyle.Flat;
-            btnAnular.Location = new Point(726, 14);
+            btnAnular.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnAnular.ForeColor = Color.White;
+            btnAnular.Location = new Point(434, 36);
             btnAnular.Name = "btnAnular";
-            btnAnular.Size = new Size(180, 46);
+            btnAnular.Size = new Size(270, 46);
             btnAnular.TabIndex = 1;
             btnAnular.Text = "Anular compra";
             btnAnular.UseVisualStyleBackColor = false;
+            // 
+            // btnDetalle
+            // 
+            btnDetalle.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnDetalle.BackColor = Color.Khaki;
+            btnDetalle.FlatStyle = FlatStyle.Flat;
+            btnDetalle.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnDetalle.Location = new Point(730, 36);
+            btnDetalle.Name = "btnDetalle";
+            btnDetalle.Size = new Size(270, 46);
+            btnDetalle.TabIndex = 2;
+            btnDetalle.Text = "Ver detalle";
+            btnDetalle.UseVisualStyleBackColor = false;
+            // 
+            // btnNueva
+            // 
+            btnNueva.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnNueva.BackColor = Color.ForestGreen;
+            btnNueva.FlatStyle = FlatStyle.Flat;
+            btnNueva.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnNueva.ForeColor = Color.White;
+            btnNueva.Location = new Point(1031, 36);
+            btnNueva.Name = "btnNueva";
+            btnNueva.Size = new Size(270, 46);
+            btnNueva.TabIndex = 3;
+            btnNueva.Text = "Nueva compra";
+            btnNueva.UseVisualStyleBackColor = false;
             // 
             // lblResumen
             // 
@@ -124,7 +129,7 @@
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(1344, 140);
+            panelFiltros.Size = new Size(1344, 84);
             panelFiltros.TabIndex = 1;
             // 
             // btnLimpiar
@@ -151,8 +156,8 @@
             // txtProducto
             // 
             txtProducto.Location = new Point(180, 87);
-            txtProducto.PlaceholderText = "Nombre del producto...";
             txtProducto.Name = "txtProducto";
+            txtProducto.PlaceholderText = "Nombre del producto...";
             txtProducto.Size = new Size(400, 27);
             txtProducto.TabIndex = 7;
             // 
@@ -220,10 +225,10 @@
             dgvCompras.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCompras.Dock = DockStyle.Fill;
             dgvCompras.GridColor = SystemColors.Menu;
-            dgvCompras.Location = new Point(0, 140);
+            dgvCompras.Location = new Point(0, 84);
             dgvCompras.Name = "dgvCompras";
             dgvCompras.RowHeadersWidth = 51;
-            dgvCompras.Size = new Size(1344, 267);
+            dgvCompras.Size = new Size(1344, 280);
             dgvCompras.TabIndex = 2;
             // 
             // FrmListadoCompras
