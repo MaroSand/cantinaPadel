@@ -36,6 +36,11 @@ public class DetalleCompra
     [Column("costo_anterior")]
     public decimal? CostoAnterior { get; set; }
 
+    // Precio de venta exacto antes de registrar esta compra, para restaurarlo al anularla.
+    // Nullable para compras históricas creadas antes de agregar este dato.
+    [Column("precio_venta_anterior")]
+    public decimal? PrecioVentaAnterior { get; set; }
+
     [Column("id_proveedor_anterior")]
     public int? IdProveedorAnterior { get; set; }
 

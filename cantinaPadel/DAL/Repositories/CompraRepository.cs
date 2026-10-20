@@ -31,6 +31,7 @@ public class CompraRepository : ICompraRepository
             // Se valida dentro de la transacción por si el stock cambió después de mostrar la vista previa.
             _ = CalcularStockNuevo(producto.StockActual, detalle.Cantidad);
             detalle.CostoAnterior = producto.PrecioCosto;
+            detalle.PrecioVentaAnterior = producto.PrecioVenta;
             detalle.IdProveedorAnterior = producto.IdProveedor;
         }
 
@@ -96,6 +97,7 @@ public class CompraRepository : ICompraRepository
         var productosPorId = productos.ToDictionary(p => p.IdProducto);
         var stockRevertido = new Dictionary<int, int>();
         var estadoProductoRestaurado = new Dictionary<int, (decimal Costo, int? IdProveedor)>();
+        var preciosVentaRestaurados = new Dictionary<int, decimal>();
 
         foreach (var (idProducto, cantidad) in cantidadesPorProducto)
         {
@@ -111,8 +113,27 @@ public class CompraRepository : ICompraRepository
                       compraActiva.IdCompra != idCompra &&
                       !compraActiva.Anulada
                 orderby compraActiva.FechaCompra descending, compraActiva.IdCompra descending
-                select new { detalle.PrecioUnitario, compraActiva.IdProveedor })
+                select new { detalle.PrecioUnitario, compraActiva.IdProveedor, compraActiva.IdCompra, compraActiva.FechaCompra })
                 .FirstOrDefault();
+
+            // Si la compra anulada es la más reciente, se restaura exactamente el precio
+            // que tenía el producto justo antes de registrarla. Si hay una compra activa
+            // posterior, esa compra sigue determinando el precio vigente.
+            bool hayCompraPosteriorActiva = ultimaCompraActiva != null &&
+                (ultimaCompraActiva.FechaCompra > compra.FechaCompra ||
+                 (ultimaCompraActiva.FechaCompra == compra.FechaCompra && ultimaCompraActiva.IdCompra > compra.IdCompra));
+
+            if (!hayCompraPosteriorActiva)
+            {
+                var detalleAnulado = compra.Detalles.First(d => d.IdProducto == idProducto);
+                if (detalleAnulado.PrecioVentaAnterior == null)
+                {
+                    throw new InvalidOperationException(
+                        $"No se puede anular la compra porque no se guardó el precio de venta anterior del producto '{productosPorId[idProducto].Nombre}'. Esta compra es anterior a la actualización; restaure el precio manualmente y vuelva a intentar.");
+                }
+
+                preciosVentaRestaurados[idProducto] = detalleAnulado.PrecioVentaAnterior.Value;
+            }
 
             if (ultimaCompraActiva != null)
             {
@@ -139,16 +160,27 @@ public class CompraRepository : ICompraRepository
                 (estadoAnteriorPrimeraCompra.CostoAnterior.Value, estadoAnteriorPrimeraCompra.IdProveedorAnterior);
         }
 
+        var productosConCambioDePrecio = new List<Producto>();
         foreach (var (idProducto, stockNuevo) in stockRevertido)
         {
             var producto = productosPorId[idProducto];
             producto.StockActual = stockNuevo;
             producto.PrecioCosto = estadoProductoRestaurado[idProducto].Costo;
             producto.IdProveedor = estadoProductoRestaurado[idProducto].IdProveedor;
+
+            if (preciosVentaRestaurados.TryGetValue(idProducto, out var precioVentaRestaurado) &&
+                producto.PrecioVenta != precioVentaRestaurado)
+            {
+                producto.PrecioVenta = precioVentaRestaurado;
+                productosConCambioDePrecio.Add(producto);
+            }
         }
 
         compra.Anulada = true;
         ctx.SaveChanges();
+        if (productosConCambioDePrecio.Count > 0)
+            ProductoRepository.ReajustarDeudaPendientePorCambioDePrecio(ctx, productosConCambioDePrecio);
+
         transaccion.Commit();
         return compra;
     }
