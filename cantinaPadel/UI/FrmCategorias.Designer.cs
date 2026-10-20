@@ -197,7 +197,7 @@
             btnBajaAlta.Location = new Point(359, 10);
             btnBajaAlta.Margin = new Padding(2);
             btnBajaAlta.Name = "btnBajaAlta";
-            btnBajaAlta.Size = new Size(179, 29);
+            btnBajaAlta.Size = new Size(179, 42);
             btnBajaAlta.TabIndex = 2;
             btnBajaAlta.Text = "Activar/ Desactivar";
             btnBajaAlta.UseVisualStyleBackColor = false;
@@ -211,7 +211,7 @@
             btnNuevo.Location = new Point(147, 10);
             btnNuevo.Margin = new Padding(2);
             btnNuevo.Name = "btnNuevo";
-            btnNuevo.Size = new Size(179, 29);
+            btnNuevo.Size = new Size(179, 42);
             btnNuevo.TabIndex = 0;
             btnNuevo.Text = "Nuevo";
             btnNuevo.UseVisualStyleBackColor = false;
@@ -227,7 +227,7 @@
             dgvCategorias.Margin = new Padding(2);
             dgvCategorias.Name = "dgvCategorias";
             dgvCategorias.RowHeadersWidth = 51;
-            dgvCategorias.Size = new Size(668, 338);
+            dgvCategorias.Size = new Size(668, 309);
             dgvCategorias.TabIndex = 3;
             dgvCategorias.SelectionChanged += dgvCategorias_SelectionChanged;
             // 
@@ -237,10 +237,10 @@
             panel1.Controls.Add(btnBajaAlta);
             panel1.Controls.Add(btnNuevo);
             panel1.Dock = DockStyle.Bottom;
-            panel1.Location = new Point(0, 379);
+            panel1.Location = new Point(0, 350);
             panel1.Margin = new Padding(1);
             panel1.Name = "panel1";
-            panel1.Size = new Size(668, 50);
+            panel1.Size = new Size(668, 79);
             panel1.TabIndex = 3;
             // 
             // contextMenuStrip1

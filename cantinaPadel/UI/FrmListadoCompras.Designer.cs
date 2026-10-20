@@ -37,7 +37,6 @@
             btnLimpiar = new Button();
             chkIncluirAnuladas = new CheckBox();
             txtProducto = new TextBox();
-            lblProducto = new Label();
             dtpHasta = new DateTimePicker();
             lblHasta = new Label();
             dtpDesde = new DateTimePicker();
@@ -60,7 +59,7 @@
             panelAcciones.Dock = DockStyle.Bottom;
             panelAcciones.Location = new Point(0, 364);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(1344, 123);
+            panelAcciones.Size = new Size(1139, 123);
             panelAcciones.TabIndex = 0;
             // 
             // btnAnular
@@ -70,7 +69,7 @@
             btnAnular.FlatStyle = FlatStyle.Flat;
             btnAnular.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnAnular.ForeColor = Color.White;
-            btnAnular.Location = new Point(434, 36);
+            btnAnular.Location = new Point(224, 52);
             btnAnular.Name = "btnAnular";
             btnAnular.Size = new Size(270, 46);
             btnAnular.TabIndex = 1;
@@ -83,7 +82,7 @@
             btnDetalle.BackColor = Color.Khaki;
             btnDetalle.FlatStyle = FlatStyle.Flat;
             btnDetalle.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnDetalle.Location = new Point(730, 36);
+            btnDetalle.Location = new Point(518, 52);
             btnDetalle.Name = "btnDetalle";
             btnDetalle.Size = new Size(270, 46);
             btnDetalle.TabIndex = 2;
@@ -97,7 +96,7 @@
             btnNueva.FlatStyle = FlatStyle.Flat;
             btnNueva.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnNueva.ForeColor = Color.White;
-            btnNueva.Location = new Point(1031, 36);
+            btnNueva.Location = new Point(806, 52);
             btnNueva.Name = "btnNueva";
             btnNueva.Size = new Size(270, 46);
             btnNueva.TabIndex = 3;
@@ -119,7 +118,6 @@
             panelFiltros.Controls.Add(btnLimpiar);
             panelFiltros.Controls.Add(chkIncluirAnuladas);
             panelFiltros.Controls.Add(txtProducto);
-            panelFiltros.Controls.Add(lblProducto);
             panelFiltros.Controls.Add(dtpHasta);
             panelFiltros.Controls.Add(lblHasta);
             panelFiltros.Controls.Add(dtpDesde);
@@ -129,16 +127,16 @@
             panelFiltros.Dock = DockStyle.Top;
             panelFiltros.Location = new Point(0, 0);
             panelFiltros.Name = "panelFiltros";
-            panelFiltros.Size = new Size(1344, 84);
+            panelFiltros.Size = new Size(1139, 162);
             panelFiltros.TabIndex = 1;
             // 
             // btnLimpiar
             // 
             btnLimpiar.BackColor = Color.White;
             btnLimpiar.FlatStyle = FlatStyle.Flat;
-            btnLimpiar.Location = new Point(1150, 87);
+            btnLimpiar.Location = new Point(583, 59);
             btnLimpiar.Name = "btnLimpiar";
-            btnLimpiar.Size = new Size(170, 46);
+            btnLimpiar.Size = new Size(167, 48);
             btnLimpiar.TabIndex = 9;
             btnLimpiar.Text = "Restablecer filtros";
             btnLimpiar.UseVisualStyleBackColor = false;
@@ -146,7 +144,7 @@
             // chkIncluirAnuladas
             // 
             chkIncluirAnuladas.AutoSize = true;
-            chkIncluirAnuladas.Location = new Point(620, 89);
+            chkIncluirAnuladas.Location = new Point(410, 73);
             chkIncluirAnuladas.Name = "chkIncluirAnuladas";
             chkIncluirAnuladas.Size = new Size(134, 24);
             chkIncluirAnuladas.TabIndex = 8;
@@ -155,32 +153,23 @@
             // 
             // txtProducto
             // 
-            txtProducto.Location = new Point(180, 87);
+            txtProducto.Location = new Point(135, 70);
             txtProducto.Name = "txtProducto";
             txtProducto.PlaceholderText = "Nombre del producto...";
-            txtProducto.Size = new Size(400, 27);
+            txtProducto.Size = new Size(222, 27);
             txtProducto.TabIndex = 7;
-            // 
-            // lblProducto
-            // 
-            lblProducto.AutoSize = true;
-            lblProducto.Location = new Point(39, 90);
-            lblProducto.Name = "lblProducto";
-            lblProducto.Size = new Size(72, 20);
-            lblProducto.TabIndex = 6;
-            lblProducto.Text = "Producto:";
             // 
             // dtpHasta
             // 
-            dtpHasta.Location = new Point(1090, 26);
+            dtpHasta.Location = new Point(386, 113);
             dtpHasta.Name = "dtpHasta";
-            dtpHasta.Size = new Size(230, 27);
+            dtpHasta.Size = new Size(149, 27);
             dtpHasta.TabIndex = 5;
             // 
             // lblHasta
             // 
             lblHasta.AutoSize = true;
-            lblHasta.Location = new Point(990, 30);
+            lblHasta.Location = new Point(321, 118);
             lblHasta.Name = "lblHasta";
             lblHasta.Size = new Size(50, 20);
             lblHasta.TabIndex = 4;
@@ -188,15 +177,15 @@
             // 
             // dtpDesde
             // 
-            dtpDesde.Location = new Point(730, 26);
+            dtpDesde.Location = new Point(135, 113);
             dtpDesde.Name = "dtpDesde";
-            dtpDesde.Size = new Size(230, 27);
+            dtpDesde.Size = new Size(149, 27);
             dtpDesde.TabIndex = 3;
             // 
             // lblDesde
             // 
             lblDesde.AutoSize = true;
-            lblDesde.Location = new Point(620, 30);
+            lblDesde.Location = new Point(34, 113);
             lblDesde.Name = "lblDesde";
             lblDesde.Size = new Size(54, 20);
             lblDesde.TabIndex = 2;
@@ -205,7 +194,7 @@
             // cmbProveedor
             // 
             cmbProveedor.FormattingEnabled = true;
-            cmbProveedor.Location = new Point(180, 26);
+            cmbProveedor.Location = new Point(135, 27);
             cmbProveedor.Name = "cmbProveedor";
             cmbProveedor.Size = new Size(400, 28);
             cmbProveedor.TabIndex = 1;
@@ -225,17 +214,17 @@
             dgvCompras.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCompras.Dock = DockStyle.Fill;
             dgvCompras.GridColor = SystemColors.Menu;
-            dgvCompras.Location = new Point(0, 84);
+            dgvCompras.Location = new Point(0, 162);
             dgvCompras.Name = "dgvCompras";
             dgvCompras.RowHeadersWidth = 51;
-            dgvCompras.Size = new Size(1344, 280);
+            dgvCompras.Size = new Size(1139, 202);
             dgvCompras.TabIndex = 2;
             // 
             // FrmListadoCompras
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1344, 487);
+            ClientSize = new Size(1139, 487);
             Controls.Add(dgvCompras);
             Controls.Add(panelFiltros);
             Controls.Add(panelAcciones);
@@ -257,7 +246,6 @@
         private ComboBox cmbProveedor;
         private Label lblProveedor;
         private TextBox txtProducto;
-        private Label lblProducto;
         private DateTimePicker dtpHasta;
         private Label lblHasta;
         private DateTimePicker dtpDesde;
