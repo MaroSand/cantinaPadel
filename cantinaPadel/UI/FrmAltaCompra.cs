@@ -684,7 +684,7 @@ namespace cantinaPadel.UI
             grilla.Columns.Add(new DataGridViewTextBoxColumn
             { DataPropertyName = "Costo", HeaderText = "Costo unitario: actual → compra", FillWeight = 20 });
             grilla.Columns.Add(new DataGridViewTextBoxColumn
-            { DataPropertyName = "Precio", HeaderText = "Precio de venta base: actual → nuevo", FillWeight = 23 });
+            { DataPropertyName = "Precio", HeaderText = "Precio final con IVA: actual → nuevo", FillWeight = 23 });
             grilla.Columns.Add(new DataGridViewTextBoxColumn
             { DataPropertyName = "Proveedor", HeaderText = "Proveedor: anterior → nuevo", FillWeight = 21 });
 
@@ -695,8 +695,8 @@ namespace cantinaPadel.UI
                 Stock = $"{p.StockActual.ToString("N0", Es)} + {p.Cantidad.ToString("N0", Es)} = {p.StockNuevo.ToString("N0", Es)}",
                 Costo = $"{p.CostoActual.ToString("C2", Es)} → {p.CostoCompra.ToString("C2", Es)}",
                 Precio = p.RecalculaPrecio
-                    ? $"{p.PrecioVentaActual.ToString("C2", Es)} → {p.PrecioVentaNuevo!.Value.ToString("C2", Es)}"
-                    : $"{p.PrecioVentaActual.ToString("C2", Es)} → sin cambio ({p.MotivoPrecioSinCambio})",
+                    ? $"{_logicaProducto.CalcularPrecioConIva(p.PrecioVentaActual).ToString("C2", Es)} → {_logicaProducto.CalcularPrecioConIva(p.PrecioVentaNuevo!.Value).ToString("C2", Es)}"
+                    : $"{_logicaProducto.CalcularPrecioConIva(p.PrecioVentaActual).ToString("C2", Es)} → sin cambio ({p.MotivoPrecioSinCambio})",
                 Proveedor = $"{p.ProveedorActual} → {p.ProveedorNuevo}"
             }).ToList();
 

@@ -11,6 +11,7 @@ namespace cantinaPadel.UI
     {
         private readonly LogicaProducto _logicaProducto;
         private Producto? _productoEdicion;
+        private bool _cargandoDatos;
 
         // Constructor para alta de nuevo producto
         public FrmCRUDProducto()
@@ -36,23 +37,30 @@ namespace cantinaPadel.UI
             txtCodigoBarras.KeyDown += txtCodigoBarras_KeyDown;
             txtPrecioCosto.KeyPress += TxtDecimal_KeyPress;
             txtPrecioCosto.TextChanged += RecalcularPrecioVenta_Evento;
-            cmbCategoria.SelectedIndexChanged += RecalcularPrecioVenta_Evento;
             txtPrecioVenta.TextChanged += txtPrecioVenta_TextChanged;
             txtStockActual.KeyPress += TxtEntero_KeyPress;
             txtStockMinimo.KeyPress += TxtEntero_KeyPress;
             txtPrecioVenta.ReadOnly = true;
             btnGenerarCodigoBarras.Click += btnGenerarCodigoBarras_Click;
 
-            CargarCombos();
+            _cargandoDatos = true;
+            try
+            {
+                CargarCombos();
 
-            if (_productoEdicion != null)
-            {
-                CargarDatosEnFormulario();
+                if (_productoEdicion != null)
+                {
+                    CargarDatosEnFormulario();
+                }
+                else
+                {
+                    // Foco directo en el código de barras para poder arrancar el alta escaneando
+                    txtCodigoBarras.Focus();
+                }
             }
-            else
+            finally
             {
-                // Foco directo en el código de barras para poder arrancar el alta escaneando
-                txtCodigoBarras.Focus();
+                _cargandoDatos = false;
             }
 
             ActualizarPrecioConIva();
@@ -174,7 +182,11 @@ namespace cantinaPadel.UI
         // Recalcula en vivo el precio final con IVA a medida que se tipea el precio de venta
         private void txtPrecioVenta_TextChanged(object sender, EventArgs e) => ActualizarPrecioConIva();
 
-        private void RecalcularPrecioVenta_Evento(object? sender, EventArgs e) => RecalcularPrecioVenta();
+        private void RecalcularPrecioVenta_Evento(object? sender, EventArgs e)
+        {
+            if (!_cargandoDatos)
+                RecalcularPrecioVenta();
+        }
 
         private void RecalcularPrecioVenta()
         {
@@ -217,6 +229,33 @@ namespace cantinaPadel.UI
                 out decimal precioVenta);
             int.TryParse(txtStockActual.Text, out int stockActual);
             int.TryParse(txtStockMinimo.Text, out int stockMinimo);
+
+            if (_productoEdicion != null && precioCosto == _productoEdicion.PrecioCosto)
+            {
+                // Una edición de otros datos no debe alterar el precio de venta guardado.
+                precioVenta = _productoEdicion.PrecioVenta;
+            }
+            else if (_productoEdicion != null && cmbCategoria.SelectedValue is int idCategoriaPrecio)
+            {
+                decimal precioVentaRecalculado = _logicaProducto.CalcularPrecioVenta(precioCosto, idCategoriaPrecio);
+                if (precioVentaRecalculado > 0)
+                {
+                    decimal precioFinalConIva = _logicaProducto.CalcularPrecioConIva(precioVentaRecalculado);
+                    var confirmar = MessageBox.Show(
+                        $"Al cambiar el precio de costo, el precio de venta se recalculará según el margen de la categoría.\n\n" +
+                        $"Nuevo precio de venta: {precioVentaRecalculado.ToString("C2", CultureInfo.CurrentCulture)} " +
+                        $"({precioFinalConIva.ToString("C2", CultureInfo.CurrentCulture)} con IVA).\n\n" +
+                        "¿Desea guardar este cambio?",
+                        "Confirmar cambio de precio",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+
+                    if (confirmar != DialogResult.Yes)
+                        return;
+
+                    precioVenta = precioVentaRecalculado;
+                }
+            }
 
             // Arma el objeto con los datos del formulario; la validación de negocio
             // (obligatoriedad, unicidad del código de barras, etc.) queda en la BLL
