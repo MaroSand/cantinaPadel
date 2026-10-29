@@ -164,10 +164,15 @@ namespace cantinaPadel.BLL
             if (producto.PrecioCosto <= 0)
                 throw new ArgumentException("El precio de costo debe ser mayor a cero.");
 
-            producto.PrecioVenta = CalcularPrecioVenta(producto.PrecioCosto, producto.IdCategoria);
+            if (esAlta)
+            {
+                producto.PrecioVenta = CalcularPrecioVenta(producto.PrecioCosto, producto.IdCategoria);
+            }
 
             if (producto.PrecioVenta <= 0)
-                throw new ArgumentException("El precio de venta debe ser mayor a cero. Revise el costo y el porcentaje de ganancia de la categoría.");
+                throw new ArgumentException(esAlta
+                    ? "El precio de venta debe ser mayor a cero. Revise el costo y el porcentaje de ganancia de la categoría."
+                    : "El precio de venta debe ser mayor a cero.");
 
             if (producto.StockMinimo < 0)
                 throw new ArgumentException("El stock mínimo no puede ser negativo.");
