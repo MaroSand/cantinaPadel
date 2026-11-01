@@ -203,7 +203,8 @@ public class CompraRepository : ICompraRepository
 
         IQueryable<Compra> query = ctx.Compras
             .Include(c => c.Proveedor).ThenInclude(p => p!.Persona)
-            .Include(c => c.Empleado).ThenInclude(e => e!.Persona);
+            .Include(c => c.Empleado).ThenInclude(e => e!.Persona)
+            .Include(c => c.Detalles).ThenInclude(d => d.Producto);
 
         if (!incluirAnuladas)
             query = query.Where(c => !c.Anulada);

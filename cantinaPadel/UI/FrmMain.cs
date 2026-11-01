@@ -261,7 +261,7 @@ namespace cantinaPadel
         private void btnReportes_Click(object sender, EventArgs e)
         {
             Navegar("Reportes");
-            cantinaPadel.UI.FrmReporteVentas frm = new cantinaPadel.UI.FrmReporteVentas();
+            cantinaPadel.UI.FrmReportes frm = new cantinaPadel.UI.FrmReportes();
             AbrirEnPanel(frm);
         }
 
