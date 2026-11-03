@@ -14,16 +14,17 @@ public sealed class FrmReporteCajas : Form
     private enum Formato { Csv, Excel, Pdf }
     private readonly LogicaCaja _logicaCaja = new();
     private readonly LogicaReporteVentas _logicaVentas = new();
-    private readonly LogicaProducto _logicaProducto = new();
     private readonly System.Windows.Forms.Timer _debounce = new() { Interval = 300 };
     private readonly DateTimePicker _desde = new();
     private readonly DateTimePicker _hasta = new();
     private readonly ComboBox _empleado = new();
     private readonly ComboBox _estado = new();
     private readonly DataGridView _grilla = new();
-    private readonly Label _estadisticas = new();
     private readonly Label _resumen = new();
-    private readonly Label _nota = new();
+    private readonly Label _totalEfectivo = new();
+    private readonly Label _totalTransferencia = new();
+    private readonly Label _totalTarjeta = new();
+    private readonly Label _totalGeneral = new();
     private readonly Button _limpiar = new();
     private readonly Button _csv = Boton("Exportar CSV", Color.SteelBlue);
     private readonly Button _excel = Boton("Exportar Excel", Color.ForestGreen);
@@ -50,18 +51,20 @@ public sealed class FrmReporteCajas : Form
 
     private void Construir()
     {
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Top, Height = 82, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 2 };
+        var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
+        contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 154));
+
+        var filtros = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 2 };
         foreach (var ancho in new[] { 17f, 17f, 25f, 23f, 18f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
         filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         AgregarFiltro(filtros, 0, "Desde", _desde); AgregarFiltro(filtros, 1, "Hasta", _hasta);
         AgregarFiltro(filtros, 2, "Empleado", _empleado); AgregarFiltro(filtros, 3, "Estado", _estado);
         _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat; filtros.Controls.Add(_limpiar, 4, 1);
 
-        var panelStats = new Panel { Dock = DockStyle.Top, Height = 82, Padding = new Padding(14, 8, 14, 7), BackColor = Color.FromArgb(255, 248, 220) };
-        _estadisticas.Dock = DockStyle.Fill; _estadisticas.Font = new Font("Segoe UI", 10F, FontStyle.Bold); _estadisticas.TextAlign = ContentAlignment.MiddleLeft;
-        panelStats.Controls.Add(_estadisticas);
-
-        _grilla.Dock = DockStyle.Fill; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false; _grilla.MultiSelect = false;
+        _grilla.Dock = DockStyle.Fill; _grilla.Margin = Padding.Empty; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false; _grilla.MultiSelect = false;
         _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false; _grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _grilla.RowTemplate.Height = 30; _grilla.ColumnHeadersHeight = 34; _grilla.BackgroundColor = Color.White; _grilla.GridColor = SystemColors.ControlLight;
         _grilla.AutoGenerateColumns = false;
@@ -72,12 +75,32 @@ public sealed class FrmReporteCajas : Form
         AddCol("CierreTarjeta", "Ventas tarjeta", 9, "C2"); AddCol("DiferenciaTarjeta", "Dif. tarjeta", 8);
         AddCol("CierreTransferencia", "Ventas transferencia", 10, "C2"); AddCol("DiferenciaTransferencia", "Dif. transferencia", 8);
 
-        var pie = new Panel { Dock = DockStyle.Bottom, Height = 76, Padding = new Padding(12, 4, 12, 4), BackColor = SystemColors.Info };
-        var botones = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 470, WrapContents = false }; botones.Controls.AddRange(new Control[] { _csv, _excel, _pdf });
-        var texto = new Panel { Dock = DockStyle.Fill }; _resumen.Dock = DockStyle.Top; _resumen.Height = 30; _resumen.Font = new Font("Segoe UI", 10F, FontStyle.Bold); _resumen.TextAlign = ContentAlignment.MiddleRight;
-        _nota.Dock = DockStyle.Fill; _nota.TextAlign = ContentAlignment.MiddleRight; _nota.ForeColor = SystemColors.GrayText;
-        texto.Controls.Add(_nota); texto.Controls.Add(_resumen); pie.Controls.Add(texto); pie.Controls.Add(botones);
-        Controls.Add(_grilla); Controls.Add(pie); Controls.Add(panelStats); Controls.Add(filtros);
+        var pie = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12, 8, 12, 7), BackColor = SystemColors.Info, ColumnCount = 1, RowCount = 2 };
+        pie.RowStyles.Add(new RowStyle(SizeType.Absolute, 78)); pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var totales = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 4, RowCount = 1 };
+        totales.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        for (var i = 0; i < 4; i++) totales.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+        totales.Controls.Add(CrearTarjetaTotal("Efectivo contado", _totalEfectivo), 0, 0);
+        totales.Controls.Add(CrearTarjetaTotal("Transferencia", _totalTransferencia), 1, 0);
+        totales.Controls.Add(CrearTarjetaTotal("Tarjeta", _totalTarjeta), 2, 0);
+        totales.Controls.Add(CrearTarjetaTotal("Total general", _totalGeneral, sinMargenDerecho: true), 3, 0);
+
+        var filaAcciones = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 2, RowCount = 1 };
+        filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 470));
+        filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        filaAcciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        _resumen.Dock = DockStyle.Fill; _resumen.Margin = Padding.Empty; _resumen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        var botones = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 470, WrapContents = false, Padding = new Padding(0, 4, 0, 0), Margin = Padding.Empty };
+        botones.Controls.AddRange(new Control[] { _csv, _excel, _pdf });
+        _resumen.TextAlign = ContentAlignment.MiddleRight;
+        filaAcciones.Controls.Add(botones, 0, 0); filaAcciones.Controls.Add(_resumen, 1, 0);
+        pie.Controls.Add(totales, 0, 0); pie.Controls.Add(filaAcciones, 0, 1);
+
+        contenido.Controls.Add(filtros, 0, 0);
+        contenido.Controls.Add(_grilla, 0, 1);
+        contenido.Controls.Add(pie, 0, 2);
+        Controls.Add(contenido);
     }
 
     private void CargarFiltros()
@@ -120,19 +143,45 @@ public sealed class FrmReporteCajas : Form
                 DiferenciaEfectivo = t.DiferenciaEfectivo, CierreTarjeta = t.CierreTarjeta,
                 CierreTransferencia = t.CierreTransferencia
             }).ToList();
-            var ventas = _logicaVentas.Generar(new FiltroReporteVentas { Desde = desde, Hasta = hasta, Tipo = TipoVentaReporte.Todas });
-            var padel = ventas.Where(v => v.Tipo == CalculadorReporteVentas.TipoPadel).Sum(v => v.Unidades);
-            var almacen = ventas.Where(v => v.Tipo == CalculadorReporteVentas.TipoCantina).Sum(v => v.Total);
-            var productosHora = _logicaProducto.ObtenerTodos(true).Where(p => p.Categoria?.Nombre == CalculadorReporteVentas.CategoriaHoraPadel).ToList();
-            var precios = productosHora.Count == 0 ? "Sin productos de hora configurados" : string.Join("  |  ", productosHora.Select(p => $"{p.Nombre}: {p.PrecioConIva.ToString("C2", Es)}"));
-            _estadisticas.Text = $"Resumen del mes: {padel} horas de pádel vendidas  •  Precio vigente por cancha: {precios}\nVentas de almacén: {almacen.ToString("C2", Es)}";
-            _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Empleado: {empleado?.Texto ?? "Todos"}  |  Estado: {filtroEstado}  |  Horas de pádel: {padel}  |  Precio vigente por cancha: {precios}  |  Ventas de almacén: {almacen.ToString("C2", Es)}";
-            var totalInicial = _turnos.Sum(t => t.MontoApertura);
-            var totalEfectivoFinal = _turnos.Sum(t => t.EfectivoFinal ?? 0m);
-            _resumen.Text = $"{_turnos.Count} turnos  |  Inicial: {totalInicial.ToString("C2", Es)}  |  Efectivo final registrado: {totalEfectivoFinal.ToString("C2", Es)}";
+            _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Empleado: {empleado?.Texto ?? "Todos"}  |  Estado: {filtroEstado}";
+            ActualizarTotales();
+            _resumen.Text = $"{_turnos.Count} {(_turnos.Count == 1 ? "turno" : "turnos")} en el período";
             HabilitarExportacion(_turnos.Count > 0);
         }
-        catch (Exception ex) { _turnos.Clear(); _grilla.DataSource = null; _resumen.Text = ex.Message; _estadisticas.Text = string.Empty; HabilitarExportacion(false); }
+        catch (Exception ex)
+        {
+            _turnos.Clear(); _grilla.DataSource = null; _resumen.Text = ex.Message;
+            ActualizarTotales(); HabilitarExportacion(false);
+        }
+    }
+
+    private void ActualizarTotales()
+    {
+        var totales = CalcularTotales();
+        _totalEfectivo.Text = totales.EfectivoContado.ToString("C2", Es);
+        _totalTransferencia.Text = totales.Transferencia.ToString("C2", Es);
+        _totalTarjeta.Text = totales.Tarjeta.ToString("C2", Es);
+        _totalGeneral.Text = totales.General.ToString("C2", Es);
+    }
+
+    private (decimal EfectivoContado, decimal Transferencia, decimal Tarjeta, decimal General) CalcularTotales()
+    {
+        var efectivo = _turnos.Sum(t => t.EfectivoFinal ?? 0m);
+        var transferencia = _turnos.Sum(t => t.CierreTransferencia ?? 0m);
+        var tarjeta = _turnos.Sum(t => t.CierreTarjeta ?? 0m);
+        return (efectivo, transferencia, tarjeta, efectivo + transferencia + tarjeta);
+    }
+
+    private IReadOnlyList<KeyValuePair<string, decimal>> ObtenerTotalesExportacion()
+    {
+        var totales = CalcularTotales();
+        return new[]
+        {
+            new KeyValuePair<string, decimal>("Efectivo contado", totales.EfectivoContado),
+            new KeyValuePair<string, decimal>("Transferencia", totales.Transferencia),
+            new KeyValuePair<string, decimal>("Tarjeta", totales.Tarjeta),
+            new KeyValuePair<string, decimal>("Total general", totales.General)
+        };
     }
 
     private void Exportar(Formato formato)
@@ -146,9 +195,10 @@ public sealed class FrmReporteCajas : Form
         try
         {
             Cursor = Cursors.WaitCursor;
-            if (formato == Formato.Csv) ExportadorReporteTabular.GuardarCsv(dialogo.FileName, titulo, _filtros, Encabezados, filas);
-            else if (formato == Formato.Excel) ExportadorReporteTabular.GuardarExcel(dialogo.FileName, titulo, _filtros, Encabezados, filas);
-            else ExportadorReporteTabular.GuardarPdf(dialogo.FileName, titulo, _filtros, Encabezados, filas);
+            var totales = ObtenerTotalesExportacion();
+            if (formato == Formato.Csv) ExportadorReporteTabular.GuardarCsv(dialogo.FileName, titulo, _filtros, Encabezados, filas, totales);
+            else if (formato == Formato.Excel) ExportadorReporteTabular.GuardarExcel(dialogo.FileName, titulo, _filtros, Encabezados, filas, totales);
+            else ExportadorReporteTabular.GuardarPdf(dialogo.FileName, titulo, _filtros, Encabezados, filas, totales);
         }
         catch (Exception ex) { MessageBox.Show(this, $"No se pudo exportar el reporte: {ex.Message}", "Reporte de cajas", MessageBoxButtons.OK, MessageBoxIcon.Error); return; }
         finally { Cursor = Cursors.Default; }
@@ -169,6 +219,38 @@ public sealed class FrmReporteCajas : Form
         control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, 1);
     }
     private static Button Boton(string texto, Color color) => new() { Text = texto, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0), BackColor = color, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Enabled = false };
+    private static Control CrearTarjetaTotal(string titulo, Label importe, bool sinMargenDerecho = false)
+    {
+        var tarjeta = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, sinMargenDerecho ? 0 : 8, 0),
+            Padding = new Padding(10, 4, 10, 4),
+            BackColor = Color.FromArgb(255, 248, 220),
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        tarjeta.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        tarjeta.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+        tarjeta.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        tarjeta.Controls.Add(new Label
+        {
+            Text = titulo,
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
+            ForeColor = SystemColors.GrayText,
+            TextAlign = ContentAlignment.MiddleLeft
+        }, 0, 0);
+        importe.Dock = DockStyle.Fill;
+        importe.Margin = Padding.Empty;
+        importe.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+        importe.ForeColor = Color.FromArgb(45, 55, 45);
+        importe.TextAlign = ContentAlignment.MiddleLeft;
+        importe.AutoEllipsis = true;
+        tarjeta.Controls.Add(importe, 0, 1);
+        return tarjeta;
+    }
     private void HabilitarExportacion(bool valor) { _csv.Enabled = valor; _excel.Enabled = valor; _pdf.Enabled = valor; }
     private sealed class FilaCaja
     {
