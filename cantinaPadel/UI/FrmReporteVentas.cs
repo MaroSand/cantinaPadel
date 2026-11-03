@@ -274,7 +274,6 @@ namespace cantinaPadel.UI
                 FillWeight = 15,
                 DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy HH:mm" }
             });
-            dgvVentas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Tipo", DataPropertyName = nameof(FilaReporteVentas.Tipo), HeaderText = "Tipo", FillWeight = 9 });
             dgvVentas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Cliente", DataPropertyName = nameof(FilaReporteVentas.Cliente), HeaderText = "Cliente", FillWeight = 17 });
             dgvVentas.Columns.Add(new DataGridViewTextBoxColumn { Name = "Empleado", DataPropertyName = nameof(FilaReporteVentas.Empleado), HeaderText = "Empleado", FillWeight = 14 });
             dgvVentas.Columns.Add(new DataGridViewTextBoxColumn { Name = "FormaPago", DataPropertyName = nameof(FilaReporteVentas.FormaPago), HeaderText = "Método de pago", FillWeight = 12 });

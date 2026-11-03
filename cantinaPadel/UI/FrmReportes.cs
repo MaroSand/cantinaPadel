@@ -16,7 +16,8 @@ public sealed class FrmReportes : Form
         var ventas = new TabPage("Ventas") { BackColor = SystemColors.Info };
         var compras = new TabPage("Compras") { BackColor = SystemColors.Info };
         var caja = new TabPage("Caja") { BackColor = SystemColors.Info };
-        tabs.TabPages.AddRange(new[] { ventas, compras, caja });
+        var cuentaCorriente = new TabPage("Cuenta corriente") { BackColor = SystemColors.Info };
+        tabs.TabPages.AddRange(new[] { ventas, compras, caja, cuentaCorriente });
         Controls.Add(tabs);
 
         AgregarFormulario(ventas, new FrmReporteVentas());
@@ -26,6 +27,7 @@ public sealed class FrmReportes : Form
             if (pagina == null || pagina.Controls.Count > 0) return;
             if (pagina == compras) AgregarFormulario(compras, new FrmReporteCompras());
             else if (pagina == caja) AgregarFormulario(caja, new FrmReporteCajas());
+            else if (pagina == cuentaCorriente) AgregarFormulario(cuentaCorriente, new FrmReporteCuentaCorriente());
         };
     }
 

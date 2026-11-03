@@ -13,7 +13,7 @@ public static class ExportadorReporteTabular
     private static readonly CultureInfo Es = new("es-AR");
 
     public static void GuardarCsv(string ruta, string titulo, string filtros, IReadOnlyList<string> encabezados,
-        IReadOnlyList<object?[]> filas)
+        IReadOnlyList<object?[]> filas, IReadOnlyList<KeyValuePair<string, decimal>>? totales = null)
     {
         Validar(ruta, encabezados, filas);
         var sb = new StringBuilder();
@@ -22,11 +22,18 @@ public static class ExportadorReporteTabular
         sb.AppendLine();
         Linea(sb, encabezados.ToArray());
         foreach (var fila in filas) Linea(sb, fila.Select(FormatearCsv).ToArray());
+        if (totales is { Count: > 0 })
+        {
+            sb.AppendLine();
+            Linea(sb, "Subtotales de caja");
+            Linea(sb, "Concepto", "Importe");
+            foreach (var total in totales) Linea(sb, total.Key, FormatearCsv(total.Value));
+        }
         File.WriteAllText(ruta, sb.ToString(), new UTF8Encoding(true));
     }
 
     public static void GuardarExcel(string ruta, string titulo, string filtros, IReadOnlyList<string> encabezados,
-        IReadOnlyList<object?[]> filas)
+        IReadOnlyList<object?[]> filas, IReadOnlyList<KeyValuePair<string, decimal>>? totales = null)
     {
         Validar(ruta, encabezados, filas);
         using var libro = new XLWorkbook();
@@ -50,13 +57,40 @@ public static class ExportadorReporteTabular
             else celda.Value = Formatear(valor);
         }
         if (filas.Count > 0) hoja.Range(4, 1, filas.Count + 4, encabezados.Count).SetAutoFilter();
+        if (totales is { Count: > 0 })
+        {
+            var filaTituloTotales = filas.Count + 6;
+            var filaEncabezadoTotales = filaTituloTotales + 1;
+            hoja.Cell(filaTituloTotales, 1).Value = "Subtotales de caja";
+            hoja.Cell(filaTituloTotales, 1).Style.Font.Bold = true;
+            hoja.Cell(filaTituloTotales, 1).Style.Font.FontSize = 12;
+            hoja.Cell(filaEncabezadoTotales, 1).Value = "Concepto";
+            hoja.Cell(filaEncabezadoTotales, 2).Value = "Importe";
+            var encabezadoTotales = hoja.Range(filaEncabezadoTotales, 1, filaEncabezadoTotales, 2);
+            encabezadoTotales.Style.Font.Bold = true;
+            encabezadoTotales.Style.Fill.BackgroundColor = XLColor.Gold;
+
+            for (var i = 0; i < totales.Count; i++)
+            {
+                var filaTotal = filaEncabezadoTotales + i + 1;
+                hoja.Cell(filaTotal, 1).Value = totales[i].Key;
+                hoja.Cell(filaTotal, 2).Value = totales[i].Value;
+                hoja.Cell(filaTotal, 2).Style.NumberFormat.Format = "$ #,##0.00";
+                if (i == totales.Count - 1)
+                {
+                    var totalGeneral = hoja.Range(filaTotal, 1, filaTotal, 2);
+                    totalGeneral.Style.Font.Bold = true;
+                    totalGeneral.Style.Fill.BackgroundColor = XLColor.FromHtml("#FFF2CC");
+                }
+            }
+        }
         hoja.SheetView.FreezeRows(4);
         hoja.Columns().AdjustToContents();
         libro.SaveAs(ruta);
     }
 
     public static void GuardarPdf(string ruta, string titulo, string filtros, IReadOnlyList<string> encabezados,
-        IReadOnlyList<object?[]> filas)
+        IReadOnlyList<object?[]> filas, IReadOnlyList<KeyValuePair<string, decimal>>? totales = null)
     {
         Validar(ruta, encabezados, filas);
         QuestPDF.Settings.License = LicenseType.Community;
@@ -71,13 +105,40 @@ public static class ExportadorReporteTabular
                 c.Item().Text(filtros);
                 c.Item().Text($"Generado el {DateTime.Now:dd/MM/yyyy HH:mm}").FontSize(7).FontColor(Colors.Grey.Darken1);
             });
-            pagina.Content().PaddingVertical(10).Table(tabla =>
+            pagina.Content().PaddingVertical(10).Column(contenido =>
             {
-                tabla.ColumnsDefinition(cols => { for (var i = 0; i < encabezados.Count; i++) cols.RelativeColumn(); });
-                tabla.Header(h => { foreach (var nombre in encabezados) h.Cell().Background(Colors.Amber.Lighten2).Padding(4).Text(nombre).Bold(); });
-                foreach (var fila in filas)
-                    foreach (var valor in fila)
-                        tabla.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(4).Text(Formatear(valor));
+                contenido.Item().Table(tabla =>
+                {
+                    tabla.ColumnsDefinition(cols => { for (var i = 0; i < encabezados.Count; i++) cols.RelativeColumn(); });
+                    tabla.Header(h => { foreach (var nombre in encabezados) h.Cell().Background(Colors.Amber.Lighten2).Padding(4).Text(nombre).Bold(); });
+                    foreach (var fila in filas)
+                        foreach (var valor in fila)
+                            tabla.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(4).Text(Formatear(valor));
+                });
+
+                if (totales is { Count: > 0 })
+                {
+                    contenido.Item().PaddingTop(12).AlignRight().Width(300).Column(resumen =>
+                    {
+                        resumen.Item().Text("Subtotales de caja").FontSize(10).Bold();
+                        resumen.Item().Table(tabla =>
+                        {
+                            tabla.ColumnsDefinition(cols => { cols.RelativeColumn(2); cols.RelativeColumn(); });
+                            tabla.Header(h =>
+                            {
+                                h.Cell().Background(Colors.Amber.Lighten2).Padding(4).Text("Concepto").Bold();
+                                h.Cell().Background(Colors.Amber.Lighten2).Padding(4).AlignRight().Text("Importe").Bold();
+                            });
+                            for (var i = 0; i < totales.Count; i++)
+                            {
+                                var esTotalGeneral = i == totales.Count - 1;
+                                var concepto = tabla.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(4).Text(totales[i].Key);
+                                var importe = tabla.Cell().BorderBottom(0.5f).BorderColor(Colors.Grey.Lighten1).Padding(4).AlignRight().Text(Formatear(totales[i].Value));
+                                if (esTotalGeneral) { concepto.Bold(); importe.Bold(); }
+                            }
+                        });
+                    });
+                }
             });
             pagina.Footer().AlignCenter().Text(t => { t.Span("Página "); t.CurrentPageNumber(); t.Span(" de "); t.TotalPages(); });
         })).GeneratePdf(ruta);
