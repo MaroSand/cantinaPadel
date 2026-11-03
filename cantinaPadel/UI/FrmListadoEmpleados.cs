@@ -78,7 +78,7 @@ namespace cantinaPadel.UI
             string filtroEstado = cmbEstado.SelectedItem?.ToString()?.Trim().ToLower() ?? "todos";
 
             // Se filtra usando LINQ en memoria para buscar por texto y estado lógico
-            var listaFiltrada = _listaOriginal.Where(e =>
+            IEnumerable<Empleado> coincidencias = _listaOriginal.Where(e =>
             {
                 // Se evalúa la coincidencia del texto controlando que Persona y sus propiedades no sean nulos
                 bool coincideTexto = string.IsNullOrEmpty(buscar) ||
@@ -103,7 +103,27 @@ namespace cantinaPadel.UI
                     coincideEstado = !e.Activo; // Debe ser false
 
                 return coincideTexto && coincideEstado;
-            }).Select(e => new
+            });
+
+            if (!string.IsNullOrEmpty(buscar))
+            {
+                coincidencias = coincidencias
+                    .OrderByDescending(e => CoincidenciaBusqueda.EmpiezaConAlgunCampo(buscar,
+                        e.Persona?.Nombre,
+                        e.Persona?.Apellido,
+                        e.Persona?.Nombre != null && e.Persona.Apellido != null
+                            ? $"{e.Persona.Nombre} {e.Persona.Apellido}"
+                            : null,
+                        e.Persona?.Nombre != null && e.Persona.Apellido != null
+                            ? $"{e.Persona.Apellido} {e.Persona.Nombre}"
+                            : null,
+                        e.NombreUsuario,
+                        e.Persona?.Dni))
+                    .ThenBy(e => e.Persona?.Apellido)
+                    .ThenBy(e => e.Persona?.Nombre);
+            }
+
+            var listaFiltrada = coincidencias.Select(e => new
             {
                 e.IdEmpleado,
                 // Se usan operadores de coalescencia por si la navegación a Persona llega a fallar

@@ -33,4 +33,9 @@ public class DetalleVenta
 
     [Column("pagado")]
     public bool Pagado { get; set; } = true;
+
+    // Marca transitoria para validar que solo las unidades escaneadas puedan exceder el stock.
+    // No se guarda en la tabla de detalles.
+    [NotMapped]
+    public bool PorEscaner { get; internal set; }
 }

@@ -57,5 +57,11 @@ namespace cantinaPadel.Models
 
         [NotMapped]
         public bool StockBajo => StockActual <= StockMinimo;
+
+        [NotMapped]
+        public bool EsHoraPadel => string.Equals(
+            Categoria?.Nombre?.Trim(),
+            global::cantinaPadel.Models.Categoria.NombreCategoriaHoraPadel,
+            StringComparison.OrdinalIgnoreCase);
     }
 }

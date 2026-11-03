@@ -39,6 +39,12 @@ namespace cantinaPadel.DAL.Repositories
                 query = query.Where(p =>
                     p.Nombre.ToLower().Contains(texto) ||
                     (p.CodigoBarras != null && p.CodigoBarras.Contains(texto)));
+
+                query = query
+                    .OrderByDescending(p =>
+                        p.Nombre.ToLower().StartsWith(texto) ||
+                        (p.CodigoBarras != null && p.CodigoBarras.StartsWith(texto)))
+                    .ThenBy(p => p.Nombre);
             }
 
             if (idCategoria.HasValue)
@@ -47,7 +53,10 @@ namespace cantinaPadel.DAL.Repositories
             if (idMarca.HasValue)
                 query = query.Where(p => p.IdMarca == idMarca.Value);
 
-            return query.OrderBy(p => p.Nombre).ToList();
+            if (string.IsNullOrWhiteSpace(texto))
+                query = query.OrderBy(p => p.Nombre);
+
+            return query.ToList();
         }
 
         // Devuelve todos los productos que cumplen con los criterios de categoría, marca y producto

@@ -84,6 +84,10 @@ public sealed class FrmReporteCajas : Form
     {
         try
         {
+            _desde.CustomFormat = "d/M/yyyy";
+            _hasta.CustomFormat = "d/M/yyyy";
+            _desde.Format = DateTimePickerFormat.Custom;
+            _hasta.Format = DateTimePickerFormat.Custom;
             _desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1); _hasta.Value = DateTime.Today;
             _empleado.DropDownStyle = ComboBoxStyle.DropDownList; _empleado.Items.Add(new OpcionEmpleado(null, "Todos los empleados"));
             _empleado.Items.AddRange(_logicaVentas.ObtenerEmpleados().Select(e => new OpcionEmpleado(e.Id, e.Texto)).Cast<object>().ToArray()); _empleado.SelectedIndex = 0;
@@ -121,12 +125,11 @@ public sealed class FrmReporteCajas : Form
             var almacen = ventas.Where(v => v.Tipo == CalculadorReporteVentas.TipoCantina).Sum(v => v.Total);
             var productosHora = _logicaProducto.ObtenerTodos(true).Where(p => p.Categoria?.Nombre == CalculadorReporteVentas.CategoriaHoraPadel).ToList();
             var precios = productosHora.Count == 0 ? "Sin productos de hora configurados" : string.Join("  |  ", productosHora.Select(p => $"{p.Nombre}: {p.PrecioConIva.ToString("C2", Es)}"));
-            _estadisticas.Text = $"Resumen del mes/período: {padel} horas de pádel vendidas  •  Precio vigente por cancha: {precios}\nVentas de almacén: {almacen.ToString("C2", Es)}";
+            _estadisticas.Text = $"Resumen del mes: {padel} horas de pádel vendidas  •  Precio vigente por cancha: {precios}\nVentas de almacén: {almacen.ToString("C2", Es)}";
             _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Empleado: {empleado?.Texto ?? "Todos"}  |  Estado: {filtroEstado}  |  Horas de pádel: {padel}  |  Precio vigente por cancha: {precios}  |  Ventas de almacén: {almacen.ToString("C2", Es)}";
             var totalInicial = _turnos.Sum(t => t.MontoApertura);
             var totalEfectivoFinal = _turnos.Sum(t => t.EfectivoFinal ?? 0m);
             _resumen.Text = $"{_turnos.Count} turnos  |  Inicial: {totalInicial.ToString("C2", Es)}  |  Efectivo final registrado: {totalEfectivoFinal.ToString("C2", Es)}";
-            _nota.Text = "Diferencia conciliada disponible para efectivo. Tarjeta y transferencia muestran ventas registradas; no se almacena un arqueo independiente para esos medios.";
             HabilitarExportacion(_turnos.Count > 0);
         }
         catch (Exception ex) { _turnos.Clear(); _grilla.DataSource = null; _resumen.Text = ex.Message; _estadisticas.Text = string.Empty; HabilitarExportacion(false); }

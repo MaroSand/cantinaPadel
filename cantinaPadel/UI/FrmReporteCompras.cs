@@ -37,6 +37,10 @@ public sealed class FrmReporteCompras : Form
         Construir();
         Load += (_, _) =>
         {
+            _desde.CustomFormat = "d/M/yyyy";
+            _hasta.CustomFormat = "d/M/yyyy";
+            _desde.Format = DateTimePickerFormat.Custom;
+            _hasta.Format = DateTimePickerFormat.Custom;
             _desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             _hasta.Value = DateTime.Today;
             try

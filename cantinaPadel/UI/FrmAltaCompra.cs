@@ -277,7 +277,7 @@ namespace cantinaPadel.UI
             {
                 // La "Hora Padel" de cada cancha figura como producto, pero no es mercadería que se le compre a un proveedor
                 resultados = _logicaProducto.Buscar(texto, null, null, activo: true)
-                    .Where(p => p.Categoria?.Nombre != "Hora Padel")
+                    .Where(p => p.Categoria?.Nombre != Categoria.NombreCategoriaHoraPadel)
                     .ToList();
             }
             catch (Exception ex)

@@ -1,4 +1,4 @@
-﻿using cantinaPadel.Models;
+using cantinaPadel.Models;
 using Microsoft.EntityFrameworkCore;
 using cantinaPadel.BLL;
 
@@ -232,12 +232,22 @@ public class CompraRepository : ICompraRepository
                 d.Producto != null &&
                 (d.Producto.Nombre.ToLower().Contains(texto) ||
                  (d.Producto.CodigoBarras != null && d.Producto.CodigoBarras.Contains(texto)))));
+            query = query
+                .OrderByDescending(c => c.Detalles.Any(d =>
+                    d.Producto != null &&
+                    (d.Producto.Nombre.ToLower().StartsWith(texto) ||
+                     (d.Producto.CodigoBarras != null && d.Producto.CodigoBarras.StartsWith(texto)))))
+                .ThenByDescending(c => c.FechaCompra)
+                .ThenByDescending(c => c.IdCompra);
+        }
+        else
+        {
+            query = query
+                .OrderByDescending(c => c.FechaCompra)
+                .ThenByDescending(c => c.IdCompra);
         }
 
-        return query
-            .OrderByDescending(c => c.FechaCompra)
-            .ThenByDescending(c => c.IdCompra)
-            .ToList();
+        return query.ToList();
     }
 
     public Compra? ObtenerPorId(int idCompra)

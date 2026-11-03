@@ -39,11 +39,27 @@ namespace cantinaPadel.DAL.Repositories
                     c.Email.ToLower().Contains(texto));
             }
 
-            return query
-                .OrderBy(c => c.Persona.Apellido)
-                .ThenBy(c => c.Persona.Nombre)
-                .Take(25)
-                .ToList();
+            if (!string.IsNullOrWhiteSpace(texto))
+            {
+                query = query
+                    .OrderByDescending(c =>
+                        c.Persona.Nombre.ToLower().StartsWith(texto) ||
+                        c.Persona.Apellido.ToLower().StartsWith(texto) ||
+                        (c.Persona.Nombre + " " + c.Persona.Apellido).ToLower().StartsWith(texto) ||
+                        (c.Persona.Apellido + " " + c.Persona.Nombre).ToLower().StartsWith(texto) ||
+                        (c.Persona.Dni != null && c.Persona.Dni.ToLower().StartsWith(texto)) ||
+                        c.Email.ToLower().StartsWith(texto))
+                    .ThenBy(c => c.Persona.Apellido)
+                    .ThenBy(c => c.Persona.Nombre);
+            }
+            else
+            {
+                query = query
+                    .OrderBy(c => c.Persona.Apellido)
+                    .ThenBy(c => c.Persona.Nombre);
+            }
+
+            return query.Take(25).ToList();
         }
         public void Agregar(Cliente cliente)
         {
