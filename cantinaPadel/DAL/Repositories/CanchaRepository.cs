@@ -46,7 +46,7 @@ namespace cantinaPadel.DAL.Repositories
         public int ObtenerIdCategoriaHoraPadel()
         {
             using var ctx = new AppDbContext();
-            var categoria = ctx.Categorias.FirstOrDefault(c => c.Nombre == "Hora Padel");
+            var categoria = ctx.Categorias.FirstOrDefault(c => c.Nombre == Categoria.NombreCategoriaHoraPadel);
 
             if (categoria == null)
                 throw new InvalidOperationException(

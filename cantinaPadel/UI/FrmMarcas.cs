@@ -42,7 +42,11 @@ namespace cantinaPadel.UI
                 string buscar = txtBuscar.Text.ToLower().Trim();
                 if (!string.IsNullOrEmpty(buscar))
                 {
-                    lista = lista.Where(m => m.Nombre.ToLower().Contains(buscar)).ToList();
+                    lista = lista
+                        .Where(m => m.Nombre.ToLower().Contains(buscar))
+                        .OrderByDescending(m => CoincidenciaBusqueda.EmpiezaConAlgunCampo(buscar, m.Nombre))
+                        .ThenBy(m => m.Nombre)
+                        .ToList();
                 }
 
                 // Se filtra según el estado elegido (Activos o Inactivos)

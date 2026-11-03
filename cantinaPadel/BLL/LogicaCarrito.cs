@@ -8,11 +8,22 @@ namespace cantinaPadel.BLL
     {
         public Producto Producto { get; }
         public int Cantidad { get; internal set; }
+        public int CantidadEscaneada { get; internal set; }
+        public int CantidadManual => Cantidad - CantidadEscaneada;
 
         public ItemCarrito(Producto producto, int cantidad)
+            : this(producto, cantidad, cantidadEscaneada: 0)
         {
+        }
+
+        internal ItemCarrito(Producto producto, int cantidad, int cantidadEscaneada)
+        {
+            if (cantidadEscaneada < 0 || cantidadEscaneada > cantidad)
+                throw new ArgumentOutOfRangeException(nameof(cantidadEscaneada));
+
             Producto = producto;
             Cantidad = cantidad;
+            CantidadEscaneada = cantidadEscaneada;
         }
 
         // Precio unitario CON IVA: es lo que efectivamente paga el cliente por unidad
@@ -22,7 +33,8 @@ namespace cantinaPadel.BLL
     }
 
     // Carrito de venta de FrmPuntoVenta
-    // Agrupa los productos elegidos con su cantidad, valida que no se pida más del stock disponible y calcula el total
+    // Agrupa los productos y valida stock para unidades ingresadas manualmente. Las horas de pádel no usan stock;
+    // el punto de venta autoriza las unidades leídas por el escáner.
     // Esta clase no depende de ningún repositorio, solo necesita los Producto ya obtenidos (por LogicaProducto.Buscar / ObtenerPorCodigoBarras)
     // para validar stock contra lo cargado
     public class LogicaCarrito
@@ -36,8 +48,14 @@ namespace cantinaPadel.BLL
         public int CantidadItems => _items.Sum(i => i.Cantidad);
 
         // Agrega el producto con la cantidad indicada. Si ya estaba en el carrito, suma a la cantidad existente (ej: escanear dos veces el
-        // mismo código de barras). Valida que la cantidad total resultante no supere el stock disponible del producto
+        // mismo código de barras). Las unidades cargadas manualmente deben caber en el stock disponible.
         public void AgregarProducto(Producto producto, int cantidad = 1)
+            => AgregarProductoInterno(producto, cantidad, porEscaner: false);
+
+        internal void AgregarProductoPorEscaner(Producto producto, int cantidad = 1)
+            => AgregarProductoInterno(producto, cantidad, porEscaner: true);
+
+        private void AgregarProductoInterno(Producto producto, int cantidad, bool porEscaner)
         {
             if (producto == null)
                 throw new ArgumentException("El producto es obligatorio.");
@@ -50,13 +68,18 @@ namespace cantinaPadel.BLL
 
             var existente = _items.FirstOrDefault(i => i.Producto.IdProducto == producto.IdProducto);
             int cantidadFinal = (existente?.Cantidad ?? 0) + cantidad;
+            int cantidadEscaneadaFinal = (existente?.CantidadEscaneada ?? 0) + (porEscaner ? cantidad : 0);
+            int cantidadManualFinal = (existente?.CantidadManual ?? 0) + (porEscaner ? 0 : cantidad);
 
-            ValidarStock(producto, cantidadFinal);
+            ValidarStock(producto, cantidadManualFinal);
 
             if (existente != null)
+            {
                 existente.Cantidad = cantidadFinal;
+                existente.CantidadEscaneada = cantidadEscaneadaFinal;
+            }
             else
-                _items.Add(new ItemCarrito(producto, cantidad));
+                _items.Add(new ItemCarrito(producto, cantidad, porEscaner ? cantidad : 0));
         }
 
         // Cambia la cantidad de un producto ya agregado (ej: el usuario edita la celda "Cantidad" en la grilla). Si Cantidad 0 o negativa, lo quita
@@ -71,8 +94,10 @@ namespace cantinaPadel.BLL
                 return;
             }
 
-            ValidarStock(item.Producto, cantidadNueva);
+            int cantidadEscaneadaNueva = Math.Min(item.CantidadEscaneada, cantidadNueva);
+            ValidarStock(item.Producto, cantidadNueva - cantidadEscaneadaNueva);
             item.Cantidad = cantidadNueva;
+            item.CantidadEscaneada = cantidadEscaneadaNueva;
         }
 
         public void QuitarProducto(int idProducto)
@@ -89,11 +114,15 @@ namespace cantinaPadel.BLL
 
         public void Vaciar() => _items.Clear();
 
-        private static void ValidarStock(Producto producto, int cantidadPedida)
+        private static void ValidarStock(Producto producto, int cantidadManualPedida)
         {
-            if (cantidadPedida > producto.StockActual)
+            if (producto.EsHoraPadel)
+                return;
+
+            int stockDisponible = Math.Max(0, producto.StockActual);
+            if (cantidadManualPedida > stockDisponible)
                 throw new ArgumentException(
-                    $"No hay stock suficiente de '{producto.Nombre}'. Disponible: {producto.StockActual}, pedido: {cantidadPedida}.");
+                    $"No hay stock suficiente de '{producto.Nombre}'. Disponible: {stockDisponible}, pedido: {cantidadManualPedida}.");
         }
     }
 }

@@ -77,7 +77,7 @@ namespace cantinaPadel.UI
             string buscar = txtBuscarNombre.Text.Trim().ToLower();
             int filtroEstado = cmbEstado.SelectedIndex; // 0=Todos, 1=Activos, 2=Inactivos
 
-            var listaFiltrada = _listaOriginal.Where(p =>
+            IEnumerable<Proveedor> coincidencias = _listaOriginal.Where(p =>
             {
                 bool coincideTexto = string.IsNullOrEmpty(buscar) ||
                                      p.Persona.Nombre.ToLower().Contains(buscar) ||
@@ -96,7 +96,24 @@ namespace cantinaPadel.UI
                 };
 
                 return coincideTexto && coincideEstado;
-            }).Select(p => new
+            });
+
+            if (!string.IsNullOrEmpty(buscar))
+            {
+                coincidencias = coincidencias
+                    .OrderByDescending(p => CoincidenciaBusqueda.EmpiezaConAlgunCampo(buscar,
+                        p.Persona.Nombre,
+                        p.Persona.Apellido,
+                        $"{p.Persona.Nombre} {p.Persona.Apellido}",
+                        $"{p.Persona.Apellido} {p.Persona.Nombre}",
+                        p.NombreEmpresa,
+                        p.Persona.Cuit,
+                        p.Persona.Dni))
+                    .ThenBy(p => p.Persona.Apellido)
+                    .ThenBy(p => p.Persona.Nombre);
+            }
+
+            var listaFiltrada = coincidencias.Select(p => new
             {
                 p.IdProveedor,
                 p.NombreEmpresa,
