@@ -36,10 +36,9 @@
             btnCaja = new Button();
             btnCanchas = new Button();
             btnTurnos = new Button();
+            btnCompras = new Button();
             btnStock = new Button();
             btnPuntoVenta = new Button();
-            btnProveedores = new Button();
-            btnEmpleados = new Button();
             btnClientes = new Button();
             pnlSidebarHeader = new Panel();
             lblRolUsuario = new Label();
@@ -48,7 +47,6 @@
             pnlTopbar = new Panel();
             lblUsuario = new Label();
             lblTituloModulo = new Label();
-            btnCompras = new Button();
             pnlSidebar.SuspendLayout();
             pnlSidebarFooter.SuspendLayout();
             pnlNav.SuspendLayout();
@@ -108,8 +106,6 @@
             pnlNav.Controls.Add(btnCompras);
             pnlNav.Controls.Add(btnStock);
             pnlNav.Controls.Add(btnPuntoVenta);
-            pnlNav.Controls.Add(btnProveedores);
-            pnlNav.Controls.Add(btnEmpleados);
             pnlNav.Controls.Add(btnClientes);
             pnlNav.Dock = DockStyle.Fill;
             pnlNav.Location = new Point(0, 85);
@@ -124,7 +120,7 @@
             btnReportes.Dock = DockStyle.Top;
             btnReportes.FlatAppearance.BorderSize = 0;
             btnReportes.FlatStyle = FlatStyle.Flat;
-            btnReportes.Location = new Point(0, 540);
+            btnReportes.Location = new Point(0, 420);
             btnReportes.Margin = new Padding(3, 4, 3, 4);
             btnReportes.Name = "btnReportes";
             btnReportes.Padding = new Padding(11, 0, 0, 0);
@@ -141,7 +137,7 @@
             btnCaja.Dock = DockStyle.Top;
             btnCaja.FlatAppearance.BorderSize = 0;
             btnCaja.FlatStyle = FlatStyle.Flat;
-            btnCaja.Location = new Point(0, 480);
+            btnCaja.Location = new Point(0, 360);
             btnCaja.Margin = new Padding(3, 4, 3, 4);
             btnCaja.Name = "btnCaja";
             btnCaja.Padding = new Padding(11, 0, 0, 0);
@@ -158,7 +154,7 @@
             btnCanchas.Dock = DockStyle.Top;
             btnCanchas.FlatAppearance.BorderSize = 0;
             btnCanchas.FlatStyle = FlatStyle.Flat;
-            btnCanchas.Location = new Point(0, 420);
+            btnCanchas.Location = new Point(0, 300);
             btnCanchas.Margin = new Padding(3, 4, 3, 4);
             btnCanchas.Name = "btnCanchas";
             btnCanchas.Padding = new Padding(11, 0, 0, 0);
@@ -175,7 +171,7 @@
             btnTurnos.Dock = DockStyle.Top;
             btnTurnos.FlatAppearance.BorderSize = 0;
             btnTurnos.FlatStyle = FlatStyle.Flat;
-            btnTurnos.Location = new Point(0, 360);
+            btnTurnos.Location = new Point(0, 240);
             btnTurnos.Margin = new Padding(3, 4, 3, 4);
             btnTurnos.Name = "btnTurnos";
             btnTurnos.Padding = new Padding(11, 0, 0, 0);
@@ -186,13 +182,29 @@
             btnTurnos.UseVisualStyleBackColor = false;
             btnTurnos.Click += btnTurnos_Click;
             // 
+            // btnCompras
+            // 
+            btnCompras.BackColor = SystemColors.Info;
+            btnCompras.Dock = DockStyle.Top;
+            btnCompras.FlatAppearance.BorderSize = 0;
+            btnCompras.FlatStyle = FlatStyle.Flat;
+            btnCompras.Location = new Point(0, 180);
+            btnCompras.Margin = new Padding(3, 4, 3, 4);
+            btnCompras.Name = "btnCompras";
+            btnCompras.Padding = new Padding(11, 0, 0, 0);
+            btnCompras.Size = new Size(229, 60);
+            btnCompras.TabIndex = 9;
+            btnCompras.Text = "Compras";
+            btnCompras.TextAlign = ContentAlignment.MiddleLeft;
+            btnCompras.UseVisualStyleBackColor = false;
+            // 
             // btnStock
             // 
             btnStock.BackColor = Color.White;
             btnStock.Dock = DockStyle.Top;
             btnStock.FlatAppearance.BorderSize = 0;
             btnStock.FlatStyle = FlatStyle.Flat;
-            btnStock.Location = new Point(0, 240);
+            btnStock.Location = new Point(0, 120);
             btnStock.Margin = new Padding(3, 4, 3, 4);
             btnStock.Name = "btnStock";
             btnStock.Padding = new Padding(11, 0, 0, 0);
@@ -209,7 +221,7 @@
             btnPuntoVenta.Dock = DockStyle.Top;
             btnPuntoVenta.FlatAppearance.BorderSize = 0;
             btnPuntoVenta.FlatStyle = FlatStyle.Flat;
-            btnPuntoVenta.Location = new Point(0, 180);
+            btnPuntoVenta.Location = new Point(0, 60);
             btnPuntoVenta.Margin = new Padding(3, 4, 3, 4);
             btnPuntoVenta.Name = "btnPuntoVenta";
             btnPuntoVenta.Padding = new Padding(11, 0, 0, 0);
@@ -219,40 +231,6 @@
             btnPuntoVenta.TextAlign = ContentAlignment.MiddleLeft;
             btnPuntoVenta.UseVisualStyleBackColor = false;
             btnPuntoVenta.Click += btnPuntoVenta_Click;
-            // 
-            // btnProveedores
-            // 
-            btnProveedores.BackColor = Color.White;
-            btnProveedores.Dock = DockStyle.Top;
-            btnProveedores.FlatAppearance.BorderSize = 0;
-            btnProveedores.FlatStyle = FlatStyle.Flat;
-            btnProveedores.Location = new Point(0, 120);
-            btnProveedores.Margin = new Padding(3, 4, 3, 4);
-            btnProveedores.Name = "btnProveedores";
-            btnProveedores.Padding = new Padding(11, 0, 0, 0);
-            btnProveedores.Size = new Size(229, 60);
-            btnProveedores.TabIndex = 2;
-            btnProveedores.Text = "Proveedores";
-            btnProveedores.TextAlign = ContentAlignment.MiddleLeft;
-            btnProveedores.UseVisualStyleBackColor = false;
-            btnProveedores.Click += btnProveedores_Click;
-            // 
-            // btnEmpleados
-            // 
-            btnEmpleados.BackColor = SystemColors.Info;
-            btnEmpleados.Dock = DockStyle.Top;
-            btnEmpleados.FlatAppearance.BorderSize = 0;
-            btnEmpleados.FlatStyle = FlatStyle.Flat;
-            btnEmpleados.Location = new Point(0, 60);
-            btnEmpleados.Margin = new Padding(3, 4, 3, 4);
-            btnEmpleados.Name = "btnEmpleados";
-            btnEmpleados.Padding = new Padding(11, 0, 0, 0);
-            btnEmpleados.Size = new Size(229, 60);
-            btnEmpleados.TabIndex = 1;
-            btnEmpleados.Text = "Empleados";
-            btnEmpleados.TextAlign = ContentAlignment.MiddleLeft;
-            btnEmpleados.UseVisualStyleBackColor = false;
-            btnEmpleados.Click += btnEmpleados_Click;
             // 
             // btnClientes
             // 
@@ -266,7 +244,7 @@
             btnClientes.Padding = new Padding(11, 0, 0, 0);
             btnClientes.Size = new Size(229, 60);
             btnClientes.TabIndex = 0;
-            btnClientes.Text = "Clientes";
+            btnClientes.Text = "Personas";
             btnClientes.TextAlign = ContentAlignment.MiddleLeft;
             btnClientes.UseVisualStyleBackColor = false;
             btnClientes.Click += btnClientes_Click;
@@ -349,22 +327,6 @@
             lblTituloModulo.TabIndex = 0;
             lblTituloModulo.Text = "Dashboard ";
             // 
-            // btnCompras
-            // 
-            btnCompras.BackColor = SystemColors.Info;
-            btnCompras.Dock = DockStyle.Top;
-            btnCompras.FlatAppearance.BorderSize = 0;
-            btnCompras.FlatStyle = FlatStyle.Flat;
-            btnCompras.Location = new Point(0, 300);
-            btnCompras.Margin = new Padding(3, 4, 3, 4);
-            btnCompras.Name = "btnCompras";
-            btnCompras.Padding = new Padding(11, 0, 0, 0);
-            btnCompras.Size = new Size(229, 60);
-            btnCompras.TabIndex = 9;
-            btnCompras.Text = "Compras";
-            btnCompras.TextAlign = ContentAlignment.MiddleLeft;
-            btnCompras.UseVisualStyleBackColor = false;
-            // 
             // FrmMain
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -401,7 +363,6 @@
         private Label lblRolUsuario;
         private Label lblSistema;
         private System.Windows.Forms.Panel pnlNav;
-        private Button btnProveedores;
         private Button btnCaja;
         private Button btnCanchas;
         private Button btnTurnos;
@@ -411,7 +372,6 @@
         private System.Windows.Forms.Panel pnlSidebarFooter;
         private Button btnCerrarSesion;
         private Button btnReportes;
-        private Button btnEmpleados;
         private Button btnCompras;
     }
 }
