@@ -153,12 +153,9 @@ namespace cantinaPadel.BLL
         {
             var empleadoDb = ctx.Empleados.FirstOrDefault(e => e.IdPersona == personaDb.IdPersona);
 
-            // Si la persona localizada por DNI ya tiene un registro de empleado que no es el que se está guardando (alta con IdEmpleado == 0,
-            // o edición que cambió el DNI al de otro empleado), es un DNI duplicado
-            if (empleadoDb != null && empleadoDb.IdEmpleado != empleado.IdEmpleado)
-            {
-                throw new ArgumentException("El DNI ingresado ya pertenece a otra persona registrada.");
-            }
+            // IdEmpleado puede faltar al guardar desde cliente/proveedor; en ese caso la identidad viene de IdPersona.
+            // Un IdEmpleado explícito distinto sí indica que se intenta asociar otra persona.
+            ValidarEmpleadoExistente(empleadoDb, empleado);
 
             bool usuarioDuplicado = ctx.Empleados.Any(e =>
                 e.NombreUsuario == empleado.NombreUsuario &&
@@ -192,6 +189,14 @@ namespace cantinaPadel.BLL
             if (empleado.IdEmpleado > 0)
                 empleadoDb.Activo = empleado.Activo;
             personaDb.EsEmpleado = true;
+        }
+
+        internal static void ValidarEmpleadoExistente(Empleado? empleadoDb, Empleado empleado)
+        {
+            // Cliente y proveedor reconstruyen la entidad de empleado sin IdEmpleado.
+            // El IdPersona ya determinó que se trata del empleado asociado a esta persona.
+            if (empleadoDb != null && empleado.IdEmpleado > 0 && empleadoDb.IdEmpleado != empleado.IdEmpleado)
+                throw new ArgumentException("El DNI ingresado ya pertenece a otra persona registrada.");
         }
     }
 }

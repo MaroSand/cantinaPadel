@@ -74,6 +74,41 @@ namespace cantinaPadel.Tests
 
             Assert.ThrowsExactly<ArgumentException>(() => persona.ValidarDatosComunes());
         }
+
+        [TestMethod]
+        [DataRow("")]
+        [DataRow("   ")]
+        [DataRow(null)]
+        public void ValidarDatosComunes_DniVacioLoNormalizaANull(string? dni)
+        {
+            var persona = new Persona
+            {
+                Nombre = "Ana",
+                Apellido = "Suarez",
+                Dni = dni,
+                Cuit = "20-12345678-6"
+            };
+
+            persona.ValidarDatosComunes();
+
+            Assert.IsNull(persona.Dni);
+        }
+
+        [TestMethod]
+        public void ValidarDatosComunes_DniConEspacios_Recorta()
+        {
+            var persona = new Persona
+            {
+                Nombre = "Ana",
+                Apellido = "Suarez",
+                Dni = " 30111222 ",
+                Cuit = "20-30111222-0"
+            };
+
+            persona.ValidarDatosComunes();
+
+            Assert.AreEqual("30111222", persona.Dni);
+        }
     }
 
     [TestClass]

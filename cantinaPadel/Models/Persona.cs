@@ -75,7 +75,7 @@ namespace cantinaPadel.Models
             // Criterio único para nombres: cada palabra con inicial mayúscula y el resto en minúscula ("juan PÉREZ" -> "Juan Pérez")
             Nombre = CapitalizarNombre(Nombre);
             Apellido = CapitalizarNombre(Apellido);
-            Dni = Dni?.Trim();
+            Dni = string.IsNullOrWhiteSpace(Dni) ? null : Dni.Trim();
             Cuit = Cuit?.Trim();
             CondicionIva = CondicionIva?.Trim();
             Telefono = Telefono?.Trim();
