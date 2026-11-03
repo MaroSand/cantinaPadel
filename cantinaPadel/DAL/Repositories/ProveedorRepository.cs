@@ -31,7 +31,13 @@ namespace cantinaPadel.DAL.Repositories
                     (p.Persona.Cuit     != null && p.Persona.Cuit.Contains(termino))             ||
                     (p.NombreEmpresa    != null && p.NombreEmpresa.ToLower().Contains(termino))
                 )
-                .OrderBy(p => p.Persona.Apellido)
+                .OrderByDescending(p =>
+                    (p.Persona.Nombre + " " + p.Persona.Apellido).ToLower().StartsWith(termino) ||
+                    (p.Persona.Apellido + " " + p.Persona.Nombre).ToLower().StartsWith(termino) ||
+                    (p.Persona.Cuit != null && p.Persona.Cuit.StartsWith(termino)) ||
+                    (p.NombreEmpresa != null && p.NombreEmpresa.ToLower().StartsWith(termino)))
+                .ThenBy(p => p.Persona.Apellido)
+                .ThenBy(p => p.Persona.Nombre)
                 .ToList();
         }
 

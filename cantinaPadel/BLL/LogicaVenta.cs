@@ -89,12 +89,13 @@ public class LogicaVenta
         // hasta que el cliente las cancele desde la pantalla de Cuenta Corriente. con cualquier otro método quedan pagadas en el momento
         bool pagadoAlMomento = pago.Metodo != MetodoPago.CuentaCorriente;
         var detalles = items
-            .SelectMany(i => Enumerable.Range(0, i.Cantidad).Select(_ => new DetalleVenta
+            .SelectMany(i => Enumerable.Range(0, i.Cantidad).Select(unidad => new DetalleVenta
             {
                 IdProducto = i.Producto.IdProducto,
                 PrecioUnitario = i.PrecioUnitario,
                 Subtotal = i.PrecioUnitario,
-                Pagado = pagadoAlMomento
+                Pagado = pagadoAlMomento,
+                PorEscaner = unidad < i.CantidadEscaneada
             }))
             .ToList();
 

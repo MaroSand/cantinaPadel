@@ -13,21 +13,38 @@ public class VentaRepository : IVentaRepository
         // Se agrupa por producto para saber cuántas unidades se están vendiendo de cada uno
         var cantidadPorProducto = detalles
             .GroupBy(d => d.IdProducto!.Value)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .ToDictionary(g => g.Key, g => new
+            {
+                Total = g.Count(),
+                Escaneadas = g.Count(d => d.PorEscaner)
+            });
 
         var idsProductos = cantidadPorProducto.Keys.ToList();
-        var productos = ctx.Productos.Where(p => idsProductos.Contains(p.IdProducto)).ToDictionary(p => p.IdProducto);
+        var productos = ctx.Productos
+            .Include(p => p.Categoria)
+            .Where(p => idsProductos.Contains(p.IdProducto))
+            .ToDictionary(p => p.IdProducto);
 
-        foreach (var (idProducto, cantidad) in cantidadPorProducto)
+        foreach (var (idProducto, cantidades) in cantidadPorProducto)
         {
             if (!productos.TryGetValue(idProducto, out var producto) || !producto.Activo)
                 throw new InvalidOperationException("Uno de los productos ya no se encuentra disponible.");
-            if (producto.StockActual < cantidad)
-                throw new InvalidOperationException($"Stock insuficiente para '{producto.Nombre}'. Disponible: {producto.StockActual}.");
+
+            if (producto.EsHoraPadel)
+                continue;
+
+            int cantidadManual = cantidades.Total - cantidades.Escaneadas;
+            int stockDisponible = Math.Max(0, producto.StockActual);
+            if (cantidadManual > stockDisponible)
+                throw new InvalidOperationException($"Stock insuficiente para '{producto.Nombre}'. Disponible: {stockDisponible}.");
         }
 
-        foreach (var (idProducto, cantidad) in cantidadPorProducto)
-            productos[idProducto].StockActual -= cantidad;
+        foreach (var (idProducto, cantidades) in cantidadPorProducto)
+        {
+            var producto = productos[idProducto];
+            if (!producto.EsHoraPadel)
+                producto.StockActual -= cantidades.Total;
+        }
 
         ctx.Ventas.Add(venta);
         ctx.SaveChanges();

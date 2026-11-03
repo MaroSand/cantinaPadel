@@ -90,7 +90,23 @@ namespace cantinaPadel.BLL
             if (idProveedor.HasValue)
                 query = query.Where(p => p.IdProveedor == idProveedor.Value);
 
-            var productos = query.OrderBy(p => p.Nombre).ToList();
+            if (!string.IsNullOrWhiteSpace(texto))
+            {
+                var t = texto.Trim().ToLower();
+                query = query
+                    .OrderByDescending(p =>
+                        p.Nombre.ToLower().StartsWith(t) ||
+                        (p.CodigoBarras != null && p.CodigoBarras.StartsWith(t)) ||
+                        p.Categoria.Nombre.ToLower().StartsWith(t) ||
+                        (p.Marca != null && p.Marca.Nombre.ToLower().StartsWith(t)))
+                    .ThenBy(p => p.Nombre);
+            }
+            else
+            {
+                query = query.OrderBy(p => p.Nombre);
+            }
+
+            var productos = query.ToList();
             decimal factor = 1 + (porcentaje / 100m);
 
             return productos.Select(p => new ProductoPrecioPreview

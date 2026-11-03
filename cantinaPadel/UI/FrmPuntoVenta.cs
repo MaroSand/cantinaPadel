@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -27,6 +28,12 @@ namespace cantinaPadel.UI
 
         // Evita reentrancia: cuando se repuebla cmbResultados, SelectedIndex cambia y dispara SelectionChangeCommitted, que a su vez llama a AgregarProductoAlCarrito
         private bool _actualizandoComboResultados;
+
+        // El lector HID escribe como teclado. Solo una secuencia de teclas rápida se trata como escaneo.
+        private long _ultimaTeclaBusquedaTicks;
+        private int _teclasRapidasBusqueda;
+        private bool _busquedaActualVieneDeEscaner;
+        private const double IntervaloMaximoTeclasEscanerMs = 75;
 
         // Cliente elegido para la venta. Si es null, se asume Consumidor Final
         private Cliente? _clienteVenta;
@@ -302,10 +309,19 @@ namespace cantinaPadel.UI
             }
             if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
             {
+                ReiniciarDeteccionEscaner();
                 e.SuppressKeyPress = true;
                 MoverSeleccionCombo(e.KeyCode == Keys.Down ? 1 : -1);
                 return;
             }
+
+            if (e.KeyCode == Keys.Back || e.KeyCode == Keys.Delete || e.Control || e.Alt)
+            {
+                ReiniciarDeteccionEscaner();
+                return;
+            }
+
+            RegistrarTeclaBusqueda();
 
             if (e.KeyCode == Keys.Enter)
             {
@@ -367,6 +383,9 @@ namespace cantinaPadel.UI
         {
             _debounceBusqueda.Stop();
 
+            if (string.IsNullOrEmpty(txtBuscarProducto.Text))
+                ReiniciarDeteccionEscaner();
+
             if (txtBuscarProducto.Text.Trim().Length < 2)
             {
                 LimpiarCombo();
@@ -374,6 +393,40 @@ namespace cantinaPadel.UI
             }
 
             _debounceBusqueda.Start();
+        }
+
+        private void RegistrarTeclaBusqueda()
+        {
+            long ahora = Stopwatch.GetTimestamp();
+            if (_ultimaTeclaBusquedaTicks == 0)
+            {
+                _teclasRapidasBusqueda = 1;
+                _busquedaActualVieneDeEscaner = false;
+            }
+            else
+            {
+                double intervaloMs = (ahora - _ultimaTeclaBusquedaTicks) * 1000d / Stopwatch.Frequency;
+                if (intervaloMs <= IntervaloMaximoTeclasEscanerMs)
+                {
+                    _teclasRapidasBusqueda++;
+                }
+                else
+                {
+                    _teclasRapidasBusqueda = 1;
+                    _busquedaActualVieneDeEscaner = false;
+                }
+            }
+
+            _ultimaTeclaBusquedaTicks = ahora;
+            if (_teclasRapidasBusqueda >= 6)
+                _busquedaActualVieneDeEscaner = true;
+        }
+
+        private void ReiniciarDeteccionEscaner()
+        {
+            _ultimaTeclaBusquedaTicks = 0;
+            _teclasRapidasBusqueda = 0;
+            _busquedaActualVieneDeEscaner = false;
         }
 
         private void _debounceBusqueda_Tick(object? sender, EventArgs e)
@@ -420,7 +473,10 @@ namespace cantinaPadel.UI
 
                     if (porCodigo != null)
                     {
-                        AgregarProductoAlCarrito(porCodigo, limpiarBusqueda: true);
+                        AgregarProductoAlCarrito(
+                            porCodigo,
+                            limpiarBusqueda: true,
+                            porEscaner: _busquedaActualVieneDeEscaner);
                         return;
                     }
                 }
@@ -499,14 +555,17 @@ namespace cantinaPadel.UI
         // Agrega un producto al carrito. limpiarBusqueda=true después de un agregado exitoso (por código de
         // barras o por selección del combo): deja la barra de búsqueda lista para la próxima búsqueda/escaneo
         // La cantidad sale del prefijo "3*" de la barra de búsqueda si existe; si no, del campo de cantidad
-        private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false)
+        private void AgregarProductoAlCarrito(Producto producto, bool limpiarBusqueda = false, bool porEscaner = false)
         {
             var (cantidadPrefijo, _) = SepararCantidad(txtBuscarProducto.Text);
             int cantidad = cantidadPrefijo ?? LeerCantidad();
 
             try
             {
-                _logicaCarrito.AgregarProducto(producto, cantidad);
+                if (porEscaner)
+                    _logicaCarrito.AgregarProductoPorEscaner(producto, cantidad);
+                else
+                    _logicaCarrito.AgregarProducto(producto, cantidad);
                 RefrescarUI(); // actualiza la grilla y el total
 
                 nudCantidad.Value = 1;
@@ -593,15 +652,19 @@ namespace cantinaPadel.UI
             }
 
 
-            // Antes de confirmar la venta, se valida que el stock de cada producto no haya cambiado desde que se agregó al carrito
+            // Antes de confirmar, se revalida el stock de las unidades manuales por si cambió desde que se armó el carrito.
             var faltantes = new System.Text.StringBuilder();
             foreach (var item in _logicaCarrito.Items)
             {
                 var productoActual = _logicaProducto.ObtenerPorId(item.Producto.IdProducto);
-                if (productoActual == null || !productoActual.Activo || productoActual.StockActual < item.Cantidad)
+                bool sinStockParaCargaManual = productoActual != null
+                    && !productoActual.EsHoraPadel
+                    && item.CantidadManual > Math.Max(0, productoActual.StockActual);
+
+                if (productoActual == null || !productoActual.Activo || sinStockParaCargaManual)
                 {
                     int disponible = productoActual?.StockActual ?? 0;
-                    faltantes.AppendLine($"- {item.Producto.Nombre}: pedido {item.Cantidad}, disponible {disponible}");
+                    faltantes.AppendLine($"- {item.Producto.Nombre}: pedido manual {item.CantidadManual}, disponible {Math.Max(0, disponible)}");
                 }
             }
 

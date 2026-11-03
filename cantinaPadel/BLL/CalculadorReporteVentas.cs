@@ -9,7 +9,7 @@ public static class CalculadorReporteVentas
     public const string TipoCantina = "Cantina";
 
     // Nombre de la categoría del producto "Hora Padel" que se crea para cada cancha
-    public const string CategoriaHoraPadel = "Hora Padel";
+    public const string CategoriaHoraPadel = Categoria.NombreCategoriaHoraPadel;
 
     // Mismo IVA que usa LogicaVenta: los precios de venta se guardan CON IVA
     public const decimal TasaIva = 0.21m;
