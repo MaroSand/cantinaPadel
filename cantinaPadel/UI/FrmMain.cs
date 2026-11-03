@@ -75,8 +75,6 @@ namespace cantinaPadel
             btnStock.Visible = esAdmin;
             btnCompras.Visible = esAdmin; // Compras mueve stock y costos, por eso es solo para administradores
             btnCanchas.Visible = esAdmin;
-            btnProveedores.Visible = esAdmin;
-            btnEmpleados.Visible = esAdmin;
             btnReportes.Visible = esAdmin;
         }
 
@@ -204,8 +202,8 @@ namespace cantinaPadel
         // => es una expresión lambda que simplifica la sintaxis del método, permitiendo escribirlo en una sola línea
         private void btnClientes_Click(object sender, EventArgs e)
         {
-            Navegar("Clientes");
-            cantinaPadel.UI.FrmListadoClientes frm = new cantinaPadel.UI.FrmListadoClientes();
+            Navegar("Personas");
+            cantinaPadel.UI.FrmPersonas frm = new cantinaPadel.UI.FrmPersonas();
             AbrirEnPanel(frm);
         }
         private void btnPuntoVenta_Click(object sender, EventArgs e)
