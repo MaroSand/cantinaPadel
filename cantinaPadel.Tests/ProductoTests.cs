@@ -142,6 +142,7 @@ namespace cantinaPadel.Tests
                 CodigoBarras = codigoBarras,
                 IdCategoria = idCategoria,
                 PrecioCosto = precioCosto,
+                PrecioVenta = 130m,
                 StockActual = 10,
                 StockMinimo = stockMinimo,
                 Activo = true

@@ -63,6 +63,7 @@ public static class ExportadorPdf
             {
                 c.ConstantColumn(40);   // N.º venta
                 c.ConstantColumn(80);   // Fecha
+                c.ConstantColumn(55);   // Tipo
                 c.RelativeColumn(2);    // Cliente
                 c.RelativeColumn(2);    // Empleado
                 c.ConstantColumn(75);   // Método de pago
@@ -78,6 +79,7 @@ public static class ExportadorPdf
             {
                 Encabezado(h, "N.º");
                 Encabezado(h, "Fecha");
+                Encabezado(h, "Tipo");
                 Encabezado(h, "Cliente");
                 Encabezado(h, "Empleado");
                 Encabezado(h, "Método de pago");
@@ -93,6 +95,7 @@ public static class ExportadorPdf
             {
                 Celda(tabla, f.IdVenta.ToString(Es));
                 Celda(tabla, f.Fecha.ToString("dd/MM/yyyy HH:mm", Es));
+                Celda(tabla, f.Tipo);
                 Celda(tabla, f.Cliente);
                 Celda(tabla, f.Empleado);
                 Celda(tabla, f.FormaPago);

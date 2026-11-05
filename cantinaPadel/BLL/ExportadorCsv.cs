@@ -42,6 +42,7 @@ public static class ExportadorCsv
             AgregarLinea(sb,
                 f.IdVenta.ToString(Es),
                 f.Fecha.ToString("dd/MM/yyyy HH:mm", Es),
+                Texto(f.Tipo),
                 Texto(f.Cliente),
                 Texto(f.Empleado),
                 Texto(f.FormaPago),

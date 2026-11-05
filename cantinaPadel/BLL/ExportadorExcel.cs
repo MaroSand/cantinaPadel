@@ -48,15 +48,16 @@ public static class ExportadorExcel
         {
             hoja.Cell(fila, 1).Value = f.IdVenta;
             hoja.Cell(fila, 2).Value = f.Fecha;
-            hoja.Cell(fila, 3).Value = f.Cliente;
-            hoja.Cell(fila, 4).Value = f.Empleado;
-            hoja.Cell(fila, 5).Value = f.FormaPago;
-            hoja.Cell(fila, 6).Value = f.Unidades;
-            hoja.Cell(fila, 7).Value = f.Total;
-            hoja.Cell(fila, 8).Value = f.Neto;
-            hoja.Cell(fila, 9).Value = f.Costo;
-            hoja.Cell(fila, 10).Value = f.Ganancia;
-            hoja.Cell(fila, 11).Value = f.EstadoCobro;
+            hoja.Cell(fila, 3).Value = f.Tipo;
+            hoja.Cell(fila, 4).Value = f.Cliente;
+            hoja.Cell(fila, 5).Value = f.Empleado;
+            hoja.Cell(fila, 6).Value = f.FormaPago;
+            hoja.Cell(fila, 7).Value = f.Unidades;
+            hoja.Cell(fila, 8).Value = f.Total;
+            hoja.Cell(fila, 9).Value = f.Neto;
+            hoja.Cell(fila, 10).Value = f.Costo;
+            hoja.Cell(fila, 11).Value = f.Ganancia;
+            hoja.Cell(fila, 12).Value = f.EstadoCobro;
             fila++;
         }
 
@@ -84,11 +85,11 @@ public static class ExportadorExcel
         foreach (var s in resumen.Filas)
         {
             hoja.Cell(filaActual, 1).Value = s.Nombre;
-            hoja.Cell(filaActual, 6).Value = s.Unidades;
-            hoja.Cell(filaActual, 7).Value = s.Total;
-            hoja.Cell(filaActual, 8).Value = s.Neto;
-            hoja.Cell(filaActual, 9).Value = s.Costo;
-            hoja.Cell(filaActual, 10).Value = s.Ganancia;
+            hoja.Cell(filaActual, 7).Value = s.Unidades;
+            hoja.Cell(filaActual, 8).Value = s.Total;
+            hoja.Cell(filaActual, 9).Value = s.Neto;
+            hoja.Cell(filaActual, 10).Value = s.Costo;
+            hoja.Cell(filaActual, 11).Value = s.Ganancia;
             filaActual++;
         }
         hoja.Range(filaSubtotales + 1, 7, filaActual - 1, 10).Style.NumberFormat.Format = FormatoDinero;
