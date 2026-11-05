@@ -8,6 +8,7 @@ namespace cantinaPadel.Models
     public class Categoria
     {
         public const string NombreCategoriaHoraPadel = "Hora Padel";
+        public const string NombreCategoriaVarios = "Varios";
 
         [Key]
         [Column("id_categoria")]

@@ -234,7 +234,7 @@ namespace cantinaPadel.UI
             if (!TryObtenerProveedorFiltrado(out int? idProveedor))
             {
                 // Si falla un filtro, se limpia la grilla para no dejar resultados anteriores que parezcan vigentes.
-                dgvCompras.DataSource = null;
+                PaginadorGrilla.Limpiar(dgvCompras);
                 MostrarResumen("No hay ningún proveedor con ese nombre. Elíjalo de la lista desplegable.", esError: true);
                 ActualizarEstadoAcciones();
                 return;
@@ -251,7 +251,7 @@ namespace cantinaPadel.UI
             catch (ArgumentException ex)
             {
                 // Filtros inconsistentes (por ejemplo, "desde" posterior a "hasta") se explican en el resumen.
-                dgvCompras.DataSource = null;
+                PaginadorGrilla.Limpiar(dgvCompras);
                 MostrarResumen(ex.Message, esError: true);
                 ActualizarEstadoAcciones();
                 return;
@@ -260,12 +260,12 @@ namespace cantinaPadel.UI
             {
                 MessageBox.Show($"Error al conectar con la base de datos: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                dgvCompras.DataSource = null;
+                PaginadorGrilla.Limpiar(dgvCompras);
                 ActualizarEstadoAcciones();
                 return;
             }
 
-            dgvCompras.DataSource = compras.Select(c => new
+            PaginadorGrilla.Mostrar(dgvCompras, compras.Select(c => new
             {
                 c.IdCompra,
                 Fecha = c.FechaCompra,
@@ -274,7 +274,7 @@ namespace cantinaPadel.UI
                 RegistradaPor = NombreEmpleado(c),
                 c.Total,
                 Estado = c.Anulada ? "Anulada" : "Activa"
-            }).ToList();
+            }).ToList());
 
             MostrarResumenDeResultados(compras);
         }

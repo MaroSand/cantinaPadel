@@ -25,7 +25,6 @@ namespace cantinaPadel.UI
 
         private List<ProductoPrecioPreview> _listado = new();
 
-        private readonly BindingSource _bindingSource = new();
 
         // Timer para hacer debounce en la búsqueda de productos al tipear
         private readonly System.Windows.Forms.Timer _debounceTexto = new() { Interval = 350 };
@@ -74,7 +73,7 @@ namespace cantinaPadel.UI
             dgvPreview.ReadOnly = false;
             dgvPreview.MultiSelect = false;
             dgvPreview.AllowUserToAddRows = false;
-            dgvPreview.DataSource = _bindingSource;
+            PaginadorGrilla.Mostrar(dgvPreview, _listado);
             // Configura las columnas de la grilla
             dgvPreview.Columns.Clear();
             dgvPreview.Columns.Add(new DataGridViewCheckBoxColumn
@@ -208,7 +207,7 @@ namespace cantinaPadel.UI
                         item.Aplicar = false;
                 }
 
-                _bindingSource.DataSource = _listado;
+                PaginadorGrilla.Mostrar(dgvPreview, _listado);
             }
             catch (Exception ex)
             {
@@ -229,7 +228,7 @@ namespace cantinaPadel.UI
                     item.PrecioNuevo = Math.Round(item.PrecioActual * factor, 2);
             }
 
-            _bindingSource.ResetBindings(false);
+            PaginadorGrilla.Refrescar(dgvPreview);
         }
 
         // El usuario hizo click en el checkbox "Aplicar" de la grilla: confirmamos el cambio
@@ -261,7 +260,7 @@ namespace cantinaPadel.UI
             if (porPorcentaje)
                 RecalcularPreciosPorPorcentaje();
 
-            _bindingSource.ResetBindings(false);
+            PaginadorGrilla.Refrescar(dgvPreview);
         }
 
         // El usuario cargó un precio en el campo "Precio manual" y hace click en "Aplicar a tildados":
@@ -294,7 +293,7 @@ namespace cantinaPadel.UI
                 item.EditadoManualmente = true;
             }
 
-            _bindingSource.ResetBindings(false);
+            PaginadorGrilla.Refrescar(dgvPreview);
         }
 
         // El usuario hizo click en el botón "Confirmar": valida y confirma la actualización de precios

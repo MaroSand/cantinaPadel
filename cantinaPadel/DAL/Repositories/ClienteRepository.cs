@@ -59,7 +59,7 @@ namespace cantinaPadel.DAL.Repositories
                     .ThenBy(c => c.Persona.Nombre);
             }
 
-            return query.Take(25).ToList();
+            return query.ToList();
         }
         public void Agregar(Cliente cliente)
         {

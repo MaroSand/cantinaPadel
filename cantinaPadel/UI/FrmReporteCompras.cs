@@ -15,6 +15,9 @@ public sealed class FrmReporteCompras : Form
     private readonly System.Windows.Forms.Timer _debounce = new() { Interval = 300 };
     private readonly DateTimePicker _desde = new();
     private readonly DateTimePicker _hasta = new();
+    private readonly Button _mesAnterior = new() { Text = "‹ Mes anterior", Width = 125, Height = 27 };
+    private readonly Button _mesSiguiente = new() { Text = "Mes siguiente ›", Width = 125, Height = 27 };
+    private readonly Label _mesSeleccionado = new() { AutoSize = false, Width = 150, Height = 27, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
     private readonly ComboBox _proveedor = new();
     private readonly TextBox _producto = new();
     private readonly DataGridView _grilla = new();
@@ -43,14 +46,15 @@ public sealed class FrmReporteCompras : Form
             _hasta.Format = DateTimePickerFormat.Custom;
             _desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             _hasta.Value = DateTime.Today;
+            ActualizarNavegacionMes();
             try
             {
                 _proveedor.Items.Add(new FiltroProveedor(null, "Todos los proveedores"));
                 _proveedor.Items.AddRange(_logica.ObtenerTodosLosProveedores().Select(p => new FiltroProveedor(p.IdProveedor, p.Texto)).Cast<object>().ToArray());
                 _proveedor.SelectedIndex = 0;
                 Buscar();
-                _desde.ValueChanged += (_, _) => ProgramarBusqueda();
-                _hasta.ValueChanged += (_, _) => ProgramarBusqueda();
+                _desde.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
+                _hasta.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
                 _proveedor.SelectedIndexChanged += (_, _) => ProgramarBusqueda();
                 _producto.TextChanged += (_, _) => ProgramarBusqueda();
             }
@@ -62,8 +66,12 @@ public sealed class FrmReporteCompras : Form
             _hasta.Value = DateTime.Today;
             _producto.Clear();
             if (_proveedor.Items.Count > 0) _proveedor.SelectedIndex = 0;
+            ActualizarNavegacionMes();
+            _debounce.Stop();
             Buscar();
         };
+        _mesAnterior.Click += (_, _) => NavegarMes(-1);
+        _mesSiguiente.Click += (_, _) => NavegarMes(1);
         _csv.Click += (_, _) => Exportar(Formato.Csv);
         _excel.Click += (_, _) => Exportar(Formato.Excel);
         _pdf.Click += (_, _) => Exportar(Formato.Pdf);
@@ -73,14 +81,17 @@ public sealed class FrmReporteCompras : Form
 
     private void Construir()
     {
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Top, Height = 82, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 2 };
+        var filtros = new TableLayoutPanel { Dock = DockStyle.Top, Height = 110, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 3 };
         foreach (var ancho in new[] { 16f, 16f, 27f, 25f, 16f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        AgregarFiltro(filtros, 0, "Desde", _desde); AgregarFiltro(filtros, 1, "Hasta", _hasta);
+        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
+        navegacion.Controls.AddRange(new Control[] { _mesAnterior, _mesSeleccionado, _mesSiguiente });
+        filtros.Controls.Add(navegacion, 0, 0); filtros.SetColumnSpan(navegacion, 5);
+        AgregarFiltro(filtros, 0, "Desde", _desde, 1, 2); AgregarFiltro(filtros, 1, "Hasta", _hasta, 1, 2);
         _proveedor.DropDownStyle = ComboBoxStyle.DropDownList;
-        AgregarFiltro(filtros, 2, "Proveedor", _proveedor); AgregarFiltro(filtros, 3, "Producto o código", _producto);
+        AgregarFiltro(filtros, 2, "Proveedor", _proveedor, 1, 2); AgregarFiltro(filtros, 3, "Producto o código", _producto, 1, 2);
         _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat;
-        filtros.Controls.Add(_limpiar, 4, 1);
+        filtros.Controls.Add(_limpiar, 4, 2);
 
         _grilla.Dock = DockStyle.Fill; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false;
         _grilla.MultiSelect = false; _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false;
@@ -105,10 +116,30 @@ public sealed class FrmReporteCompras : Form
         _grilla.Columns.Add(col);
     }
 
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control)
+    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control, int filaTitulo = 0, int filaControl = 1)
     {
-        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, 0);
-        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, 1);
+        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, filaTitulo);
+        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, filaControl);
+    }
+
+    private void NavegarMes(int desplazamiento)
+    {
+        var mes = new DateTime(_desde.Value.Year, _desde.Value.Month, 1).AddMonths(desplazamiento);
+        var hoy = DateTime.Today;
+        var hasta = mes.Year == hoy.Year && mes.Month == hoy.Month ? hoy : mes.AddMonths(1).AddDays(-1);
+        _desde.Value = mes;
+        _hasta.Value = hasta;
+        _debounce.Stop();
+        ActualizarNavegacionMes();
+        Buscar();
+    }
+
+    private void ActualizarNavegacionMes()
+    {
+        var mes = new DateTime(_desde.Value.Year, _desde.Value.Month, 1);
+        _mesSeleccionado.Text = mes.ToString("MMMM yyyy", Es);
+        var hoy = DateTime.Today;
+        _mesSiguiente.Enabled = mes < new DateTime(hoy.Year, hoy.Month, 1);
     }
 
     private void Buscar()
@@ -126,13 +157,27 @@ public sealed class FrmReporteCompras : Form
                 Unidades = c.Detalles.Sum(d => d.Cantidad), Comprobante = c.NumeroComprobante ?? "—",
                 Empleado = $"{c.Empleado?.Persona?.Nombre} {c.Empleado?.Persona?.Apellido}".Trim(), Total = c.Total
             }).ToList();
-            _grilla.DataSource = filas;
+            PaginadorGrilla.Mostrar(_grilla, filas);
             _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Proveedor: {proveedor?.Nombre ?? "Todos"}  |  Producto: {(string.IsNullOrWhiteSpace(_producto.Text) ? "Todos" : _producto.Text.Trim())}";
             var total = _compras.Sum(c => c.Total);
-            _resumen.Text = $"{_compras.Count} compras  |  Total del período: {total.ToString("C2", Es)}";
+            var desdeAnterior = desde.AddMonths(-1);
+            var hastaAnterior = hasta.AddMonths(-1);
+            try
+            {
+                var comprasAnteriores = _logica.Buscar(proveedor?.Id, desdeAnterior, hastaAnterior, _producto.Text.Trim());
+                var totalAnterior = comprasAnteriores.Sum(c => c.Total);
+                var diferencia = total - totalAnterior;
+                var signo = diferencia > 0m ? "+" : string.Empty;
+                _resumen.Text = $"{_compras.Count} compras  |  Total: {total.ToString("C2", Es)}\n" +
+                    $"Período anterior ({desdeAnterior:dd/MM} al {hastaAnterior:dd/MM}): {totalAnterior.ToString("C2", Es)}  |  Variación: {signo}{diferencia.ToString("C2", Es)}";
+            }
+            catch
+            {
+                _resumen.Text = $"{_compras.Count} compras  |  Total del período: {total.ToString("C2", Es)}\nNo se pudo cargar la comparación con el período anterior.";
+            }
             HabilitarExportacion(_compras.Count > 0);
         }
-        catch (Exception ex) { _compras.Clear(); _grilla.DataSource = null; _resumen.Text = ex.Message; HabilitarExportacion(false); }
+        catch (Exception ex) { _compras.Clear(); PaginadorGrilla.Limpiar(_grilla); _resumen.Text = ex.Message; HabilitarExportacion(false); }
     }
 
     private void ProgramarBusqueda() { _debounce.Stop(); _debounce.Start(); }

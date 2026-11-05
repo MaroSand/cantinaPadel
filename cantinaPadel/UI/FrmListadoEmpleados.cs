@@ -136,7 +136,7 @@ namespace cantinaPadel.UI
             }).ToList();
 
             // Se actualiza el origen de datos de la grilla de forma instantánea
-            dgvEmpleados.DataSource = listaFiltrada;
+            PaginadorGrilla.Mostrar(dgvEmpleados, listaFiltrada);
         }
 
         private void txtBuscarNombre_TextChanged(object sender, EventArgs e) => FiltrarYMostrarDatos();

@@ -31,7 +31,7 @@ public sealed class FrmReporteCajas : Form
     private readonly Button _pdf = Boton("Exportar PDF", Color.IndianRed);
     private List<TurnoCaja> _turnos = new();
     private string _filtros = string.Empty;
-    private static readonly string[] Encabezados = { "N.º turno", "Empleado", "Estado", "Apertura", "Cierre", "Inicial", "Efectivo esperado", "Efectivo final", "Dif. efectivo", "Ventas tarjeta", "Dif. tarjeta", "Ventas transferencia", "Dif. transferencia" };
+    private static readonly string[] Encabezados = { "N.º turno", "Empleado", "Estado", "Apertura", "Cierre", "Inicial", "Efectivo esperado", "Efectivo final", "Dif. efectivo", "Ventas tarjeta", "Ventas transferencia" };
     private sealed record OpcionEmpleado(int? Id, string Texto) { public override string ToString() => Texto; }
 
     public FrmReporteCajas()
@@ -72,8 +72,8 @@ public sealed class FrmReporteCajas : Form
         AddCol("FechaApertura", "Apertura", 12, "dd/MM/yyyy HH:mm"); AddCol("FechaCierre", "Cierre", 12, "dd/MM/yyyy HH:mm");
         AddCol("MontoApertura", "Inicial", 9, "C2"); AddCol("EfectivoEsperado", "Efectivo esperado", 10, "C2");
         AddCol("EfectivoFinal", "Efectivo final", 9, "C2"); AddCol("DiferenciaEfectivo", "Dif. efectivo", 9, "C2");
-        AddCol("CierreTarjeta", "Ventas tarjeta", 9, "C2"); AddCol("DiferenciaTarjeta", "Dif. tarjeta", 8);
-        AddCol("CierreTransferencia", "Ventas transferencia", 10, "C2"); AddCol("DiferenciaTransferencia", "Dif. transferencia", 8);
+        AddCol("CierreTarjeta", "Ventas tarjeta", 9, "C2");
+        AddCol("CierreTransferencia", "Ventas transferencia", 10, "C2");
 
         var pie = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12, 8, 12, 7), BackColor = SystemColors.Info, ColumnCount = 1, RowCount = 2 };
         pie.RowStyles.Add(new RowStyle(SizeType.Absolute, 78)); pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
@@ -135,14 +135,14 @@ public sealed class FrmReporteCajas : Form
                 .Where(t => empleado?.Id == null || t.IdEmpleado == empleado.Id)
                 .Where(t => filtroEstado == "Todos" || t.Estado == filtroEstado)
                 .ToList();
-            _grilla.DataSource = _turnos.Select(t => new FilaCaja
+            PaginadorGrilla.Mostrar(_grilla, _turnos.Select(t => new FilaCaja
             {
                 IdTurnoCaja = t.IdTurnoCaja, NombreEmpleado = t.NombreEmpleado, Estado = t.Estado,
                 FechaApertura = t.FechaApertura, FechaCierre = t.FechaCierre, MontoApertura = t.MontoApertura,
                 EfectivoEsperado = t.EfectivoEsperado, EfectivoFinal = t.EfectivoFinal,
                 DiferenciaEfectivo = t.DiferenciaEfectivo, CierreTarjeta = t.CierreTarjeta,
                 CierreTransferencia = t.CierreTransferencia
-            }).ToList();
+            }).ToList());
             _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Empleado: {empleado?.Texto ?? "Todos"}  |  Estado: {filtroEstado}";
             ActualizarTotales();
             _resumen.Text = $"{_turnos.Count} {(_turnos.Count == 1 ? "turno" : "turnos")} en el período";
@@ -150,7 +150,7 @@ public sealed class FrmReporteCajas : Form
         }
         catch (Exception ex)
         {
-            _turnos.Clear(); _grilla.DataSource = null; _resumen.Text = ex.Message;
+            _turnos.Clear(); PaginadorGrilla.Limpiar(_grilla); _resumen.Text = ex.Message;
             ActualizarTotales(); HabilitarExportacion(false);
         }
     }
@@ -190,7 +190,7 @@ public sealed class FrmReporteCajas : Form
         var (extension, tipo) = formato switch { Formato.Csv => ("csv", "Archivo CSV (*.csv)"), Formato.Excel => ("xlsx", "Libro de Excel (*.xlsx)"), _ => ("pdf", "Documento PDF (*.pdf)") };
         using var dialogo = new SaveFileDialog { Title = "Exportar reporte de cajas", Filter = $"{tipo}|*.{extension}", DefaultExt = extension, AddExtension = true, OverwritePrompt = true, FileName = $"ReporteCajas_{DateTime.Today:yyyyMMdd}" };
         if (dialogo.ShowDialog(this) != DialogResult.OK) return;
-        var filas = _turnos.Select(t => (object?[])new object?[] { t.IdTurnoCaja, t.NombreEmpleado, t.Estado, t.FechaApertura, t.FechaCierre, t.MontoApertura, t.EfectivoEsperado, t.EfectivoFinal, t.DiferenciaEfectivo, t.CierreTarjeta, "Sin arqueo", t.CierreTransferencia, "Sin arqueo" }).ToList();
+        var filas = _turnos.Select(t => (object?[])new object?[] { t.IdTurnoCaja, t.NombreEmpleado, t.Estado, t.FechaApertura, t.FechaCierre, t.MontoApertura, t.EfectivoEsperado, t.EfectivoFinal, t.DiferenciaEfectivo, t.CierreTarjeta, t.CierreTransferencia }).ToList();
         var titulo = "Reporte de cajas";
         try
         {
@@ -258,6 +258,5 @@ public sealed class FrmReporteCajas : Form
         public DateTime FechaApertura { get; set; } public DateTime? FechaCierre { get; set; } public decimal MontoApertura { get; set; }
         public decimal? EfectivoEsperado { get; set; } public decimal? EfectivoFinal { get; set; } public decimal? DiferenciaEfectivo { get; set; }
         public decimal? CierreTarjeta { get; set; } public decimal? CierreTransferencia { get; set; }
-        public string DiferenciaTarjeta => "Sin arqueo"; public string DiferenciaTransferencia => "Sin arqueo";
     }
 }

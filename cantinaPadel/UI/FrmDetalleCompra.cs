@@ -79,14 +79,14 @@ public sealed class FrmDetalleCompra : Form
             DefaultCellStyle = new DataGridViewCellStyle
             { Format = "C2", FormatProvider = Es, Alignment = DataGridViewContentAlignment.MiddleRight }
         });
-        grilla.DataSource = compra.Detalles.Select(d => new
+        PaginadorGrilla.Mostrar(grilla, compra.Detalles.Select(d => new
         {
             Producto = d.Producto?.Nombre ?? $"Producto #{d.IdProducto}",
             Codigo = d.Producto?.CodigoBarras ?? "-",
             Cantidad = d.Cantidad.ToString("N0", Es),
             Costo = d.PrecioUnitario,
             d.Subtotal
-        }).ToList();
+        }).ToList());
 
         var total = new Label
         {

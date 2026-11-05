@@ -150,7 +150,7 @@ namespace cantinaPadel.DAL.Repositories
                 .FirstOrDefault(i => i.IdInstancia == idInstancia);
         }
 
-        public void CancelarInstancia(int idInstancia)
+        public void CancelarInstancia(int idInstancia, int idEmpleadoCancelo)
         {
             using var ctx = new AppDbContext();
             var instancia = ctx.InstanciasTurno
@@ -160,6 +160,8 @@ namespace cantinaPadel.DAL.Repositories
             if (instancia == null) return;
 
             instancia.Estado = InstanciaTurno.EstadoCancelada;
+            instancia.FechaHoraCancelacion = DateTime.Now;
+            instancia.IdEmpleadoCancelo = idEmpleadoCancelo;
 
             // "Por dia" tiene una sola instancia. Si se cancela, no se deja la cabecera del turno como "Activo"
             if (instancia.TurnoReservado.Modalidad == TurnoReservado.ModalidadPorDia)
@@ -168,7 +170,7 @@ namespace cantinaPadel.DAL.Repositories
             ctx.SaveChanges();
         }
 
-        public void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde)
+        public void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde, int idEmpleadoCancelo)
         {
             using var ctx = new AppDbContext();
             var instancia = ctx.InstanciasTurno
@@ -178,9 +180,12 @@ namespace cantinaPadel.DAL.Repositories
 
             if (instancia == null) return;
 
+            var fechaHoraCancelacion = DateTime.Now;
             if (instancia.TurnoReservado.Modalidad == TurnoReservado.ModalidadPorDia)
             {
                 instancia.Estado = InstanciaTurno.EstadoCancelada;
+                instancia.FechaHoraCancelacion = fechaHoraCancelacion;
+                instancia.IdEmpleadoCancelo = idEmpleadoCancelo;
                 instancia.TurnoReservado.Estado = TurnoReservado.EstadoCancelado;
             }
             else
@@ -191,6 +196,8 @@ namespace cantinaPadel.DAL.Repositories
                     i.Estado == InstanciaTurno.EstadoActiva))
                 {
                     futura.Estado = InstanciaTurno.EstadoCancelada;
+                    futura.FechaHoraCancelacion = fechaHoraCancelacion;
+                    futura.IdEmpleadoCancelo = idEmpleadoCancelo;
                 }
             }
 

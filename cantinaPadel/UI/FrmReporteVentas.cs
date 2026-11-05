@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
 using cantinaPadel.BLL;
+using cantinaPadel.DAL.Repositories;
 using cantinaPadel.Models;
 
 namespace cantinaPadel.UI
@@ -36,9 +37,17 @@ namespace cantinaPadel.UI
         private readonly ComboBox cmbMetodoPago = new();
         private readonly ComboBox cmbEmpleado = new();
         private readonly Button btnLimpiar = new();
+        private readonly Button btnMesAnterior = new() { Text = "‹ Mes anterior", Width = 125, Height = 27 };
+        private readonly Button btnMesSiguiente = new() { Text = "Mes siguiente ›", Width = 125, Height = 27 };
+        private readonly Label lblMesSeleccionado = new() { AutoSize = false, Width = 150, Height = 27, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
         private readonly DataGridView dgvVentas = new();
         private readonly DataGridView dgvResumen = new();
-        private readonly Label lblResumen = new();
+        private readonly Label lblVentasActual = new();
+        private readonly Label lblVentasAnterior = new();
+        private readonly Label lblVentasVariacion = new();
+        private readonly Label lblGananciaActual = new();
+        private readonly Label lblGananciaAnterior = new();
+        private readonly Label lblGananciaVariacion = new();
         private readonly Button btnCsv = new();
         private readonly Button btnExcel = new();
         private readonly Button btnPdf = new();
@@ -67,37 +76,83 @@ namespace cantinaPadel.UI
         {
             var panelFiltros = ConstruirPanelFiltros();
 
-            // Pie: subtotales de ganancias (pádel / cantina / total) y, debajo, los botones de exportación
-            // a la izquierda y a la derecha la cantidad de filas o el aviso de filtros inválidos
-            var panelResumen = new Panel { Dock = DockStyle.Bottom, Height = 182, BackColor = SystemColors.Info, Padding = new Padding(12, 6, 12, 0) };
+            // Área inferior: subtotales completos arriba y comparación en dos tarjetas legibles.
+            var panelResumen = new Panel { Dock = DockStyle.Fill, BackColor = SystemColors.Info, Padding = new Padding(12, 5, 12, 8) };
 
             ConfigurarBotonExportar(btnCsv, "Exportar CSV", Color.SteelBlue);
             ConfigurarBotonExportar(btnExcel, "Exportar Excel", Color.ForestGreen);
             ConfigurarBotonExportar(btnPdf, "Exportar PDF", Color.IndianRed);
-            var botones = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 470, WrapContents = false, Padding = new Padding(0, 4, 0, 0) };
+            var botones = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 3, 0, 0) };
             botones.Controls.AddRange(new Control[] { btnCsv, btnExcel, btnPdf });
 
-            lblResumen.Dock = DockStyle.Fill;
-            lblResumen.TextAlign = ContentAlignment.MiddleRight;
-            lblResumen.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
+            var comparacion = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(4, 2, 0, 0),
+                ColumnCount = 1,
+                RowCount = 1,
+                BackColor = SystemColors.Info
+            };
+            comparacion.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            comparacion.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            var barra = new Panel { Dock = DockStyle.Fill };
-            barra.Controls.Add(lblResumen);
-            barra.Controls.Add(botones);
+            var tarjetas = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = Padding.Empty,
+                BackColor = SystemColors.Info
+            };
+            tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            tarjetas.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            tarjetas.Controls.Add(CrearTarjetaComparacion("VENTAS", lblVentasActual, lblVentasAnterior, lblVentasVariacion), 0, 0);
+            tarjetas.Controls.Add(CrearTarjetaComparacion("GANANCIA", lblGananciaActual, lblGananciaAnterior, lblGananciaVariacion), 1, 0);
+            comparacion.Controls.Add(tarjetas, 0, 0);
+
+            var pie = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                Margin = Padding.Empty,
+                BackColor = SystemColors.Info
+            };
+            pie.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            pie.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+            pie.Controls.Add(comparacion, 0, 0);
+            pie.Controls.Add(botones, 0, 1);
 
             dgvResumen.Dock = DockStyle.Top;
-            dgvResumen.Height = 122;
+            dgvResumen.Height = 112;
 
-            // Primero lo que ocupa el centro (barra), después el borde superior (grilla de subtotales)
-            panelResumen.Controls.Add(barra);
+            // Primero el pie flexible y después la grilla superior para que el Dock reserve el alto correctamente.
+            panelResumen.Controls.Add(pie);
             panelResumen.Controls.Add(dgvResumen);
 
             dgvVentas.Dock = DockStyle.Fill;
+            dgvVentas.Margin = new Padding(6, 5, 6, 5);
 
-            // El orden de alta importa para el Dock: primero lo que ocupa el centro, después los bordes
-            Controls.Add(dgvVentas);
-            Controls.Add(panelResumen);
-            Controls.Add(panelFiltros);
+            var contenido = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = SystemColors.Info
+            };
+            contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 122));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 255));
+            panelFiltros.Dock = DockStyle.Fill;
+            contenido.Controls.Add(panelFiltros, 0, 0);
+            contenido.Controls.Add(dgvVentas, 0, 1);
+            contenido.Controls.Add(panelResumen, 0, 2);
+            Controls.Add(contenido);
         }
 
         private static void ConfigurarBotonExportar(Button boton, string texto, Color color)
@@ -112,16 +167,83 @@ namespace cantinaPadel.UI
             boton.Enabled = false;
         }
 
+        private static Panel CrearTarjetaComparacion(string titulo, Label actual, Label anterior, Label variacion)
+        {
+            var tarjeta = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 0, 8, 0),
+                Padding = new Padding(10, 6, 10, 5),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            var acento = new Panel { Dock = DockStyle.Left, Width = 4, BackColor = Color.DarkGoldenrod };
+            var contenido = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                Padding = new Padding(8, 0, 0, 0),
+                Margin = Padding.Empty,
+                BackColor = Color.White
+            };
+            contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var etiqueta = new Label
+            {
+                Text = titulo,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = Color.DimGray,
+                Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
+            };
+            actual.Dock = DockStyle.Fill;
+            actual.TextAlign = ContentAlignment.MiddleLeft;
+            actual.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            anterior.Dock = DockStyle.Fill;
+            anterior.TextAlign = ContentAlignment.MiddleLeft;
+            anterior.Font = new Font("Segoe UI", 8.5F);
+            anterior.ForeColor = Color.DimGray;
+            variacion.Dock = DockStyle.Fill;
+            variacion.TextAlign = ContentAlignment.MiddleRight;
+            variacion.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+            variacion.ForeColor = Color.ForestGreen;
+
+            var detalle = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty,
+                BackColor = Color.White
+            };
+            detalle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65));
+            detalle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
+            detalle.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            detalle.Controls.Add(anterior, 0, 0);
+            detalle.Controls.Add(variacion, 1, 0);
+            contenido.Controls.Add(etiqueta, 0, 0);
+            contenido.Controls.Add(actual, 0, 1);
+            contenido.Controls.Add(detalle, 0, 2);
+            tarjeta.Controls.Add(contenido);
+            tarjeta.Controls.Add(acento);
+            return tarjeta;
+        }
+
         private Panel ConstruirPanelFiltros()
         {
             var tabla = new TableLayoutPanel
             {
                 Dock = DockStyle.Top,
-                Height = 82,
+                Height = 112,
                 BackColor = Color.Gold,
                 Padding = new Padding(12, 8, 12, 8),
                 ColumnCount = 6,
-                RowCount = 2
+                RowCount = 3
             };
             tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));
             tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));
@@ -129,14 +251,20 @@ namespace cantinaPadel.UI
             tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
             tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
             tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
+            tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
             tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
             tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-            AgregarFiltro(tabla, 0, "Desde", dtpDesde);
-            AgregarFiltro(tabla, 1, "Hasta", dtpHasta);
-            AgregarFiltro(tabla, 2, "Tipo de venta", cmbTipo);
-            AgregarFiltro(tabla, 3, "Método de pago", cmbMetodoPago);
-            AgregarFiltro(tabla, 4, "Empleado", cmbEmpleado);
+            var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
+            navegacion.Controls.AddRange(new Control[] { btnMesAnterior, lblMesSeleccionado, btnMesSiguiente });
+            tabla.Controls.Add(navegacion, 0, 0);
+            tabla.SetColumnSpan(navegacion, 6);
+
+            AgregarFiltro(tabla, 0, "Desde", dtpDesde, 1, 2);
+            AgregarFiltro(tabla, 1, "Hasta", dtpHasta, 1, 2);
+            AgregarFiltro(tabla, 2, "Tipo de venta", cmbTipo, 1, 2);
+            AgregarFiltro(tabla, 3, "Método de pago", cmbMetodoPago, 1, 2);
+            AgregarFiltro(tabla, 4, "Empleado", cmbEmpleado, 1, 2);
 
             btnLimpiar.Text = "Limpiar";
             btnLimpiar.Dock = DockStyle.Fill;
@@ -144,12 +272,12 @@ namespace cantinaPadel.UI
             btnLimpiar.BackColor = Color.White;
             btnLimpiar.FlatStyle = FlatStyle.Flat;
             btnLimpiar.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            tabla.Controls.Add(btnLimpiar, 5, 1);
+            tabla.Controls.Add(btnLimpiar, 5, 2);
 
             return tabla;
         }
 
-        private static void AgregarFiltro(TableLayoutPanel tabla, int columna, string titulo, Control control)
+        private static void AgregarFiltro(TableLayoutPanel tabla, int columna, string titulo, Control control, int filaTitulo = 0, int filaControl = 1)
         {
             var etiqueta = new Label
             {
@@ -160,8 +288,8 @@ namespace cantinaPadel.UI
             };
             control.Dock = DockStyle.Top;
             control.Margin = new Padding(0, 2, 6, 0);
-            tabla.Controls.Add(etiqueta, columna, 0);
-            tabla.Controls.Add(control, columna, 1);
+            tabla.Controls.Add(etiqueta, columna, filaTitulo);
+            tabla.Controls.Add(control, columna, filaControl);
         }
 
         // ================= Carga inicial =================
@@ -229,6 +357,7 @@ namespace cantinaPadel.UI
             cmbTipo.SelectedIndex = 0;
             cmbMetodoPago.SelectedIndex = 0;
             cmbEmpleado.SelectedIndex = 0;
+            ActualizarNavegacionMes();
         }
 
         private void CargarEmpleados()
@@ -281,9 +410,9 @@ namespace cantinaPadel.UI
             {
                 Name = "Unidades",
                 DataPropertyName = nameof(FilaReporteVentas.Unidades),
-                HeaderText = "Unid.",
+                HeaderText = "Unid./Hs.",
                 FillWeight = 7,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = derecha }
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = derecha, Format = "0.##" }
             });
             dgvVentas.Columns.Add(new DataGridViewTextBoxColumn
             {
@@ -329,14 +458,16 @@ namespace cantinaPadel.UI
             {
                 Name = "Unidades",
                 DataPropertyName = nameof(SubtotalReporteVentas.Unidades),
-                HeaderText = "Unid.",
+                HeaderText = "Unid./Hs.",
                 FillWeight = 9,
-                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight }
+                DefaultCellStyle = new DataGridViewCellStyle { Alignment = DataGridViewContentAlignment.MiddleRight, Format = "0.##" }
             });
             dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "Total", DataPropertyName = nameof(SubtotalReporteVentas.Total), HeaderText = "Total (con IVA)", FillWeight = 18, DefaultCellStyle = dinero });
             dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "Neto", DataPropertyName = nameof(SubtotalReporteVentas.Neto), HeaderText = "Neto (sin IVA)", FillWeight = 18, DefaultCellStyle = dinero });
             dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "Costo", DataPropertyName = nameof(SubtotalReporteVentas.Costo), HeaderText = "Costo", FillWeight = 18, DefaultCellStyle = dinero });
             dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "Ganancia", DataPropertyName = nameof(SubtotalReporteVentas.Ganancia), HeaderText = "Ganancia", FillWeight = 19, DefaultCellStyle = dinero });
+            dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "PrecioHoraVigente", DataPropertyName = nameof(SubtotalReporteVentas.PrecioHoraVigente), HeaderText = "Precio/h vigente", FillWeight = 16 });
+            dgvResumen.Columns.Add(new DataGridViewTextBoxColumn { Name = "VentasAlmacen", DataPropertyName = nameof(SubtotalReporteVentas.VentasAlmacen), HeaderText = "Ventas Almacén", FillWeight = 16, DefaultCellStyle = dinero });
 
             // Es un cuadro informativo: no tiene fila "seleccionada", y la última fila (Total) va en negrita
             dgvResumen.DataBindingComplete += (_, _) =>
@@ -350,8 +481,8 @@ namespace cantinaPadel.UI
 
         private void SuscribirEventos()
         {
-            dtpDesde.ValueChanged += (_, _) => ProgramarBusqueda();
-            dtpHasta.ValueChanged += (_, _) => ProgramarBusqueda();
+            dtpDesde.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
+            dtpHasta.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
             cmbTipo.SelectedIndexChanged += (_, _) => ProgramarBusqueda();
             cmbMetodoPago.SelectedIndexChanged += (_, _) => ProgramarBusqueda();
             cmbEmpleado.SelectedIndexChanged += (_, _) => ProgramarBusqueda();
@@ -365,18 +496,12 @@ namespace cantinaPadel.UI
                 _armandoFiltros = true;
                 try { RestablecerFiltros(); }
                 finally { _armandoFiltros = false; }
+                _debounce.Stop();
                 BuscarVentas();
             };
 
-            // Las ventas de Cuenta Corriente con deuda sin cobrar se resaltan
-            dgvVentas.DataBindingComplete += (_, _) =>
-            {
-                foreach (DataGridViewRow fila in dgvVentas.Rows)
-                {
-                    if (fila.DataBoundItem is FilaReporteVentas { Pagado: false })
-                        fila.DefaultCellStyle.ForeColor = Color.Firebrick;
-                }
-            };
+            btnMesAnterior.Click += (_, _) => NavegarMes(-1);
+            btnMesSiguiente.Click += (_, _) => NavegarMes(1);
 
             _debounce.Tick += (_, _) =>
             {
@@ -395,6 +520,33 @@ namespace cantinaPadel.UI
             _debounce.Start();
         }
 
+        private void NavegarMes(int desplazamiento)
+        {
+            var mes = new DateTime(dtpDesde.Value.Year, dtpDesde.Value.Month, 1).AddMonths(desplazamiento);
+            var hoy = DateTime.Today;
+            var hasta = mes.Year == hoy.Year && mes.Month == hoy.Month ? hoy : mes.AddMonths(1).AddDays(-1);
+
+            _armandoFiltros = true;
+            try
+            {
+                dtpDesde.Value = mes;
+                dtpHasta.Value = hasta;
+            }
+            finally { _armandoFiltros = false; }
+
+            _debounce.Stop();
+            ActualizarNavegacionMes();
+            BuscarVentas();
+        }
+
+        private void ActualizarNavegacionMes()
+        {
+            var mes = new DateTime(dtpDesde.Value.Year, dtpDesde.Value.Month, 1);
+            lblMesSeleccionado.Text = mes.ToString("MMMM yyyy", Es);
+            var hoy = DateTime.Today;
+            btnMesSiguiente.Enabled = mes < new DateTime(hoy.Year, hoy.Month, 1);
+        }
+
         private FiltroReporteVentas LeerFiltro() => new()
         {
             Desde = dtpDesde.Value.Date,
@@ -408,32 +560,44 @@ namespace cantinaPadel.UI
         {
             try
             {
-                var filas = _logica.Generar(LeerFiltro());
+                var filtroActual = LeerFiltro();
+                var filas = _logica.Generar(filtroActual);
                 var resumen = _logica.CalcularResumen(filas);
+                resumen.Padel.PrecioHoraVigente = ObtenerPrecioHoraVigente();
 
                 _filas = filas;
                 _resumen = resumen;
                 _descripcionFiltros = DescribirFiltros();
                 ActualizarBotonesExportar();
 
-                dgvVentas.DataSource = filas;
+                PaginadorGrilla.Mostrar(dgvVentas, filas);
                 dgvResumen.DataSource = resumen.Filas;
-                MostrarResumen(filas);
+                MostrarResumen(filas, resumen, filtroActual);
             }
             catch (ArgumentException ex)
             {
                 // Filtros mal combinados (por ej. fecha inicial posterior a la final): se avisa en el pie sin interrumpir con un cartel
                 LimpiarResultado();
-                lblResumen.ForeColor = Color.Firebrick;
-                lblResumen.Text = ex.Message;
+                MessageBox.Show(this, ex.Message, "Rango de fechas inválido", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
                 LimpiarResultado();
-                lblResumen.Text = string.Empty;
                 MessageBox.Show(this, $"No se pudo generar el reporte: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private static string ObtenerPrecioHoraVigente()
+        {
+            var tarifas = new CanchaRepository().ObtenerTodas(true)
+                .Where(c => c.Producto != null)
+                .Select(c => (c.Nombre, Precio: c.Producto!.PrecioConIva))
+                .ToList();
+            if (tarifas.Count == 0) return "Sin canchas activas";
+            if (tarifas.Select(t => t.Precio).Distinct().Count() == 1)
+                return tarifas[0].Precio.ToString("C2", Es);
+            return string.Join(" · ", tarifas.Select(t => $"{t.Nombre}: {t.Precio.ToString("C2", Es)}"));
         }
 
         // Sin resultado (filtros inválidos o error al consultar): se vacía todo y no se puede exportar nada viejo
@@ -442,8 +606,10 @@ namespace cantinaPadel.UI
             _filas = new List<FilaReporteVentas>();
             _resumen = null;
             ActualizarBotonesExportar();
-            dgvVentas.DataSource = null;
+            PaginadorGrilla.Limpiar(dgvVentas);
             dgvResumen.DataSource = null;
+            lblVentasActual.Text = lblVentasAnterior.Text = lblVentasVariacion.Text = "—";
+            lblGananciaActual.Text = lblGananciaAnterior.Text = lblGananciaVariacion.Text = "—";
         }
 
         // Solo se puede exportar si hay filas para exportar
@@ -539,18 +705,41 @@ namespace cantinaPadel.UI
             }
         }
 
-        private void MostrarResumen(List<FilaReporteVentas> filas)
+        private void MostrarResumen(List<FilaReporteVentas> filas, ResumenReporteVentas resumenActual, FiltroReporteVentas filtroActual)
         {
-            lblResumen.ForeColor = SystemColors.ControlText;
-
-            if (filas.Count == 0)
+            var filtroAnterior = new FiltroReporteVentas
             {
-                lblResumen.Text = "No hay ventas con los filtros seleccionados.";
-                return;
+                Desde = filtroActual.Desde.AddMonths(-1),
+                Hasta = filtroActual.Hasta.AddMonths(-1),
+                Tipo = filtroActual.Tipo,
+                FormaPago = filtroActual.FormaPago,
+                IdEmpleado = filtroActual.IdEmpleado
+            };
+            var actual = resumenActual.General;
+            lblVentasActual.Text = actual.Total.ToString("C2", Es);
+            lblGananciaActual.Text = actual.Ganancia.ToString("C2", Es);
+            try
+            {
+                var resumenAnterior = _logica.CalcularResumen(_logica.Generar(filtroAnterior)).General;
+                var cambioTotal = actual.Total - resumenAnterior.Total;
+                var cambioGanancia = actual.Ganancia - resumenAnterior.Ganancia;
+                lblVentasAnterior.Text = $"Anterior ({filtroAnterior.Desde:dd/MM}–{filtroAnterior.Hasta:dd/MM}): {resumenAnterior.Total.ToString("C2", Es)}";
+                lblVentasVariacion.Text = $"{FlechaCambio(cambioTotal)} {FormatearCambio(cambioTotal)}";
+                lblGananciaAnterior.Text = $"Anterior ({filtroAnterior.Desde:dd/MM}–{filtroAnterior.Hasta:dd/MM}): {resumenAnterior.Ganancia.ToString("C2", Es)}";
+                lblGananciaVariacion.Text = $"{FlechaCambio(cambioGanancia)} {FormatearCambio(cambioGanancia)}";
             }
-
-            lblResumen.Text = filas.Count == 1 ? "1 fila" : $"{filas.Count} filas";
+            catch
+            {
+                lblVentasAnterior.Text = lblGananciaAnterior.Text = "Comparación no disponible";
+                lblVentasVariacion.Text = lblGananciaVariacion.Text = "—";
+            }
         }
+
+        private static string FlechaCambio(decimal cambio)
+            => cambio > 0m ? "↑" : cambio < 0m ? "↓" : "·";
+
+        private static string FormatearCambio(decimal importe)
+            => (importe > 0m ? "+" : string.Empty) + importe.ToString("C2", Es);
 
         private static bool EsAdministrador()
             => string.Equals(global::cantinaPadel.Sesion.Rol, "Admin", StringComparison.Ordinal);

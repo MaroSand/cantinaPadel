@@ -70,6 +70,7 @@ public class LogicaReporteVentas
         var datos = _reporte.ObtenerDatos(filtro.Desde, filtro.Hasta, filtro.FormaPago, filtro.IdEmpleado);
 
         return CalculadorReporteVentas.ArmarFilas(
-            datos.Ventas, datos.IdsProductosPadel, datos.CostosProductos, datos.Clientes, datos.Empleados, filtro.Tipo);
+            datos.Ventas, datos.IdsProductosPadel, datos.CostosProductos, datos.Clientes, datos.Empleados, filtro.Tipo,
+            datos.IdsProductosMediaHoraPadel, datos.IdsProductosAlmacen);
     }
 }

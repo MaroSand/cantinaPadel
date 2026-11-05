@@ -24,8 +24,8 @@ namespace cantinaPadel.DAL.Repositories
 
         InstanciaTurno? ObtenerInstanciaPorId(int idInstancia);
 
-        void CancelarInstancia(int idInstancia);
+        void CancelarInstancia(int idInstancia, int idEmpleadoCancelo);
 
-        void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde);
+        void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde, int idEmpleadoCancelo);
     }
 }

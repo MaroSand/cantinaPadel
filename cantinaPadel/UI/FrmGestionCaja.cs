@@ -419,11 +419,11 @@ public class FrmGestionCaja : Form
             _retiro.Visible = true;
             _retiro.Enabled = propia != null;
             _agregarEfectivo.Enabled = propia != null && !_logica.ExisteIngreso(propia.IdTurnoCaja);
-            _historial.DataSource = Sesion.Rol == "Admin"
+            PaginadorGrilla.Mostrar(_historial, Sesion.Rol == "Admin"
                 ? _logica.ObtenerTodoHistorial(Sesion.Rol)
-                : _logica.ObtenerHistorial(Sesion.IdUsuario);
+                : _logica.ObtenerHistorial(Sesion.IdUsuario));
             if (Sesion.Rol == "Admin")
-                _historialEfectivo.DataSource = _logica.ObtenerHistorialEfectivo(Sesion.IdUsuario, Sesion.Rol);
+                PaginadorGrilla.Mostrar(_historialEfectivo, _logica.ObtenerHistorialEfectivo(Sesion.IdUsuario, Sesion.Rol));
         }
         catch (Exception ex)
         {

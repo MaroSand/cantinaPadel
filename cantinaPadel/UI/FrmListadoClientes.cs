@@ -162,7 +162,7 @@ namespace cantinaPadel.UI
                 TelefonoClon = c.Persona.Telefono,
                 c.Persona.Activo
             }).ToList();
-            dgvClientes.DataSource = listaFiltrada;
+            PaginadorGrilla.Mostrar(dgvClientes, listaFiltrada);
         }
         // Evento que se dispara cuando cambia el texto de búsqueda, para filtrar los datos
         private void txtBuscar_TextChanged(object sender, EventArgs e)

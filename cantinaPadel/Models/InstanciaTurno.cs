@@ -42,10 +42,19 @@ namespace cantinaPadel.Models
         [Column("forma_pago")]
         public string? FormaPago { get; set; }
 
+        [Column("fecha_hora_cancelacion")]
+        public DateTime? FechaHoraCancelacion { get; set; }
+
+        [Column("id_empleado_cancelo")]
+        public int? IdEmpleadoCancelo { get; set; }
+
         [ForeignKey("IdTurno")]
         public TurnoReservado TurnoReservado { get; set; } = null!;
 
         [ForeignKey("IdHorario")]
         public HorarioCancha HorarioCancha { get; set; } = null!;
+
+        [ForeignKey("IdEmpleadoCancelo")]
+        public Empleado? EmpleadoCancelo { get; set; }
     }
 }

@@ -244,7 +244,7 @@ namespace cantinaPadel.BLL
             _turnoRepo.RegistrarAlquiler(turno, horarios, instancias);
         }
 
-        public void CancelarTurno(int idInstancia)
+        public void CancelarTurno(int idInstancia, int idEmpleadoCancelo = 0)
         {
             if (idInstancia <= 0)
                 throw new ArgumentException("Debe seleccionar un turno para cancelar.");
@@ -256,13 +256,16 @@ namespace cantinaPadel.BLL
             if (instancia.Estado == InstanciaTurno.EstadoCancelada)
                 throw new ArgumentException("El turno seleccionado ya está cancelado.");
 
+            if (idEmpleadoCancelo <= 0)
+                throw new ArgumentException("No se pudo identificar al usuario que cancela el turno.");
+
             // No se puede cancelar un turno cuya fecha ya pasó
             if (instancia.Fecha.Date < DateTime.Today)
                 throw new ArgumentException("No se puede cancelar un turno de una fecha que ya pasó.");
 
             // El corte es la fecha de la instancia elegida: en un turno Fijo (Mensual/Anual), cancelar un día en el medio cancela
             // ese día y todos los siguientes, dejando intactos los anteriores
-            _turnoRepo.CancelarTurnoDesdeInstancia(idInstancia, instancia.Fecha);
+            _turnoRepo.CancelarTurnoDesdeInstancia(idInstancia, instancia.Fecha, idEmpleadoCancelo);
         }
 
         // Un horario "ya inició" cuando su hora de comienzo es igual o anterior a la hora actual.

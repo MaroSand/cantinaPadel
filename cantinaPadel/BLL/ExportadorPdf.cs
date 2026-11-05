@@ -66,7 +66,7 @@ public static class ExportadorPdf
                 c.RelativeColumn(2);    // Cliente
                 c.RelativeColumn(2);    // Empleado
                 c.ConstantColumn(75);   // Método de pago
-                c.ConstantColumn(35);   // Unidades
+                c.ConstantColumn(40);   // Unidades / horas
                 c.ConstantColumn(65);   // Total
                 c.ConstantColumn(65);   // Neto
                 c.ConstantColumn(65);   // Costo
@@ -81,7 +81,7 @@ public static class ExportadorPdf
                 Encabezado(h, "Cliente");
                 Encabezado(h, "Empleado");
                 Encabezado(h, "Método de pago");
-                Encabezado(h, "Unid.", derecha: true);
+                Encabezado(h, "Unid./Hs.", derecha: true);
                 Encabezado(h, "Total (c/IVA)", derecha: true);
                 Encabezado(h, "Neto", derecha: true);
                 Encabezado(h, "Costo", derecha: true);
@@ -124,7 +124,7 @@ public static class ExportadorPdf
             tabla.Header(h =>
             {
                 Encabezado(h, "Subtotales");
-                Encabezado(h, "Unid.", derecha: true);
+                Encabezado(h, "Unid./Hs.", derecha: true);
                 Encabezado(h, "Total (c/IVA)", derecha: true);
                 Encabezado(h, "Neto", derecha: true);
                 Encabezado(h, "Costo", derecha: true);

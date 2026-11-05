@@ -186,7 +186,7 @@ namespace cantinaPadel.UI
 
                 var productos = _logicaProducto.Buscar(texto, idCategoria, idMarca, activo);
 
-                dgvProductos.DataSource = productos.Select(p => new
+                PaginadorGrilla.Mostrar(dgvProductos, productos.Select(p => new
                 {
                     p.IdProducto,
                     p.Nombre,
@@ -199,7 +199,7 @@ namespace cantinaPadel.UI
                     p.StockActual,
                     p.Activo,
                     p.StockBajo
-                }).ToList();
+                }).ToList());
             }
             catch (Exception ex)
             {

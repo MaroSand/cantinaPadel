@@ -10,6 +10,7 @@ namespace cantinaPadel.BLL
         public int Cantidad { get; internal set; }
         public int CantidadEscaneada { get; internal set; }
         public int CantidadManual => Cantidad - CantidadEscaneada;
+        public decimal? PrecioUnitarioManual { get; internal set; }
 
         public ItemCarrito(Producto producto, int cantidad)
             : this(producto, cantidad, cantidadEscaneada: 0)
@@ -27,7 +28,7 @@ namespace cantinaPadel.BLL
         }
 
         // Precio unitario CON IVA: es lo que efectivamente paga el cliente por unidad
-        public decimal PrecioUnitario => Producto.PrecioConIva;
+        public decimal PrecioUnitario => PrecioUnitarioManual ?? Producto.PrecioConIva;
 
         public decimal Subtotal => Math.Round(PrecioUnitario * Cantidad, 2);
     }
@@ -51,6 +52,28 @@ namespace cantinaPadel.BLL
         // mismo código de barras). Las unidades cargadas manualmente deben caber en el stock disponible.
         public void AgregarProducto(Producto producto, int cantidad = 1)
             => AgregarProductoInterno(producto, cantidad, porEscaner: false);
+
+        // Los productos "Varios" se cobran por el importe total de una porción o puñado, sin precio unitario fijo.
+        public void AgregarProductoConPrecioManual(Producto producto, decimal importeTotal)
+        {
+            if (producto == null)
+                throw new ArgumentException("El producto es obligatorio.");
+            if (!producto.Activo)
+                throw new ArgumentException($"El producto '{producto.Nombre}' está dado de baja.");
+            if (!producto.EsVarios)
+                throw new ArgumentException("El precio manual solo se permite para productos de la categoría Varios.");
+            if (importeTotal <= 0m || importeTotal > Producto.PrecioVentaMaximo * 1.21m)
+                throw new ArgumentException("El importe debe ser mayor a cero y estar dentro del máximo permitido.");
+
+            var existente = _items.FirstOrDefault(i => i.Producto.IdProducto == producto.IdProducto);
+            if (existente != null)
+            {
+                existente.PrecioUnitarioManual = Math.Round((existente.PrecioUnitarioManual ?? existente.PrecioUnitario) + importeTotal, 2);
+                return;
+            }
+
+            _items.Add(new ItemCarrito(producto, 1) { PrecioUnitarioManual = Math.Round(importeTotal, 2) });
+        }
 
         internal void AgregarProductoPorEscaner(Producto producto, int cantidad = 1)
             => AgregarProductoInterno(producto, cantidad, porEscaner: true);

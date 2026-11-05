@@ -63,5 +63,11 @@ namespace cantinaPadel.Models
             Categoria?.Nombre?.Trim(),
             global::cantinaPadel.Models.Categoria.NombreCategoriaHoraPadel,
             StringComparison.OrdinalIgnoreCase);
+
+        [NotMapped]
+        public bool EsVarios => string.Equals(
+            Categoria?.Nombre?.Trim(),
+            global::cantinaPadel.Models.Categoria.NombreCategoriaVarios,
+            StringComparison.OrdinalIgnoreCase);
     }
 }

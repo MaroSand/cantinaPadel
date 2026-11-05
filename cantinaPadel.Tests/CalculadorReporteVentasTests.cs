@@ -64,7 +64,7 @@ public class CalculadorReporteVentasTests
 
         Assert.HasCount(1, filas);
         Assert.AreEqual(CalculadorReporteVentas.TipoCantina, filas[0].Tipo);
-        Assert.AreEqual(3, filas[0].Unidades);
+        Assert.AreEqual(3m, filas[0].Unidades);
         Assert.AreEqual(3380m, filas[0].Total);
     }
 
@@ -79,9 +79,9 @@ public class CalculadorReporteVentasTests
         var padel = filas.Single(f => f.Tipo == CalculadorReporteVentas.TipoPadel);
         var cantina = filas.Single(f => f.Tipo == CalculadorReporteVentas.TipoCantina);
         Assert.AreEqual(5000m, padel.Total);
-        Assert.AreEqual(1, padel.Unidades);
+        Assert.AreEqual(1m, padel.Unidades);
         Assert.AreEqual(1560m, cantina.Total);
-        Assert.AreEqual(2, cantina.Unidades);
+        Assert.AreEqual(2m, cantina.Unidades);
         Assert.AreEqual(venta.Total, CalculadorReporteVentas.CalcularTotal(filas));
     }
 
@@ -144,15 +144,14 @@ public class CalculadorReporteVentasTests
     }
 
     [TestMethod]
-    public void ArmarFilas_VentaDeCuentaCorrienteImpaga_QuedaPendiente()
+    public void ArmarFilas_VentaDeCuentaCorrienteImpaga_NoApareceEnVentas()
     {
         var venta = NuevaVenta(1, new DateTime(2026, 10, 1), "Cuenta Corriente", Cantina(2000m));
         venta.Pagado = false;
 
-        var fila = Armar(new[] { venta }).Single();
+        var filas = Armar(new[] { venta });
 
-        Assert.IsFalse(fila.Pagado);
-        Assert.AreEqual("Pendiente", fila.EstadoCobro);
+        Assert.IsEmpty(filas);
     }
 
     [TestMethod]
@@ -317,19 +316,19 @@ public class CalculadorReporteVentasTests
 
         var r = CalculadorReporteVentas.CalcularResumen(Armar(ventas));
 
-        Assert.AreEqual(2, r.Padel.Unidades);
+        Assert.AreEqual(2m, r.Padel.Unidades);
         Assert.AreEqual(12100m, r.Padel.Total);
         Assert.AreEqual(10000m, r.Padel.Neto);
         Assert.AreEqual(0m, r.Padel.Costo);
         Assert.AreEqual(10000m, r.Padel.Ganancia);
 
-        Assert.AreEqual(3, r.Cantina.Unidades);
+        Assert.AreEqual(3m, r.Cantina.Unidades);
         Assert.AreEqual(3775.20m, r.Cantina.Total);
         Assert.AreEqual(3120m, r.Cantina.Neto);
         Assert.AreEqual(2400m, r.Cantina.Costo);
         Assert.AreEqual(720m, r.Cantina.Ganancia);
 
-        Assert.AreEqual(5, r.General.Unidades);
+        Assert.AreEqual(5m, r.General.Unidades);
         Assert.AreEqual(15875.20m, r.General.Total);
         Assert.AreEqual(10720m, r.General.Ganancia);
     }
@@ -355,7 +354,7 @@ public class CalculadorReporteVentasTests
         var r = CalculadorReporteVentas.CalcularResumen(Armar(ventas, TipoVentaReporte.Cantina));
 
         Assert.AreEqual(0m, r.Padel.Total);
-        Assert.AreEqual(0, r.Padel.Unidades);
+        Assert.AreEqual(0m, r.Padel.Unidades);
         Assert.AreEqual(240m, r.General.Ganancia);
     }
 

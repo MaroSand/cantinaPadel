@@ -16,12 +16,12 @@ public static class ExportadorCsv
     private static readonly string[] Encabezados =
     {
         "N.º venta", "Fecha", "Cliente", "Empleado", "Método de pago",
-        "Unidades", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia", "Cobro"
+        "Unid./Horas", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia", "Cobro"
     };
 
     private static readonly string[] EncabezadosSubtotales =
     {
-        "Subtotales", "Unidades", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia"
+        "Subtotales", "Unid./Horas", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia"
     };
 
     // Arma el contenido completo del archivo. Está separado de Guardar para poder probarlo sin tocar el disco

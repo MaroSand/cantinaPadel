@@ -62,8 +62,7 @@ namespace cantinaPadel.UI
                 }
 
                 // Se refrescan los datos de la grilla
-                dgvCategorias.DataSource = null;
-                dgvCategorias.DataSource = lista;
+                PaginadorGrilla.Mostrar(dgvCategorias, lista);
 
                 // Solo lectura: evita que se pueda tildar/destildar "Activa" directo desde la grilla
                 dgvCategorias.ReadOnly = true;

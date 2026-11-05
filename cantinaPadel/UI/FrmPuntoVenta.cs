@@ -562,7 +562,12 @@ namespace cantinaPadel.UI
 
             try
             {
-                if (porEscaner)
+                if (producto.EsVarios)
+                {
+                    if (!TryPedirImporteVarios(producto, out var importe)) return;
+                    _logicaCarrito.AgregarProductoConPrecioManual(producto, importe);
+                }
+                else if (porEscaner)
                     _logicaCarrito.AgregarProductoPorEscaner(producto, cantidad);
                 else
                     _logicaCarrito.AgregarProducto(producto, cantidad);
@@ -585,17 +590,72 @@ namespace cantinaPadel.UI
             }
         }
 
+        private bool TryPedirImporteVarios(Producto producto, out decimal importe)
+        {
+            using var dialogo = new Form
+            {
+                Text = "Precio manual · Varios",
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MinimizeBox = false,
+                MaximizeBox = false,
+                ShowInTaskbar = false,
+                ClientSize = new System.Drawing.Size(390, 160),
+                Font = Font
+            };
+            var texto = new Label
+            {
+                Text = $"{producto.Nombre}\nIngresá el importe total de lo que vas a entregar:",
+                AutoSize = false,
+                Dock = DockStyle.Top,
+                Height = 54,
+                Padding = new Padding(12, 10, 12, 4)
+            };
+            var monto = new NumericUpDown
+            {
+                DecimalPlaces = 2,
+                Minimum = 0.01m,
+                Maximum = Producto.PrecioVentaMaximo * 1.21m,
+                ThousandsSeparator = true,
+                Dock = DockStyle.Top,
+                Margin = new Padding(12),
+                Font = new System.Drawing.Font(Font.FontFamily, 12F),
+                TextAlign = HorizontalAlignment.Right
+            };
+            monto.Value = Math.Clamp(producto.PrecioConIva, monto.Minimum, monto.Maximum);
+            var botones = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 48,
+                FlowDirection = FlowDirection.RightToLeft,
+                Padding = new Padding(8)
+            };
+            var aceptar = new Button { Text = "Agregar", DialogResult = DialogResult.OK, Width = 92, Height = 30 };
+            var cancelar = new Button { Text = "Cancelar", DialogResult = DialogResult.Cancel, Width = 92, Height = 30 };
+            botones.Controls.Add(aceptar);
+            botones.Controls.Add(cancelar);
+            dialogo.Controls.Add(monto);
+            dialogo.Controls.Add(texto);
+            dialogo.Controls.Add(botones);
+            dialogo.AcceptButton = aceptar;
+            dialogo.CancelButton = cancelar;
+            monto.Focus();
+            var resultado = dialogo.ShowDialog(this);
+            importe = resultado == DialogResult.OK ? monto.Value : 0m;
+            return resultado == DialogResult.OK;
+        }
+
         // Carrito
         private void ActualizarGrillaCarrito()
         {
-            dgvCarrito.DataSource = _logicaCarrito.Items.Select(i => new FilaCarritoUI
+            PaginadorGrilla.Mostrar(dgvCarrito, _logicaCarrito.Items.Select(i => new FilaCarritoUI
             {
                 IdProducto = i.Producto.IdProducto,
                 Nombre = i.Producto.Nombre,
                 Cantidad = i.Cantidad,
                 PrecioUnitario = i.PrecioUnitario,
                 Subtotal = i.Subtotal
-            }).ToList();
+            }).ToList());
         }
 
         private void ActualizarLabelTotal()

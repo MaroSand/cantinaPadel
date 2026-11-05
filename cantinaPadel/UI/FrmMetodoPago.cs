@@ -181,9 +181,9 @@ public class FrmMetodoPago : Form
 
     private void MostrarClientesEnGrilla()
     {
-        _dgvClientes.DataSource = _clientesEncontrados
+        PaginadorGrilla.Mostrar(_dgvClientes, _clientesEncontrados
             .Select(c => new { c.IdCliente, Nombre = $"{c.Persona.Nombre} {c.Persona.Apellido}", c.Persona.Dni, c.Email })
-            .ToList();
+            .ToList());
     }
 
     // Deja el cliente elegido en el punto de venta ya seleccionado y visible, sin que haya que buscarlo de nuevo

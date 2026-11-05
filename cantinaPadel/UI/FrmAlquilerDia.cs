@@ -238,8 +238,7 @@ namespace cantinaPadel.UI
                     })
                     .ToList();
 
-                dgvClientes.DataSource = null;
-                dgvClientes.DataSource = clientes;
+                PaginadorGrilla.Mostrar(dgvClientes, clientes);
 
                 // Al lanzar una nueva búsqueda se pierde la selección anterior, así que la grilla de reservas vuelve a mostrar el día/cancha actual
                 ActualizarVistaReservas();
@@ -266,8 +265,7 @@ namespace cantinaPadel.UI
                     })
                     .ToList();
 
-                dgvHorarios.DataSource = null;
-                dgvHorarios.DataSource = horarios;
+                PaginadorGrilla.Mostrar(dgvHorarios, horarios);
                 lblSeleccionHorario.Text = horarios.Count == 0
                     ? "No quedan horarios disponibles para hoy."
                     : "Horarios disponibles: seleccione una banda libre.";
@@ -298,8 +296,7 @@ namespace cantinaPadel.UI
                     })
                     .ToList();
 
-                dgvReservas.DataSource = null;
-                dgvReservas.DataSource = reservas;
+                PaginadorGrilla.Mostrar(dgvReservas, reservas);
                 lblSeleccionReserva.Text = reservas.Count == 0
                     ? "Reservas del dia: no hay turnos activos para esta cancha y fecha."
                     : "Reservas del dia: seleccione una reserva activa para cancelar.";
@@ -333,8 +330,7 @@ namespace cantinaPadel.UI
                     })
                     .ToList();
 
-                dgvReservas.DataSource = null;
-                dgvReservas.DataSource = reservas;
+                PaginadorGrilla.Mostrar(dgvReservas, reservas);
                 lblSeleccionReserva.Text = reservas.Count == 0
                     ? "Reservas del cliente: no tiene turnos reservados."
                     : "Reservas del cliente: seleccione una reserva activa para cancelar.";
@@ -433,7 +429,7 @@ namespace cantinaPadel.UI
 
             try
             {
-                _logica.CancelarTurno(_idInstanciaSeleccionada);
+                _logica.CancelarTurno(_idInstanciaSeleccionada, Sesion.IdUsuario);
                 MessageBox.Show("Turno cancelado correctamente.", "Exito", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 RefrescarDatos();
             }
