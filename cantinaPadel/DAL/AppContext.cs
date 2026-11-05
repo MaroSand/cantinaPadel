@@ -69,6 +69,12 @@ namespace cantinaPadel.DAL
             modelBuilder.Entity<RetiroCaja>().HasOne<TurnoCaja>().WithMany().HasForeignKey(r => r.IdTurnoCaja);
             modelBuilder.Entity<IngresoCaja>().HasOne<TurnoCaja>().WithMany().HasForeignKey(i => i.IdTurnoCaja);
 
+            modelBuilder.Entity<InstanciaTurno>()
+                .HasOne(i => i.EmpleadoCancelo)
+                .WithMany()
+                .HasForeignKey(i => i.IdEmpleadoCancelo)
+                .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Producto>()
                 .HasOne(p => p.Proveedor)
                 .WithMany()

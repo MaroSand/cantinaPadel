@@ -12,14 +12,17 @@ public sealed class FilaReporteVentas
     public string Empleado { get; set; } = string.Empty;
     public string FormaPago { get; set; } = string.Empty;
 
-    // false solo en las ventas de Cuenta Corriente que todavía tienen deuda sin cobrar
+    // En el reporte solo se muestran ventas completamente pagadas.
     public bool Pagado { get; set; }
 
-    // Cada fila de detalles_venta es una unidad (o una hora de pádel)
-    public int Unidades { get; set; }
+    // Para Pádel representa horas: el producto Media hora Padel cuenta como 0,5. Para Cantina representa unidades.
+    public decimal Unidades { get; set; }
 
     // Importe CON IVA de las unidades de este tipo en la venta
     public decimal Total { get; set; }
+
+    // Parte de Cantina correspondiente a productos de la categoría Almacén.
+    public decimal TotalAlmacen { get; set; }
 
     // Importe SIN IVA (el IVA no es ganancia: se le entrega al fisco)
     public decimal Neto { get; set; }

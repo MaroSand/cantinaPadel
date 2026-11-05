@@ -124,7 +124,7 @@ namespace cantinaPadel.UI
                 Activo = p.Persona.Activo
             }).ToList();
 
-            dgvProveedores.DataSource = listaFiltrada;
+            PaginadorGrilla.Mostrar(dgvProveedores, listaFiltrada);
         }
 
         private void txtBuscarNombre_TextChanged(object sender, EventArgs e) => FiltrarYMostrarDatos();

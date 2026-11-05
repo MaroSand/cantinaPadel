@@ -322,11 +322,11 @@ public class CuentaCorrienteControl : UserControl
             string texto = _txtBuscarCliente.Text.Trim();
 
             // No se consulta la bd con el campo vacío o con un solo caracter: serían demasiados resultados que no sirven para elegir un cliente.
-            // La consulta, además, siempre está limitada a 25 filas (ClienteRepository.Buscar)
+            // Los resultados se muestran de a 10 y el paginador permite recorrer todas las coincidencias.
             if (texto.Length < MinimoCaracteresBusqueda)
             {
                 _clientesEncontrados = new List<Cliente>();
-                _dgvClientes.DataSource = null;
+                PaginadorGrilla.Limpiar(_dgvClientes);
                 MostrarMensajeBusqueda(MensajeInicialBusqueda, esError: false);
                 return;
             }
@@ -336,16 +336,16 @@ public class CuentaCorrienteControl : UserControl
             // Sin coincidencias: se avisa en el lugar de la grilla (sin ventana emergente)
             if (_clientesEncontrados.Count == 0)
             {
-                _dgvClientes.DataSource = null;
+                PaginadorGrilla.Limpiar(_dgvClientes);
                 MostrarMensajeBusqueda(
                     $"No se encontró ningún cliente que coincida con “{texto}”.",
                     esError: true);
                 return;
             }
 
-            _dgvClientes.DataSource = _clientesEncontrados
+            PaginadorGrilla.Mostrar(_dgvClientes, _clientesEncontrados
                 .Select(c => new { c.IdCliente, c.Persona.Dni, c.Persona.Apellido, c.Persona.Nombre, c.Email })
-                .ToList();
+                .ToList());
             MostrarGrillaClientes();
 
             // Queda marcado el primer resultado, así alcanza con apretar Enter (o moverse con ↑ ↓ y luego Enter)
@@ -419,9 +419,9 @@ public class CuentaCorrienteControl : UserControl
         _suprimirBusquedaAutomatica = true;
         try { _txtBuscarCliente.Text = $"{cliente.Persona.Apellido}, {cliente.Persona.Nombre}"; }
         finally { _suprimirBusquedaAutomatica = false; }
-        _dgvClientes.DataSource = _clientesEncontrados
+        PaginadorGrilla.Mostrar(_dgvClientes, _clientesEncontrados
             .Select(c => new { c.IdCliente, c.Persona.Dni, c.Persona.Apellido, c.Persona.Nombre, c.Email })
-            .ToList();
+            .ToList());
         MostrarGrillaClientes();
 
         CargarCuenta();
@@ -449,7 +449,7 @@ public class CuentaCorrienteControl : UserControl
 
         _lblClienteSeleccionado.Text = $"{_clienteSeleccionado.Persona.Apellido}, {_clienteSeleccionado.Persona.Nombre} (DNI {_clienteSeleccionado.Persona.Dni})";
         _lblCredito.Text = DescribirCredito(resumen);
-        _dgvDeuda.DataSource = resumen.Pendientes.ToList();
+        PaginadorGrilla.Mostrar(_dgvDeuda, resumen.Pendientes);
 
         // Visibilidad del estado del sistema: si hay deuda se resalta en rojo, si está saldada se muestra en verde
         bool hayDeuda = resumen.DeudaNeta > 0m;

@@ -546,14 +546,14 @@ namespace cantinaPadel.Tests
         public InstanciaTurno? ObtenerInstanciaPorId(int idInstancia)
             => _instancias.FirstOrDefault(i => i.IdInstancia == idInstancia);
 
-        public void CancelarInstancia(int idInstancia)
+        public void CancelarInstancia(int idInstancia, int idEmpleadoCancelo)
         {
             var instancia = _instancias.FirstOrDefault(i => i.IdInstancia == idInstancia);
             if (instancia != null)
                 instancia.Estado = InstanciaTurno.EstadoCancelada;
         }
 
-        public void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde)
+        public void CancelarTurnoDesdeInstancia(int idInstancia, DateTime fechaDesde, int idEmpleadoCancelo)
             => CancelacionDesdeInstancia = (idInstancia, fechaDesde);
     }
 

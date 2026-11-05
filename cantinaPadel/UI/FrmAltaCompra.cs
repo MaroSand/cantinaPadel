@@ -556,7 +556,7 @@ namespace cantinaPadel.UI
 
         private void RefrescarGrilla()
         {
-            dgvCompra.DataSource = _carrito.Items.Select(i => new
+            PaginadorGrilla.Mostrar(dgvCompra, _carrito.Items.Select(i => new
             {
                 IdProducto = i.Producto.IdProducto,
                 Codigo = i.Producto.CodigoBarras ?? string.Empty,
@@ -564,7 +564,7 @@ namespace cantinaPadel.UI
                 i.Cantidad,
                 CostoUnitario = i.PrecioCostoUnitario,
                 i.Subtotal
-            }).ToList();
+            }).ToList());
             ActualizarEstadoAcciones();
         }
 
@@ -688,7 +688,7 @@ namespace cantinaPadel.UI
             grilla.Columns.Add(new DataGridViewTextBoxColumn
             { DataPropertyName = "Proveedor", HeaderText = "Proveedor: anterior → nuevo", FillWeight = 21 });
 
-            grilla.DataSource = impacto.Productos.Select(p => new
+            PaginadorGrilla.Mostrar(grilla, impacto.Productos.Select(p => new
             {
                 Producto = p.Nombre,
                 Cantidad = p.Cantidad.ToString("N0", Es),
@@ -698,7 +698,7 @@ namespace cantinaPadel.UI
                     ? $"{_logicaProducto.CalcularPrecioConIva(p.PrecioVentaActual).ToString("C2", Es)} → {_logicaProducto.CalcularPrecioConIva(p.PrecioVentaNuevo!.Value).ToString("C2", Es)}"
                     : $"{_logicaProducto.CalcularPrecioConIva(p.PrecioVentaActual).ToString("C2", Es)} → sin cambio ({p.MotivoPrecioSinCambio})",
                 Proveedor = $"{p.ProveedorActual} → {p.ProveedorNuevo}"
-            }).ToList();
+            }).ToList());
 
             var aclaracion = new Label
             {

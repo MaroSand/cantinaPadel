@@ -10,8 +10,12 @@ public sealed class DatosReporteVentas
     // Ids de los productos de la categoría "Hora Padel" (el producto asociado a cada cancha)
     public HashSet<int> IdsProductosPadel { get; init; } = new();
 
+    // Ids del producto independiente "Media hora Padel", que en el reporte equivale a 0,5 horas.
+    public HashSet<int> IdsProductosMediaHoraPadel { get; init; } = new();
+
     // id_producto -> precio_costo actual. OJO: es el costo de HOY, no el que tenía el producto cuando se vendió
     public Dictionary<int, decimal> CostosProductos { get; init; } = new();
+    public HashSet<int> IdsProductosAlmacen { get; init; } = new();
 
     // id_cliente -> "Nombre Apellido"
     public Dictionary<int, string> Clientes { get; init; } = new();

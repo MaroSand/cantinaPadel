@@ -51,13 +51,12 @@ namespace cantinaPadel.UI
                     lista = lista.Where(c => !c.Activa).ToList();
                 }
 
-                dgvCanchas.DataSource = null;
-                dgvCanchas.DataSource = lista.Select(c => new
+                PaginadorGrilla.Mostrar(dgvCanchas, lista.Select(c => new
                 {
                     c.IdCancha,
                     c.Nombre,
                     c.Activa
-                }).ToList();
+                }).ToList());
 
                 // Solo lectura: evita que se pueda tildar/destildar "Activa" directo desde la grilla
                 dgvCanchas.ReadOnly = true;

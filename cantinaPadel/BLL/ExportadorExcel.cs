@@ -12,8 +12,8 @@ public static class ExportadorExcel
 
     private static readonly string[] Encabezados =
     {
-        "N.º venta", "Fecha", "Tipo", "Cliente", "Empleado", "Método de pago",
-        "Unidades", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia", "Cobro"
+        "N.º venta", "Fecha", "Cliente", "Empleado", "Método de pago",
+        "Unid./Horas", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia", "Cobro"
     };
 
     public static void Guardar(string ruta, IReadOnlyList<FilaReporteVentas> filas, ResumenReporteVentas resumen, string descripcionFiltros)
@@ -65,15 +65,16 @@ public static class ExportadorExcel
         if (filas.Count > 0)
         {
             hoja.Range(filaEncabezado + 1, 2, ultimaFilaDatos, 2).Style.NumberFormat.Format = FormatoFecha;
-            hoja.Range(filaEncabezado + 1, 8, ultimaFilaDatos, 11).Style.NumberFormat.Format = FormatoDinero;
+            hoja.Range(filaEncabezado + 1, 6, ultimaFilaDatos, 6).Style.NumberFormat.Format = "0.##";
+            hoja.Range(filaEncabezado + 1, 7, ultimaFilaDatos, 10).Style.NumberFormat.Format = FormatoDinero;
             hoja.Range(filaEncabezado, 1, ultimaFilaDatos, Encabezados.Length).SetAutoFilter();
         }
 
         // Subtotales de pádel vs. cantina y total general, dos filas debajo de los datos
         int filaSubtotales = ultimaFilaDatos + 2;
-        string[] encabezadosSubtotales = { "Subtotales", "Unidades", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia" };
-        // Las columnas del resumen se alinean con la tabla de arriba: Unidades en la 7 y Total..Ganancia de la 8 a la 11
-        int[] columnasSubtotales = { 1, 7, 8, 9, 10, 11 };
+        string[] encabezadosSubtotales = { "Subtotales", "Unid./Horas", "Total (con IVA)", "Neto (sin IVA)", "Costo", "Ganancia" };
+        // Las columnas de importes del resumen se alinean con las de la tabla de arriba: Unidades en la 6 y Total..Ganancia de la 7 a la 10
+        int[] columnasSubtotales = { 1, 6, 7, 8, 9, 10 };
         for (int i = 0; i < encabezadosSubtotales.Length; i++)
             hoja.Cell(filaSubtotales, columnasSubtotales[i]).Value = encabezadosSubtotales[i];
         var encabezadoSubtotales = hoja.Range(filaSubtotales, 1, filaSubtotales, Encabezados.Length);
@@ -91,7 +92,8 @@ public static class ExportadorExcel
             hoja.Cell(filaActual, 11).Value = s.Ganancia;
             filaActual++;
         }
-        hoja.Range(filaSubtotales + 1, 8, filaActual - 1, 11).Style.NumberFormat.Format = FormatoDinero;
+        hoja.Range(filaSubtotales + 1, 7, filaActual - 1, 10).Style.NumberFormat.Format = FormatoDinero;
+        hoja.Range(filaSubtotales + 1, 6, filaActual - 1, 6).Style.NumberFormat.Format = "0.##";
         // La última fila del resumen es el Total general
         hoja.Range(filaActual - 1, 1, filaActual - 1, Encabezados.Length).Style.Font.Bold = true;
 

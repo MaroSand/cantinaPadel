@@ -4,11 +4,13 @@ namespace cantinaPadel.Models;
 public sealed class SubtotalReporteVentas
 {
     public string Nombre { get; set; } = string.Empty;
-    public int Unidades { get; set; }
+    public decimal Unidades { get; set; }
     public decimal Total { get; set; }
     public decimal Neto { get; set; }
     public decimal Costo { get; set; }
     public decimal Ganancia { get; set; }
+    public decimal VentasAlmacen { get; set; }
+    public string PrecioHoraVigente { get; set; } = "—";
 }
 
 // Subtotales de ganancias de pádel vs. cantina, más el total general (US-25)

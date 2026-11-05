@@ -32,6 +32,12 @@ public class ReporteVentasRepository : IReporteVentasRepository
             .Select(p => p.IdProducto)
             .ToList();
 
+        var idsMediaHoraPadel = ctx.Productos
+            .Where(p => p.Nombre.Trim().ToLower() == CalculadorReporteVentas.NombreProductoMediaHoraPadel.ToLower())
+            .Select(p => p.IdProducto)
+            .ToList();
+        idsPadel.AddRange(idsMediaHoraPadel);
+
         // Costo actual de los productos vendidos (los detalles de turnos no tienen producto)
         var idsVendidos = ventas.SelectMany(v => v.Detalles)
             .Where(d => d.IdProducto.HasValue)
@@ -43,6 +49,10 @@ public class ReporteVentasRepository : IReporteVentasRepository
             .Select(p => new { p.IdProducto, p.PrecioCosto })
             .ToList()
             .ToDictionary(p => p.IdProducto, p => p.PrecioCosto);
+        var idsAlmacen = ctx.Productos
+            .Where(p => p.Categoria.Nombre.ToLower() == "almacen")
+            .Select(p => p.IdProducto)
+            .ToHashSet();
 
         var idsClientes = ventas.Select(v => v.IdCliente).Distinct().ToList();
         var clientes = ctx.Clientes
@@ -62,7 +72,9 @@ public class ReporteVentasRepository : IReporteVentasRepository
         {
             Ventas = ventas,
             IdsProductosPadel = new HashSet<int>(idsPadel),
+            IdsProductosMediaHoraPadel = new HashSet<int>(idsMediaHoraPadel),
             CostosProductos = costos,
+            IdsProductosAlmacen = idsAlmacen,
             Clientes = clientes,
             Empleados = empleados
         };

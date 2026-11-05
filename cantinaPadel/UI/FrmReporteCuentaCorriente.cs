@@ -7,7 +7,7 @@ namespace cantinaPadel.UI;
 
 public sealed class FrmReporteCuentaCorriente : Form
 {
-    private const int FilasPorPagina = 25;
+    private const int FilasPorPagina = 10;
     private static readonly CultureInfo Es = new("es-AR");
     private readonly LogicaReporteCuentaCorriente _logica = new();
     private readonly TextBox _buscar = new();
@@ -166,7 +166,7 @@ public sealed class FrmReporteCuentaCorriente : Form
             RowCount = 1
         };
         pie.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        pie.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 150));
+        pie.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 315));
         pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         var resumen = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 1, RowCount = 2 };
@@ -187,12 +187,14 @@ public sealed class FrmReporteCuentaCorriente : Form
         resumen.Controls.Add(_totalCobrar, 0, 1);
 
         var paginacion = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 3, RowCount = 1 };
-        paginacion.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 34));
+        paginacion.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 102));
         paginacion.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        paginacion.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 34));
+        paginacion.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 102));
         paginacion.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        ConfigurarBotonPagina(_anterior, "<");
-        ConfigurarBotonPagina(_siguiente, ">");
+        ConfigurarBotonPagina(_anterior, "‹ Anterior");
+        ConfigurarBotonPagina(_siguiente, "Siguiente ›");
+        _anterior.Dock = DockStyle.Fill;
+        _siguiente.Dock = DockStyle.Fill;
         _paginaTexto.Dock = DockStyle.Fill;
         _paginaTexto.Margin = new Padding(2, 0, 2, 0);
         _paginaTexto.TextAlign = ContentAlignment.MiddleCenter;
@@ -304,12 +306,12 @@ public sealed class FrmReporteCuentaCorriente : Form
     private static void ConfigurarBotonPagina(Button boton, string texto)
     {
         boton.Text = texto;
-        boton.Size = new Size(26, 26);
+        boton.Size = new Size(98, 30);
         boton.Anchor = AnchorStyles.None;
-        boton.Margin = Padding.Empty;
+        boton.Margin = new Padding(2);
         boton.BackColor = SystemColors.Info;
         boton.ForeColor = SystemColors.GrayText;
-        boton.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        boton.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
         boton.FlatStyle = FlatStyle.Flat;
         boton.FlatAppearance.BorderSize = 0;
     }

@@ -73,8 +73,7 @@ namespace cantinaPadel.UI
                     lista = lista.Where(h => !h.Activo).ToList();
                 }
 
-                dgvHorarios.DataSource = null;
-                dgvHorarios.DataSource = lista.Select(h => new
+                PaginadorGrilla.Mostrar(dgvHorarios, lista.Select(h => new
                 {
                     h.IdHorario,
                     Cancha = h.Cancha?.Nombre ?? "-",
@@ -82,7 +81,7 @@ namespace cantinaPadel.UI
                     HoraInicio = h.HoraInicio.ToString(@"hh\:mm"),
                     HoraFin = h.HoraFin.ToString(@"hh\:mm"),
                     h.Activo
-                }).ToList();
+                }).ToList());
 
                 if (dgvHorarios.Columns["IdHorario"] is DataGridViewColumn colId)
                     colId.Visible = false;
