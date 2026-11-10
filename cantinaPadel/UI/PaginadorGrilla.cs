@@ -7,7 +7,7 @@ namespace cantinaPadel.UI;
 /// <summary>Pages a grid in groups of ten while keeping the complete filtered set in memory.</summary>
 internal sealed class PaginadorGrilla
 {
-    private const int TamanoPagina = 10;
+    private const int TamanoPagina = 20;
     private static readonly ConditionalWeakTable<DataGridView, PaginadorGrilla> Instancias = new();
     private readonly DataGridView _grilla;
     private readonly Label _estado = new() { AutoSize = true, TextAlign = System.Drawing.ContentAlignment.MiddleCenter, Padding = new Padding(8, 5, 8, 0) };
