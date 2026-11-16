@@ -203,12 +203,12 @@ namespace cantinaPadel.Tests
             var logica = CrearLogica(turnoRepo, canchaRepo, horarioCanchaRepo: horarioCanchaRepo);
 
             logica.RegistrarAlquiler(IdClienteValido, IdEmpleadoValido, IdCanchaValida, domingo,
-                new TimeSpan(1, 30, 0), new TimeSpan(2, 30, 0), LogicaTurnoDia.ModalidadAnual);
+                new TimeSpan(1, 0, 0), new TimeSpan(2, 0, 0), LogicaTurnoDia.ModalidadAnual);
 
             var horarios = logica.ObtenerHorarios(IdCanchaValida, domingo);
 
-            Assert.HasCount(1, horarios.Where(h => h.Horario == "01:30 - 02:30"));
-            Assert.IsTrue(horarios.Single(h => h.Horario == "01:30 - 02:30").Disponible == false);
+            Assert.HasCount(1, horarios.Where(h => h.Horario == "01:00 - 02:00"));
+            Assert.IsTrue(horarios.Single(h => h.Horario == "01:00 - 02:00").Disponible == false);
         }
 
         // CancelarTurno
@@ -312,7 +312,7 @@ namespace cantinaPadel.Tests
         [TestMethod]
         public void ObtenerHorarios_Hoy_NoListaLosHorariosQueYaPasaronOEstanEnCurso()
         {
-            // Son las 16:30: no deben aparecer ni el de las 16:00 (en curso) ni el de las 16:30 (recién empieza)
+            // Son las 16:30: no deben aparecer ni el de las 16:00 (en curso) ni turnos que empiecen a y media
             var canchaRepo = new CanchaRepositoryFake();
             canchaRepo.Cargar(CrearCanchaActiva());
             var logica = CrearLogica(canchaRepo: canchaRepo, ahora: HoyA(16, 30));
@@ -324,7 +324,7 @@ namespace cantinaPadel.Tests
             Assert.IsFalse(horarios.Any(h => h.Horario == "16:30 - 17:30"));
             Assert.IsTrue(horarios.All(h => h.HoraInicio > new TimeSpan(16, 30, 0)));
             Assert.AreEqual("17:00 - 18:00", horarios.First().Horario);
-            Assert.HasCount(11, horarios);
+            Assert.HasCount(6, horarios);
             Assert.IsTrue(horarios.All(h => h.Disponible));
         }
 
@@ -348,7 +348,7 @@ namespace cantinaPadel.Tests
 
             var horarios = logica.ObtenerHorarios(IdCanchaValida, DateTime.Today.AddDays(1));
 
-            Assert.HasCount(29, horarios);
+            Assert.HasCount(15, horarios);
             Assert.AreEqual("08:00 - 09:00", horarios.First().Horario);
         }
 
@@ -375,10 +375,10 @@ namespace cantinaPadel.Tests
 
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
-            Assert.HasCount(29, horarios);
+            Assert.HasCount(15, horarios);
             var franjaOcupada = horarios.Single(h => h.Horario == "10:00 - 11:00");
             Assert.IsFalse(franjaOcupada.Disponible);
-            Assert.AreEqual(26, horarios.Count(h => h.Disponible));
+            Assert.AreEqual(14, horarios.Count(h => h.Disponible));
         }
 
         [TestMethod]
@@ -398,10 +398,10 @@ namespace cantinaPadel.Tests
             });
             var logica = CrearLogica(canchaRepo: canchaRepo, horarioCanchaRepo: horarioRepo);
 
-            // Banda cargada: 09:00-12:00. Con duración 1h, los inicios posibles son 09:00, 09:30, 10:00, 10:30 y 11:00 (5 en total)
+            // Banda cargada: 09:00-12:00. Solo se ofrecen los inicios en punto que completan la hora: 09:00 y 10:00.
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
-            Assert.HasCount(5, horarios);
+            Assert.HasCount(2, horarios);
             Assert.IsTrue(horarios.All(h => h.HoraInicio >= new TimeSpan(9, 0, 0) && h.HoraFin <= new TimeSpan(12, 0, 0)));
         }
 
@@ -424,7 +424,7 @@ namespace cantinaPadel.Tests
 
             var horarios = logica.ObtenerHorarios(IdCanchaValida, fecha);
 
-            Assert.HasCount(9, horarios);
+            Assert.HasCount(5, horarios);
 
             // Las franjas de después de medianoche siguen mostrando la hora de reloj real (00:00-01:00, no 24:00-25:00)
             Assert.IsTrue(horarios.Any(h => h.Horario == "00:00 - 01:00"));

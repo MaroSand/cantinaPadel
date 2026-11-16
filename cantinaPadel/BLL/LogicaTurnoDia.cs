@@ -27,8 +27,8 @@ namespace cantinaPadel.BLL
 
     public class LogicaTurnoDia
     {
-        // Paso mínimo entre horarios de inicio posibles
-        private static readonly TimeSpan GranularidadTurno = TimeSpan.FromMinutes(30);
+        // Los turnos solo pueden comenzar en horas en punto.
+        private static readonly TimeSpan GranularidadTurno = TimeSpan.FromHours(1);
 
         // Única duración de turno permitida.
         public static readonly TimeSpan DuracionTurno = TimeSpan.FromHours(1);
@@ -185,7 +185,7 @@ namespace cantinaPadel.BLL
                 throw new ArgumentException("La cancha seleccionada no existe o está inactiva.");
 
             // Si la franja cae en la madrugada de una banda que cruza medianoche, queda expresada igual que la devuelve
-            // ObtenerHorarios (ej: 01:30 -> 25:30), así validación, solapamientos y persistencia usan la misma representación
+            // ObtenerHorarios (ej: 01:00 -> 25:00), así validación, solapamientos y persistencia usan la misma representación
             (horaInicio, horaFin) = ValidarFranja(idCancha, fechaInicio, horaInicio, horaFin);
 
             // El primer turno no puede ser un horario que ya pasó o está en curso (ej: a las 16:30 no se reserva el de las 16:00).
@@ -269,7 +269,7 @@ namespace cantinaPadel.BLL
         }
 
         // Un horario "ya inició" cuando su hora de comienzo es igual o anterior a la hora actual.
-        // horaInicio puede superar las 24hs (banda que cruza medianoche, ej: 25:30 = 01:30 del día siguiente), por eso se suma a la fecha
+        // horaInicio puede superar las 24hs (banda que cruza medianoche, ej: 25:00 = 01:00 del día siguiente), por eso se suma a la fecha
         private static bool YaIniciado(DateTime fecha, TimeSpan horaInicio, DateTime ahora) =>
             fecha.Date + horaInicio <= ahora;
 
@@ -295,11 +295,14 @@ namespace cantinaPadel.BLL
 
         // Valida la franja contra las bandas configuradas y la devuelve normalizada
         // Una banda que cruza medianoche (ej: Domingo 08:00-03:00) se maneja como 08:00-27:00, por lo que un turno de madrugada
-        // pedido con hora de reloj (01:30-02:30) se corre +24hs (25:30-26:30) para que coincida con lo que ofrece ObtenerHorarios
+        // pedido con hora de reloj (01:00-02:00) se corre +24hs (25:00-26:00) para que coincida con lo que ofrece ObtenerHorarios
         private (TimeSpan Inicio, TimeSpan Fin) ValidarFranja(int idCancha, DateTime fecha, TimeSpan horaInicio, TimeSpan horaFin)
         {
             if (horaFin <= horaInicio)
                 throw new ArgumentException("La hora de fin debe ser posterior a la hora de inicio.");
+
+            if (horaInicio.Ticks % GranularidadTurno.Ticks != 0)
+                throw new ArgumentException("La hora de inicio debe estar en punto.");
 
             ValidarDuracionTurno(horaFin - horaInicio);
 
@@ -329,7 +332,7 @@ namespace cantinaPadel.BLL
         // Los horarios que cruzan la medianoche (ej: Lunes 20:00 a 02:00) siguen perteneciendo al día en el
         // que arrancan (HorarioCancha.CruzaMedianoche), así que acá se usa HoraFinNormalizada (+24hs)
         // como fin de esa banda. Así, GenerarInicios/ObtenerHorarios generan también los turnos de después de
-        // medianoche (ej: 00:30-01:30) para ese mismo día, en vez de perderlos. El turno sigue quedando
+        // medianoche (ej: 00:00-01:00) para ese mismo día, en vez de perderlos. El turno sigue quedando
         // asociado a la fecha en la que arrancó la banda: TimeSpan admite valores mayores a 24hs sin problema,
         // y al formatearlos (hh:mm) muestran igual la hora de reloj real
         private List<(TimeSpan Inicio, TimeSpan Fin)> ObtenerBandasHorarias(int idCancha, DateTime fecha)
@@ -344,7 +347,8 @@ namespace cantinaPadel.BLL
         }
 
         // Genera todas las horas de inicio posibles dentro de las bandas dadas, cada GranularidadTurno
-        // (ej: banda 08:00-12:00 -> 08:00, 08:30, ..., 11:30). Cada inicio viaja con el fin de su banda,
+        // (ej: banda 08:00-12:00 -> 08:00, 09:00, 10:00 y 11:00). Si una banda empieza a y media,
+        // el primer turno se ofrece desde la siguiente hora en punto. Cada inicio viaja con el fin de su banda,
         // para que ObtenerHorarios pueda chequear que la duración elegida entra sin saltar a la banda siguiente
         private static List<(TimeSpan Inicio, TimeSpan FinBanda)> GenerarInicios(List<(TimeSpan Inicio, TimeSpan Fin)> bandas)
         {
@@ -352,7 +356,12 @@ namespace cantinaPadel.BLL
 
             foreach (var banda in bandas)
             {
-                for (var inicio = banda.Inicio; inicio < banda.Fin; inicio += GranularidadTurno)
+                var resto = banda.Inicio.Ticks % GranularidadTurno.Ticks;
+                var primerInicio = resto == 0
+                    ? banda.Inicio
+                    : banda.Inicio + GranularidadTurno - TimeSpan.FromTicks(resto);
+
+                for (var inicio = primerInicio; inicio < banda.Fin; inicio += GranularidadTurno)
                 {
                     inicios.Add((inicio, banda.Fin));
                 }

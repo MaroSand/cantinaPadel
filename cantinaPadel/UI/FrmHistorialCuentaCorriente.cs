@@ -133,8 +133,6 @@ public sealed class FrmHistorialCuentaCorriente : Form
                 fila.DefaultCellStyle.SelectionForeColor = Color.FromArgb(35, 45, 35);
             }
         };
-        PaginadorGrilla.Mostrar(grilla, movimientos);
-
         var pie = new Panel { Dock = DockStyle.Fill, Padding = new Padding(12, 7, 12, 7), BackColor = SystemColors.Info };
         var cerrar = new Button { Text = "Cerrar", Size = new Size(110, 36), Dock = DockStyle.Right, BackColor = Color.White, FlatStyle = FlatStyle.Flat };
         pie.Controls.Add(cerrar);
@@ -144,5 +142,6 @@ public sealed class FrmHistorialCuentaCorriente : Form
         layout.Controls.Add(grilla, 0, 1);
         layout.Controls.Add(pie, 0, 2);
         Controls.Add(layout);
+        PaginadorGrilla.Mostrar(grilla, movimientos);
     }
 }

@@ -7,7 +7,7 @@ namespace cantinaPadel.UI;
 
 public sealed class FrmReporteCuentaCorriente : Form
 {
-    private const int FilasPorPagina = 10;
+    private const int FilasPorPagina = 20;
     private static readonly CultureInfo Es = new("es-AR");
     private readonly LogicaReporteCuentaCorriente _logica = new();
     private readonly TextBox _buscar = new();

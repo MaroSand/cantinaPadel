@@ -17,6 +17,9 @@ public sealed class FrmReporteCajas : Form
     private readonly System.Windows.Forms.Timer _debounce = new() { Interval = 300 };
     private readonly DateTimePicker _desde = new();
     private readonly DateTimePicker _hasta = new();
+    private readonly Button _mesAnterior = new() { Text = "‹ Mes anterior", Width = 125, Height = 27 };
+    private readonly Button _mesSiguiente = new() { Text = "Mes siguiente ›", Width = 125, Height = 27 };
+    private readonly Label _mesSeleccionado = new() { AutoSize = false, Width = 150, Height = 27, TextAlign = ContentAlignment.MiddleCenter, Font = new Font("Segoe UI", 9F, FontStyle.Bold) };
     private readonly ComboBox _empleado = new();
     private readonly ComboBox _estado = new();
     private readonly DataGridView _grilla = new();
@@ -42,8 +45,13 @@ public sealed class FrmReporteCajas : Form
         _limpiar.Click += (_, _) =>
         {
             _desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1); _hasta.Value = DateTime.Today;
-            _empleado.SelectedIndex = _empleado.Items.Count > 0 ? 0 : -1; _estado.SelectedIndex = 0; Buscar();
+            _empleado.SelectedIndex = _empleado.Items.Count > 0 ? 0 : -1; _estado.SelectedIndex = 0;
+            ActualizarNavegacionMes();
+            _debounce.Stop();
+            Buscar();
         };
+        _mesAnterior.Click += (_, _) => NavegarMes(-1);
+        _mesSiguiente.Click += (_, _) => NavegarMes(1);
         _csv.Click += (_, _) => Exportar(Formato.Csv); _excel.Click += (_, _) => Exportar(Formato.Excel); _pdf.Click += (_, _) => Exportar(Formato.Pdf);
         _debounce.Tick += (_, _) => { _debounce.Stop(); Buscar(); };
         Disposed += (_, _) => _debounce.Dispose();
@@ -53,16 +61,22 @@ public sealed class FrmReporteCajas : Form
     {
         var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
         contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 110));
         contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 154));
 
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 2 };
+        var filtros = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 3 };
         foreach (var ancho in new[] { 17f, 17f, 25f, 23f, 18f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        AgregarFiltro(filtros, 0, "Desde", _desde); AgregarFiltro(filtros, 1, "Hasta", _hasta);
-        AgregarFiltro(filtros, 2, "Empleado", _empleado); AgregarFiltro(filtros, 3, "Estado", _estado);
-        _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat; filtros.Controls.Add(_limpiar, 4, 1);
+        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+        filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
+        navegacion.Controls.AddRange(new Control[] { _mesAnterior, _mesSeleccionado, _mesSiguiente });
+        filtros.Controls.Add(navegacion, 0, 0);
+        filtros.SetColumnSpan(navegacion, 5);
+        AgregarFiltro(filtros, 0, "Desde", _desde, 1, 2); AgregarFiltro(filtros, 1, "Hasta", _hasta, 1, 2);
+        AgregarFiltro(filtros, 2, "Empleado", _empleado, 1, 2); AgregarFiltro(filtros, 3, "Estado", _estado, 1, 2);
+        _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat; filtros.Controls.Add(_limpiar, 4, 2);
 
         _grilla.Dock = DockStyle.Fill; _grilla.Margin = Padding.Empty; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false; _grilla.MultiSelect = false;
         _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false; _grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -112,11 +126,13 @@ public sealed class FrmReporteCajas : Form
             _desde.Format = DateTimePickerFormat.Custom;
             _hasta.Format = DateTimePickerFormat.Custom;
             _desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1); _hasta.Value = DateTime.Today;
+            ActualizarNavegacionMes();
             _empleado.DropDownStyle = ComboBoxStyle.DropDownList; _empleado.Items.Add(new OpcionEmpleado(null, "Todos los empleados"));
             _empleado.Items.AddRange(_logicaVentas.ObtenerEmpleados().Select(e => new OpcionEmpleado(e.Id, e.Texto)).Cast<object>().ToArray()); _empleado.SelectedIndex = 0;
             _estado.DropDownStyle = ComboBoxStyle.DropDownList; _estado.Items.AddRange(new object[] { "Todos", TurnoCaja.EstadoCerrada, TurnoCaja.EstadoAbierta }); _estado.SelectedIndex = 0;
             Buscar();
-            _desde.ValueChanged += (_, _) => ProgramarBusqueda(); _hasta.ValueChanged += (_, _) => ProgramarBusqueda();
+            _desde.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
+            _hasta.ValueChanged += (_, _) => { ActualizarNavegacionMes(); ProgramarBusqueda(); };
             _empleado.SelectedIndexChanged += (_, _) => ProgramarBusqueda(); _estado.SelectedIndexChanged += (_, _) => ProgramarBusqueda();
         }
         catch (Exception ex) { MessageBox.Show(this, $"No se pudieron cargar los datos: {ex.Message}", "Reporte de cajas", MessageBoxButtons.OK, MessageBoxIcon.Error); }
@@ -213,42 +229,73 @@ public sealed class FrmReporteCajas : Form
         _grilla.Columns.Add(col);
     }
     private void ProgramarBusqueda() { _debounce.Stop(); _debounce.Start(); }
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control)
+    private void NavegarMes(int desplazamiento)
     {
-        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, 0);
-        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, 1);
+        var mes = new DateTime(_desde.Value.Year, _desde.Value.Month, 1).AddMonths(desplazamiento);
+        var hoy = DateTime.Today;
+        var hasta = mes.Year == hoy.Year && mes.Month == hoy.Month ? hoy : mes.AddMonths(1).AddDays(-1);
+        _desde.Value = mes;
+        _hasta.Value = hasta;
+        _debounce.Stop();
+        ActualizarNavegacionMes();
+        Buscar();
+    }
+    private void ActualizarNavegacionMes()
+    {
+        var mes = new DateTime(_desde.Value.Year, _desde.Value.Month, 1);
+        _mesSeleccionado.Text = mes.ToString("MMMM yyyy", Es);
+        var hoy = DateTime.Today;
+        _mesSiguiente.Enabled = mes < new DateTime(hoy.Year, hoy.Month, 1);
+    }
+    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control)
+        => AgregarFiltro(panel, col, titulo, control, 0, 1);
+    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control, int filaTitulo, int filaControl)
+    {
+        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, filaTitulo);
+        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, filaControl);
     }
     private static Button Boton(string texto, Color color) => new() { Text = texto, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0), BackColor = color, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Enabled = false };
     private static Control CrearTarjetaTotal(string titulo, Label importe, bool sinMargenDerecho = false)
     {
-        var tarjeta = new TableLayoutPanel
+        var tarjeta = new Panel
         {
             Dock = DockStyle.Fill,
             Margin = new Padding(0, 0, sinMargenDerecho ? 0 : 8, 0),
-            Padding = new Padding(10, 4, 10, 4),
-            BackColor = Color.FromArgb(255, 248, 220),
-            ColumnCount = 1,
-            RowCount = 2
+            Padding = new Padding(10, 6, 10, 5),
+            BackColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle
         };
-        tarjeta.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        tarjeta.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
-        tarjeta.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        tarjeta.Controls.Add(new Label
+        var acento = new Panel { Dock = DockStyle.Left, Width = 4, BackColor = Color.DarkGoldenrod };
+        var contenido = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            Padding = new Padding(8, 0, 0, 0),
+            Margin = Padding.Empty,
+            BackColor = Color.White
+        };
+        contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        contenido.Controls.Add(new Label
         {
             Text = titulo,
             Dock = DockStyle.Fill,
             Margin = Padding.Empty,
             Font = new Font("Segoe UI", 8.5F, FontStyle.Bold),
-            ForeColor = SystemColors.GrayText,
+            ForeColor = Color.DimGray,
             TextAlign = ContentAlignment.MiddleLeft
         }, 0, 0);
         importe.Dock = DockStyle.Fill;
         importe.Margin = Padding.Empty;
-        importe.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+        importe.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
         importe.ForeColor = Color.FromArgb(45, 55, 45);
         importe.TextAlign = ContentAlignment.MiddleLeft;
         importe.AutoEllipsis = true;
-        tarjeta.Controls.Add(importe, 0, 1);
+        contenido.Controls.Add(importe, 0, 1);
+        tarjeta.Controls.Add(contenido);
+        tarjeta.Controls.Add(acento);
         return tarjeta;
     }
     private void HabilitarExportacion(bool valor) { _csv.Enabled = valor; _excel.Enabled = valor; _pdf.Enabled = valor; }
