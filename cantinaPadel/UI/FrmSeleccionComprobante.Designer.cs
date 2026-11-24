@@ -232,20 +232,20 @@
             // 
             // btnCancelar
             // 
-            btnCancelar.Location = new Point(71, 14);
+            btnCancelar.Location = new Point(313, 14);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new Size(75, 23);
-            btnCancelar.TabIndex = 0;
+            btnCancelar.TabIndex = 1;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = true;
             // 
             // btnConfirmar
             // 
             btnConfirmar.BackColor = SystemColors.ControlLightLight;
-            btnConfirmar.Location = new Point(219, 14);
+            btnConfirmar.Location = new Point(226, 14);
             btnConfirmar.Name = "btnConfirmar";
             btnConfirmar.Size = new Size(75, 23);
-            btnConfirmar.TabIndex = 1;
+            btnConfirmar.TabIndex = 0;
             btnConfirmar.Text = "Confirmar";
             btnConfirmar.UseVisualStyleBackColor = false;
             btnConfirmar.Click += btnConfirmar_Click;

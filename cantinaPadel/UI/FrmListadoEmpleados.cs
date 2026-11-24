@@ -17,6 +17,10 @@ namespace cantinaPadel.UI
         {
             InitializeComponent();
             _logicaEmpleado = new LogicaEmpleado();
+            ConvencionVistasPersonas.ConfigurarListado(
+                this, panelFiltros, panelAcciones, label1, txtBuscarNombre, label2, cmbEstado,
+                btnNuevo, btnModificar, btnBajaLogica, dgvEmpleados);
+            txtBuscarNombre.PlaceholderText = "Nombre, usuario o DNI";
         }
 
         private void FrmListadoEmpleados_Load(object sender, EventArgs e)
@@ -144,13 +148,9 @@ namespace cantinaPadel.UI
 
         private void btnNuevo_Click(object sender, EventArgs e)
         {
-            // Se busca la instancia del formulario principal MDI/Contenedor
-            if (this.ParentForm is FrmMain mainForm)
-            {
-                // Redirige incrustando el CRUD vacío en el panel principal
-                FrmCRUDEmpleado frmCrud = new FrmCRUDEmpleado();
-                mainForm.AbrirEnPanel(frmCrud);
-            }
+            using var formulario = new FrmCRUDEmpleado();
+            formulario.ShowDialog();
+            CargarDatosDesdeBase();
         }
 
         private void btnModificar_Click(object sender, EventArgs e)
@@ -161,20 +161,19 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            if (this.ParentForm is FrmMain mainForm)
+            dynamic filaSeleccionada = dgvEmpleados.CurrentRow.DataBoundItem;
+            int idEmpleado = filaSeleccionada.IdEmpleado;
+            Empleado? empleadoAEditar = _listaOriginal?.FirstOrDefault(x => x.IdEmpleado == idEmpleado);
+            if (empleadoAEditar == null)
             {
-                dynamic filaSeleccionada = dgvEmpleados.CurrentRow.DataBoundItem;
-                int idEmpleado = filaSeleccionada.IdEmpleado;
-
-                Empleado? empleadoAEditar = _listaOriginal?.FirstOrDefault(x => x.IdEmpleado == idEmpleado);
-
-                if (empleadoAEditar != null)
-                {
-                    // Redirige incrustando el CRUD con los datos en el panel principal
-                    FrmCRUDEmpleado frmCrud = new FrmCRUDEmpleado(empleadoAEditar);
-                    mainForm.AbrirEnPanel(frmCrud);
-                }
+                MessageBox.Show(this, "No se encontraron los datos del empleado seleccionado. Actualice la lista e inténtelo otra vez.", "Empleado no disponible",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
+
+            using var formulario = new FrmCRUDEmpleado(empleadoAEditar);
+            formulario.ShowDialog();
+            CargarDatosDesdeBase();
         }
 
         // Método de dar de baja / alta lógica unificado con el nombre del botón de diseño

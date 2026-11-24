@@ -24,6 +24,7 @@ namespace cantinaPadel.UI
             CargarCondicionesIva();
             ConfigurarControlesRoles();
             ConfigurarFormatoCuit();
+            ConvencionCrudPersonas.Configurar(this, panel1, label10, btnGuardar.Parent!, btnCancelar, btnGuardar);
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _empleadoEdicion = null;
             Text = "Nuevo Empleado";
@@ -53,15 +54,12 @@ namespace cantinaPadel.UI
 
         private void ConfigurarControlesRoles()
         {
-            ClientSize = new Size(ClientSize.Width, 540);
-            btnCancelar.Location = new Point(btnCancelar.Location.X, 460);
-            btnGuardar.Location = new Point(btnGuardar.Location.X, 460);
-            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(34, 360), AutoSize = true };
-            lblEmailCliente = new Label { Text = "Email cliente: *", Location = new Point(34, 400), AutoSize = true };
-            txtEmailCliente = new TextBox { Location = new Point(200, 393), Size = new Size(200, 27), MaxLength = 100 };
-            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(431, 360), AutoSize = true };
-            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(431, 400), AutoSize = true };
-            txtNombreEmpresa = new TextBox { Location = new Point(601, 393), Size = new Size(250, 27), MaxLength = 50 };
+            chkEsCliente = new CheckBox { Text = "También es cliente", Location = new Point(34, 370), AutoSize = true };
+            lblEmailCliente = new Label { Text = "Email cliente: *", Location = new Point(34, 410), AutoSize = true };
+            txtEmailCliente = new TextBox { Location = new Point(200, 403), Size = new Size(200, 27), MaxLength = 100 };
+            chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(431, 370), AutoSize = true };
+            lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(431, 410), AutoSize = true };
+            txtNombreEmpresa = new TextBox { Location = new Point(601, 403), Size = new Size(250, 27), MaxLength = 50 };
 
             chkEsCliente.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
             chkEsProveedor.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
@@ -172,7 +170,8 @@ namespace cantinaPadel.UI
 
                 MessageBox.Show("Empleado guardado correctamente.", "Éxito",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
-                RegresarAlListado();
+                DialogResult = DialogResult.OK;
+                Close();
             }
             catch (ArgumentException ex)
             {
@@ -186,19 +185,7 @@ namespace cantinaPadel.UI
 
         private void btnCancelar_Click(object sender, EventArgs e)
         {
-            RegresarAlListado();
-        }
-
-        private void RegresarAlListado()
-        {
-            if (ParentForm is FrmMain mainForm)
-            {
-                FrmListadoEmpleados listado = new FrmListadoEmpleados();
-                mainForm.AbrirEnPanel(listado);
-                return;
-            }
-
-            DialogResult = DialogResult.OK;
+            DialogResult = DialogResult.Cancel;
             Close();
         }
 

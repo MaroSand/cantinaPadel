@@ -28,9 +28,9 @@ public sealed class FrmReporteCompras : Form
     private readonly Label _montoActual = new();
     private readonly Label _montoAnterior = new();
     private readonly Label _montoVariacion = new();
-    private readonly Button _csv = Boton("Exportar CSV", Color.SteelBlue);
-    private readonly Button _excel = Boton("Exportar Excel", Color.ForestGreen);
-    private readonly Button _pdf = Boton("Exportar PDF", Color.IndianRed);
+    private readonly Button _csv = ConvencionReportes.CrearBotonExportar("Exportar CSV", Color.SteelBlue);
+    private readonly Button _excel = ConvencionReportes.CrearBotonExportar("Exportar Excel", Color.ForestGreen);
+    private readonly Button _pdf = ConvencionReportes.CrearBotonExportar("Exportar PDF", Color.IndianRed);
     private readonly Button _limpiar = new();
     private List<Compra> _compras = new();
     private string _filtros = string.Empty;
@@ -87,31 +87,47 @@ public sealed class FrmReporteCompras : Form
 
     private void Construir()
     {
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Top, Height = 110, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 3 };
-        foreach (var ancho in new[] { 16f, 16f, 27f, 25f, 16f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
-        navegacion.Controls.AddRange(new Control[] { _mesAnterior, _mesSeleccionado, _mesSiguiente });
-        filtros.Controls.Add(navegacion, 0, 0); filtros.SetColumnSpan(navegacion, 5);
-        AgregarFiltro(filtros, 0, "Desde", _desde, 1, 2); AgregarFiltro(filtros, 1, "Hasta", _hasta, 1, 2);
-        _proveedor.DropDownStyle = ComboBoxStyle.DropDownList;
-        AgregarFiltro(filtros, 2, "Proveedor", _proveedor, 1, 2); AgregarFiltro(filtros, 3, "Producto o código", _producto, 1, 2);
-        _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat;
-        filtros.Controls.Add(_limpiar, 4, 2);
+        var contenido = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            BackColor = SystemColors.Info,
+            ColumnCount = 1,
+            RowCount = 3
+        };
+        contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 142));
 
-        _grilla.Dock = DockStyle.Fill; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false;
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarNavegacionMes(filtros, _mesAnterior, _mesSeleccionado, _mesSiguiente);
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Desde", _desde);
+        ConvencionReportes.AgregarFiltro(filtros, 1, "Hasta", _hasta);
+        _proveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+        ConvencionReportes.AgregarFiltro(filtros, 2, "Proveedor", _proveedor);
+        ConvencionReportes.AgregarFiltro(filtros, 3, "Producto o código", _producto, 2);
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, _limpiar, "Limpiar");
+
+        _grilla.Dock = DockStyle.Fill; ConvencionReportes.ConfigurarMargenGrilla(_grilla); _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false;
         _grilla.MultiSelect = false; _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false;
         _grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill; _grilla.RowTemplate.Height = 30; _grilla.ColumnHeadersHeight = 34;
         _grilla.BackgroundColor = Color.White; _grilla.GridColor = SystemColors.ControlLight; _grilla.AutoGenerateColumns = false;
         AddCol("IdCompra", "N.º compra", 8); AddCol("Fecha", "Fecha", 14, "dd/MM/yyyy HH:mm"); AddCol("Proveedor", "Proveedor", 17);
         AddCol("Productos", "Productos", 26); AddCol("Unidades", "Unid.", 7); AddCol("Comprobante", "Comprobante", 11);
         AddCol("Empleado", "Empleado", 11); AddCol("Total", "Total", 12, "C2");
+        _grilla.CellDoubleClick += (_, e) =>
+        {
+            if (e.RowIndex < 0 || _grilla.Rows[e.RowIndex].DataBoundItem is not FilaCompra fila) return;
+            AbrirDetalleCompra(fila.IdCompra);
+        };
 
         var pie = new TableLayoutPanel
         {
-            Dock = DockStyle.Bottom,
-            Height = 142,
-            Padding = new Padding(12, 8, 12, 6),
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = new Padding(12, 5, 12, 8),
             BackColor = SystemColors.Info,
             ColumnCount = 1,
             RowCount = 2
@@ -131,7 +147,7 @@ public sealed class FrmReporteCompras : Form
         filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 470));
         filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         filaAcciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        var botones = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 2, 0, 0), Margin = Padding.Empty };
+        var botones = ConvencionReportes.CrearContenedorBotonesExportar();
         botones.Controls.AddRange(new Control[] { _csv, _excel, _pdf });
         _resumen.Dock = DockStyle.Fill;
         _resumen.TextAlign = ContentAlignment.MiddleRight;
@@ -141,7 +157,10 @@ public sealed class FrmReporteCompras : Form
         filaAcciones.Controls.Add(_resumen, 1, 0);
         pie.Controls.Add(tarjetas, 0, 0);
         pie.Controls.Add(filaAcciones, 0, 1);
-        Controls.Add(_grilla); Controls.Add(pie); Controls.Add(filtros);
+        contenido.Controls.Add(filtros, 0, 0);
+        contenido.Controls.Add(_grilla, 0, 1);
+        contenido.Controls.Add(pie, 0, 2);
+        Controls.Add(contenido);
     }
 
     private void AddCol(string name, string title, float weight, string? format = null)
@@ -149,12 +168,6 @@ public sealed class FrmReporteCompras : Form
         var col = new DataGridViewTextBoxColumn { Name = name, DataPropertyName = name, HeaderText = title, FillWeight = weight };
         if (format != null) col.DefaultCellStyle = new DataGridViewCellStyle { Format = format, FormatProvider = Es, Alignment = DataGridViewContentAlignment.MiddleRight };
         _grilla.Columns.Add(col);
-    }
-
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control, int filaTitulo = 0, int filaControl = 1)
-    {
-        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, filaTitulo);
-        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, filaControl);
     }
 
     private void NavegarMes(int desplazamiento)
@@ -235,6 +248,28 @@ public sealed class FrmReporteCompras : Form
 
     private void ProgramarBusqueda() { _debounce.Stop(); _debounce.Start(); }
 
+    private void AbrirDetalleCompra(int idCompra)
+    {
+        try
+        {
+            var compra = _logica.ObtenerPorId(idCompra);
+            if (compra == null)
+            {
+                MessageBox.Show(this, "La compra seleccionada ya no existe.", "Compra no encontrada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Buscar();
+                return;
+            }
+
+            using var detalle = new FrmDetalleCompra(compra);
+            detalle.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            MostrarError("No se pudo cargar el detalle de la compra", ex);
+        }
+    }
+
     private void Exportar(Formato formato)
     {
         if (_compras.Count == 0) return;
@@ -256,7 +291,6 @@ public sealed class FrmReporteCompras : Form
     }
 
     private void HabilitarExportacion(bool habilitado) { _csv.Enabled = habilitado; _excel.Enabled = habilitado; _pdf.Enabled = habilitado; }
-    private static Button Boton(string texto, Color color) => new() { Text = texto, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0), BackColor = color, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Enabled = false };
     private static Control CrearTarjetaComparacion(string titulo, Label actual, Label anterior, Label variacion, bool sinMargenDerecho = false)
     {
         var tarjeta = new Panel

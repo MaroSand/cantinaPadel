@@ -29,6 +29,7 @@ namespace cantinaPadel.UI
             CargarCondicionesIva();
             ConfigurarControlesRoles();
             ConfigurarFormatoCuit();
+            ConvencionCrudPersonas.Configurar(this, panelHeader, lblTitulo, btnGuardar.Parent!, btnCancelar, btnGuardar);
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _proveedorEdicion = null;
             this.Text = "Nuevo Proveedor";
@@ -61,8 +62,6 @@ namespace cantinaPadel.UI
 
         private void ConfigurarControlesRoles()
         {
-            ClientSize = new Size(1040, 690);
-            panelHeader.Size = new Size(1040, panelHeader.Height);
             panelCuerpo.AutoScroll = true;
 
             int labelIzq = 35;
@@ -117,11 +116,6 @@ namespace cantinaPadel.UI
             cmbRolEmpleado = new ComboBox { Location = new Point(inputDer, 458), Size = new Size(inputSize.Width, 40), DropDownStyle = ComboBoxStyle.DropDownList };
             cmbRolEmpleado.Items.AddRange(new object[] { "Admin", "Empleado" });
             cmbRolEmpleado.SelectedIndex = 1;
-
-            btnCancelar.Location = new Point(100, 535);
-            btnCancelar.Size = new Size(380, 58);
-            btnGuardar.Location = new Point(555, 535);
-            btnGuardar.Size = new Size(380, 58);
 
             chkEsCliente.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();
             chkEsEmpleado.CheckedChanged += (_, _) => ActualizarVisibilidadRoles();

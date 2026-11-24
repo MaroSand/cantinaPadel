@@ -79,16 +79,16 @@ namespace cantinaPadel.UI
             // Área inferior: subtotales completos arriba y comparación en dos tarjetas legibles.
             var panelResumen = new Panel { Dock = DockStyle.Fill, BackColor = SystemColors.Info, Padding = new Padding(12, 5, 12, 8) };
 
-            ConfigurarBotonExportar(btnCsv, "Exportar CSV", Color.SteelBlue);
-            ConfigurarBotonExportar(btnExcel, "Exportar Excel", Color.ForestGreen);
-            ConfigurarBotonExportar(btnPdf, "Exportar PDF", Color.IndianRed);
-            var botones = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 3, 0, 0) };
+            ConvencionReportes.ConfigurarBotonExportar(btnCsv, "Exportar CSV", Color.SteelBlue);
+            ConvencionReportes.ConfigurarBotonExportar(btnExcel, "Exportar Excel", Color.ForestGreen);
+            ConvencionReportes.ConfigurarBotonExportar(btnPdf, "Exportar PDF", Color.IndianRed);
+            var botones = ConvencionReportes.CrearContenedorBotonesExportar();
             botones.Controls.AddRange(new Control[] { btnCsv, btnExcel, btnPdf });
 
             var comparacion = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                Margin = new Padding(4, 2, 0, 0),
+                Margin = new Padding(0, 2, 0, 0),
                 ColumnCount = 1,
                 RowCount = 1,
                 BackColor = SystemColors.Info
@@ -107,8 +107,11 @@ namespace cantinaPadel.UI
             tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
             tarjetas.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            tarjetas.Controls.Add(CrearTarjetaComparacion("VENTAS", lblVentasActual, lblVentasAnterior, lblVentasVariacion), 0, 0);
-            tarjetas.Controls.Add(CrearTarjetaComparacion("GANANCIA", lblGananciaActual, lblGananciaAnterior, lblGananciaVariacion), 1, 0);
+            var tarjetaVentas = CrearTarjetaComparacion("VENTAS", lblVentasActual, lblVentasAnterior, lblVentasVariacion);
+            var tarjetaGanancia = CrearTarjetaComparacion("GANANCIA", lblGananciaActual, lblGananciaAnterior, lblGananciaVariacion);
+            tarjetaGanancia.Margin = Padding.Empty;
+            tarjetas.Controls.Add(tarjetaVentas, 0, 0);
+            tarjetas.Controls.Add(tarjetaGanancia, 1, 0);
             comparacion.Controls.Add(tarjetas, 0, 0);
 
             var pie = new TableLayoutPanel
@@ -133,7 +136,7 @@ namespace cantinaPadel.UI
             panelResumen.Controls.Add(dgvResumen);
 
             dgvVentas.Dock = DockStyle.Fill;
-            dgvVentas.Margin = new Padding(6, 5, 6, 5);
+            ConvencionReportes.ConfigurarMargenGrilla(dgvVentas);
 
             var contenido = new TableLayoutPanel
             {
@@ -145,7 +148,7 @@ namespace cantinaPadel.UI
                 BackColor = SystemColors.Info
             };
             contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 122));
+            contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
             contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
             contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 255));
             panelFiltros.Dock = DockStyle.Fill;
@@ -153,18 +156,6 @@ namespace cantinaPadel.UI
             contenido.Controls.Add(dgvVentas, 0, 1);
             contenido.Controls.Add(panelResumen, 0, 2);
             Controls.Add(contenido);
-        }
-
-        private static void ConfigurarBotonExportar(Button boton, string texto, Color color)
-        {
-            boton.Text = texto;
-            boton.Size = new Size(145, 36);
-            boton.Margin = new Padding(0, 0, 8, 0);
-            boton.BackColor = color;
-            boton.ForeColor = Color.White;
-            boton.FlatStyle = FlatStyle.Flat;
-            boton.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            boton.Enabled = false;
         }
 
         private static Panel CrearTarjetaComparacion(string titulo, Label actual, Label anterior, Label variacion)
@@ -236,60 +227,15 @@ namespace cantinaPadel.UI
 
         private Panel ConstruirPanelFiltros()
         {
-            var tabla = new TableLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                Height = 112,
-                BackColor = Color.Gold,
-                Padding = new Padding(12, 8, 12, 8),
-                ColumnCount = 6,
-                RowCount = 3
-            };
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 15));
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 16));
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 32));
-            tabla.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
-            tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-            tabla.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
-            tabla.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-
-            var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
-            navegacion.Controls.AddRange(new Control[] { btnMesAnterior, lblMesSeleccionado, btnMesSiguiente });
-            tabla.Controls.Add(navegacion, 0, 0);
-            tabla.SetColumnSpan(navegacion, 6);
-
-            AgregarFiltro(tabla, 0, "Desde", dtpDesde, 1, 2);
-            AgregarFiltro(tabla, 1, "Hasta", dtpHasta, 1, 2);
-            AgregarFiltro(tabla, 2, "Tipo de venta", cmbTipo, 1, 2);
-            AgregarFiltro(tabla, 3, "Método de pago", cmbMetodoPago, 1, 2);
-            AgregarFiltro(tabla, 4, "Empleado", cmbEmpleado, 1, 2);
-
-            btnLimpiar.Text = "Limpiar";
-            btnLimpiar.Dock = DockStyle.Fill;
-            btnLimpiar.Margin = new Padding(6, 0, 0, 0);
-            btnLimpiar.BackColor = Color.White;
-            btnLimpiar.FlatStyle = FlatStyle.Flat;
-            btnLimpiar.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold);
-            tabla.Controls.Add(btnLimpiar, 5, 2);
-
+            var tabla = ConvencionReportes.CrearPanelFiltros();
+            ConvencionReportes.AgregarNavegacionMes(tabla, btnMesAnterior, lblMesSeleccionado, btnMesSiguiente);
+            ConvencionReportes.AgregarFiltro(tabla, 0, "Desde", dtpDesde);
+            ConvencionReportes.AgregarFiltro(tabla, 1, "Hasta", dtpHasta);
+            ConvencionReportes.AgregarFiltro(tabla, 2, "Tipo de venta", cmbTipo);
+            ConvencionReportes.AgregarFiltro(tabla, 3, "Método de pago", cmbMetodoPago);
+            ConvencionReportes.AgregarFiltro(tabla, 4, "Empleado", cmbEmpleado);
+            ConvencionReportes.ConfigurarAccionFiltro(tabla, btnLimpiar, "Limpiar");
             return tabla;
-        }
-
-        private static void AgregarFiltro(TableLayoutPanel tabla, int columna, string titulo, Control control, int filaTitulo = 0, int filaControl = 1)
-        {
-            var etiqueta = new Label
-            {
-                Text = titulo,
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.BottomLeft,
-                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-            };
-            control.Dock = DockStyle.Top;
-            control.Margin = new Padding(0, 2, 6, 0);
-            tabla.Controls.Add(etiqueta, columna, filaTitulo);
-            tabla.Controls.Add(control, columna, filaControl);
         }
 
         // ================= Carga inicial =================
@@ -503,6 +449,8 @@ namespace cantinaPadel.UI
             btnMesAnterior.Click += (_, _) => NavegarMes(-1);
             btnMesSiguiente.Click += (_, _) => NavegarMes(1);
 
+            dgvVentas.CellDoubleClick += (_, e) => AbrirDetalleVenta(e.RowIndex);
+
             _debounce.Tick += (_, _) =>
             {
                 _debounce.Stop();
@@ -585,6 +533,25 @@ namespace cantinaPadel.UI
                 LimpiarResultado();
                 MessageBox.Show(this, $"No se pudo generar el reporte: {ex.Message}",
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void AbrirDetalleVenta(int indiceFila)
+        {
+            if (indiceFila < 0 || indiceFila >= dgvVentas.Rows.Count
+                || dgvVentas.Rows[indiceFila].DataBoundItem is not FilaReporteVentas venta)
+                return;
+
+            try
+            {
+                var detalles = _logica.ObtenerDetallesVenta(venta.IdVenta);
+                using var ventana = new FrmDetalleVentaReporte(venta, detalles);
+                ventana.ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo cargar el detalle de la venta: {ex.Message}",
+                    "Detalle de venta", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

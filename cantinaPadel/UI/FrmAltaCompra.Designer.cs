@@ -28,105 +28,72 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panelHeader = new Panel();
-            lblTitulo = new Label();
             panelDatos = new Panel();
             txtComprobante = new TextBox();
             lblComprobante = new Label();
-            lblAyudaComprobante = new Label();
             dtpFecha = new DateTimePicker();
             lblFecha = new Label();
             cmbProveedor = new ComboBox();
             lblProveedor = new Label();
             panelBuscador = new Panel();
             lblInfoProducto = new Label();
-            btnAgregar = new Button();
             txtCostoUnitario = new TextBox();
             lblCosto = new Label();
             nudCantidad = new NumericUpDown();
             lblCantidad = new Label();
-            cmbResultados = new ComboBox();
-            lblResultados = new Label();
-            txtBuscarProducto = new TextBox();
+            txtBuscarProducto = new ComboBox();
             lblBuscarProducto = new Label();
+            panelDetalle = new Panel();
+            lblTituloDetalle = new Label();
             panelAcciones = new Panel();
+            btnVaciar = new Button();
             btnCancelar = new Button();
             btnConfirmar = new Button();
             lblTotal = new Label();
             btnQuitar = new Button();
             dgvCompra = new DataGridView();
-            panelHeader.SuspendLayout();
             panelDatos.SuspendLayout();
             panelBuscador.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudCantidad).BeginInit();
+            panelDetalle.SuspendLayout();
             panelAcciones.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCompra).BeginInit();
             SuspendLayout();
             // 
-            // panelHeader
-            // 
-            panelHeader.BackColor = Color.Gold;
-            panelHeader.Controls.Add(lblTitulo);
-            panelHeader.Dock = DockStyle.Top;
-            panelHeader.Location = new Point(0, 0);
-            panelHeader.Name = "panelHeader";
-            panelHeader.Size = new Size(951, 74);
-            panelHeader.TabIndex = 0;
-            // 
-            // lblTitulo
-            // 
-            lblTitulo.Anchor = AnchorStyles.Top;
-            lblTitulo.AutoSize = true;
-            lblTitulo.Font = new Font("Segoe UI", 13.2000008F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTitulo.Location = new Point(361, 24);
-            lblTitulo.Name = "lblTitulo";
-            lblTitulo.Size = new Size(172, 31);
-            lblTitulo.TabIndex = 0;
-            lblTitulo.Text = "Nueva Compra";
-            // 
             // panelDatos
             // 
-            panelDatos.BackColor = SystemColors.Info;
+            panelDatos.BackColor = Color.White;
+            panelDatos.BorderStyle = BorderStyle.FixedSingle;
             panelDatos.Controls.Add(txtComprobante);
             panelDatos.Controls.Add(lblComprobante);
-            panelDatos.Controls.Add(lblAyudaComprobante);
             panelDatos.Controls.Add(dtpFecha);
             panelDatos.Controls.Add(lblFecha);
             panelDatos.Controls.Add(cmbProveedor);
             panelDatos.Controls.Add(lblProveedor);
             panelDatos.Dock = DockStyle.Top;
-            panelDatos.Location = new Point(0, 74);
+            panelDatos.Location = new Point(511, 49);
             panelDatos.Name = "panelDatos";
-            panelDatos.Size = new Size(951, 110);
+            panelDatos.Size = new Size(625, 161);
             panelDatos.TabIndex = 1;
             // 
             // txtComprobante
             // 
-            txtComprobante.Location = new Point(686, 14);
+            txtComprobante.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            txtComprobante.Location = new Point(124, 123);
             txtComprobante.MaxLength = 30;
             txtComprobante.Name = "txtComprobante";
             txtComprobante.PlaceholderText = "Ej.: A-0001-00001234";
-            txtComprobante.Size = new Size(184, 27);
+            txtComprobante.Size = new Size(469, 27);
             txtComprobante.TabIndex = 5;
             // 
             // lblComprobante
             // 
             lblComprobante.AutoSize = true;
-            lblComprobante.Location = new Point(438, 17);
+            lblComprobante.Location = new Point(30, 127);
             lblComprobante.Name = "lblComprobante";
             lblComprobante.Size = new Size(242, 20);
             lblComprobante.TabIndex = 4;
             lblComprobante.Text = "Factura/remito (opcional):";
-            //
-            // lblAyudaComprobante
-            //
-            lblAyudaComprobante.ForeColor = Color.DimGray;
-            lblAyudaComprobante.Location = new Point(438, 47);
-            lblAyudaComprobante.Name = "lblAyudaComprobante";
-            lblAyudaComprobante.Size = new Size(465, 48);
-            lblAyudaComprobante.TabIndex = 6;
-            lblAyudaComprobante.Text = "Copie el número que figura en el comprobante. El número interno de compra se asigna automáticamente.";
-            // 
             // dtpFecha
             // 
             dtpFecha.Format = DateTimePickerFormat.Short;
@@ -138,7 +105,7 @@
             // lblFecha
             // 
             lblFecha.AutoSize = true;
-            lblFecha.Location = new Point(28, 76);
+            lblFecha.Location = new Point(30, 73);
             lblFecha.Name = "lblFecha";
             lblFecha.Size = new Size(50, 20);
             lblFecha.TabIndex = 2;
@@ -146,17 +113,17 @@
             // 
             // cmbProveedor
             // 
-            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDown;
             cmbProveedor.FormattingEnabled = true;
-            cmbProveedor.Location = new Point(124, 13);
+            cmbProveedor.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            cmbProveedor.Location = new Point(124, 15);
             cmbProveedor.Name = "cmbProveedor";
-            cmbProveedor.Size = new Size(284, 28);
+            cmbProveedor.Size = new Size(469, 28);
             cmbProveedor.TabIndex = 1;
-            // 
             // lblProveedor
             // 
             lblProveedor.AutoSize = true;
-            lblProveedor.Location = new Point(28, 17);
+            lblProveedor.Location = new Point(30, 19);
             lblProveedor.Name = "lblProveedor";
             lblProveedor.Size = new Size(90, 20);
             lblProveedor.TabIndex = 0;
@@ -164,57 +131,46 @@
             // 
             // panelBuscador
             // 
-            panelBuscador.BackColor = SystemColors.Info;
+            panelBuscador.BackColor = Color.White;
+            panelBuscador.BorderStyle = BorderStyle.FixedSingle;
             panelBuscador.Controls.Add(lblInfoProducto);
-            panelBuscador.Controls.Add(btnAgregar);
             panelBuscador.Controls.Add(txtCostoUnitario);
             panelBuscador.Controls.Add(lblCosto);
             panelBuscador.Controls.Add(nudCantidad);
             panelBuscador.Controls.Add(lblCantidad);
-            panelBuscador.Controls.Add(cmbResultados);
-            panelBuscador.Controls.Add(lblResultados);
             panelBuscador.Controls.Add(txtBuscarProducto);
             panelBuscador.Controls.Add(lblBuscarProducto);
             panelBuscador.Dock = DockStyle.Top;
-            panelBuscador.Location = new Point(0, 184);
+            panelBuscador.Location = new Point(28, 49);
             panelBuscador.Name = "panelBuscador";
-            panelBuscador.Size = new Size(951, 140);
+            panelBuscador.Size = new Size(468, 161);
             panelBuscador.TabIndex = 2;
             // 
             // lblInfoProducto
             // 
             lblInfoProducto.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             lblInfoProducto.ForeColor = Color.DimGray;
-            lblInfoProducto.Location = new Point(-3, 110);
+            lblInfoProducto.AutoEllipsis = true;
+            lblInfoProducto.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblInfoProducto.Location = new Point(30, 126);
             lblInfoProducto.Name = "lblInfoProducto";
-            lblInfoProducto.Size = new Size(951, 30);
+            lblInfoProducto.Size = new Size(416, 22);
             lblInfoProducto.TabIndex = 9;
-            lblInfoProducto.Text = "label1";
-            // 
-            // btnAgregar
-            // 
-            btnAgregar.BackColor = Color.White;
-            btnAgregar.FlatStyle = FlatStyle.Flat;
-            btnAgregar.Location = new Point(547, 65);
-            btnAgregar.Name = "btnAgregar";
-            btnAgregar.Size = new Size(197, 36);
-            btnAgregar.TabIndex = 8;
-            btnAgregar.Text = "Agregar";
-            btnAgregar.UseVisualStyleBackColor = false;
+            lblInfoProducto.Text = string.Empty;
             // 
             // txtCostoUnitario
             // 
-            txtCostoUnitario.Location = new Point(341, 70);
+            txtCostoUnitario.Location = new Point(162, 87);
             txtCostoUnitario.MaxLength = 14;
             txtCostoUnitario.Name = "txtCostoUnitario";
-            txtCostoUnitario.Size = new Size(82, 27);
+            txtCostoUnitario.Size = new Size(135, 27);
             txtCostoUnitario.TabIndex = 7;
             txtCostoUnitario.TextAlign = HorizontalAlignment.Right;
             // 
             // lblCosto
             // 
             lblCosto.AutoSize = true;
-            lblCosto.Location = new Point(208, 73);
+            lblCosto.Location = new Point(30, 90);
             lblCosto.Name = "lblCosto";
             lblCosto.Size = new Size(127, 20);
             lblCosto.TabIndex = 6;
@@ -222,11 +178,11 @@
             // 
             // nudCantidad
             // 
-            nudCantidad.Location = new Point(106, 70);
+            nudCantidad.Location = new Point(385, 43);
             nudCantidad.Maximum = new decimal(new int[] { 100000, 0, 0, 0 });
             nudCantidad.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             nudCantidad.Name = "nudCantidad";
-            nudCantidad.Size = new Size(72, 27);
+            nudCantidad.Size = new Size(70, 27);
             nudCantidad.TabIndex = 5;
             nudCantidad.ThousandsSeparator = true;
             nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
@@ -234,95 +190,104 @@
             // lblCantidad
             // 
             lblCantidad.AutoSize = true;
-            lblCantidad.Location = new Point(28, 72);
+            lblCantidad.Location = new Point(341, 45);
             lblCantidad.Name = "lblCantidad";
-            lblCantidad.Size = new Size(72, 20);
+            lblCantidad.Size = new Size(42, 20);
             lblCantidad.TabIndex = 4;
-            lblCantidad.Text = "Cantidad:";
-            // 
-            // cmbResultados
-            // 
-            cmbResultados.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbResultados.FormattingEnabled = true;
-            cmbResultados.Location = new Point(547, 15);
-            cmbResultados.Name = "cmbResultados";
-            cmbResultados.Size = new Size(323, 28);
-            cmbResultados.TabIndex = 3;
-            // 
-            // lblResultados
-            // 
-            lblResultados.AutoSize = true;
-            lblResultados.Location = new Point(438, 22);
-            lblResultados.Name = "lblResultados";
-            lblResultados.Size = new Size(103, 20);
-            lblResultados.TabIndex = 2;
-            lblResultados.Text = "Coincidencias:";
+            lblCantidad.Text = "Cant.";
             // 
             // txtBuscarProducto
             // 
-            txtBuscarProducto.Location = new Point(154, 15);
+            txtBuscarProducto.DropDownStyle = ComboBoxStyle.DropDown;
+            txtBuscarProducto.FormattingEnabled = true;
+            txtBuscarProducto.Location = new Point(30, 42);
+            txtBuscarProducto.MaxDropDownItems = 10;
             txtBuscarProducto.MaxLength = 100;
             txtBuscarProducto.Name = "txtBuscarProducto";
-            txtBuscarProducto.PlaceholderText = "Nombre o código de barras...";
-            txtBuscarProducto.Size = new Size(254, 27);
+            txtBuscarProducto.DropDownHeight = 240;
+            txtBuscarProducto.DropDownWidth = 620;
+            txtBuscarProducto.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            txtBuscarProducto.Size = new Size(305, 28);
             txtBuscarProducto.TabIndex = 1;
-            // 
+            //
             // lblBuscarProducto
-            // 
+            //
             lblBuscarProducto.AutoSize = true;
-            lblBuscarProducto.Location = new Point(28, 22);
+            lblBuscarProducto.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblBuscarProducto.Location = new Point(30, 19);
             lblBuscarProducto.Name = "lblBuscarProducto";
-            lblBuscarProducto.Size = new Size(120, 20);
+            lblBuscarProducto.Size = new Size(325, 20);
             lblBuscarProducto.TabIndex = 0;
-            lblBuscarProducto.Text = "Buscar producto:";
+            lblBuscarProducto.Text = "Buscar producto (nombre o código de barras):";
+            // 
+            // panelDetalle
+            //
+            panelDetalle.BackColor = Color.White;
+            panelDetalle.BorderStyle = BorderStyle.FixedSingle;
+            panelDetalle.Controls.Add(btnVaciar);
+            panelDetalle.Controls.Add(btnQuitar);
+            panelDetalle.Controls.Add(dgvCompra);
+            panelDetalle.Controls.Add(lblTituloDetalle);
+            panelDetalle.Dock = DockStyle.Fill;
+            panelDetalle.Location = new Point(0, 324);
+            panelDetalle.Name = "panelDetalle";
+            panelDetalle.Size = new Size(1180, 364);
+            panelDetalle.TabIndex = 3;
+            //
+            // lblTituloDetalle
+            //
+            lblTituloDetalle.AutoSize = true;
+            lblTituloDetalle.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblTituloDetalle.Location = new Point(41, 19);
+            lblTituloDetalle.Name = "lblTituloDetalle";
+            lblTituloDetalle.Size = new Size(132, 20);
+            lblTituloDetalle.TabIndex = 10;
+            lblTituloDetalle.Text = "Detalle de compra";
             // 
             // panelAcciones
-            // 
-            panelAcciones.BackColor = SystemColors.Info;
+            //
+            panelAcciones.BackColor = Color.White;
+            panelAcciones.BorderStyle = BorderStyle.FixedSingle;
             panelAcciones.Controls.Add(btnCancelar);
             panelAcciones.Controls.Add(btnConfirmar);
             panelAcciones.Controls.Add(lblTotal);
-            panelAcciones.Controls.Add(btnQuitar);
             panelAcciones.Dock = DockStyle.Bottom;
-            panelAcciones.Location = new Point(0, 516);
+            panelAcciones.Location = new Point(0, 670);
             panelAcciones.Name = "panelAcciones";
-            panelAcciones.Size = new Size(951, 80);
-            panelAcciones.TabIndex = 3;
+            panelAcciones.Size = new Size(1180, 70);
+            panelAcciones.TabIndex = 4;
             // 
             // btnCancelar
             // 
             btnCancelar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCancelar.BackColor = Color.IndianRed;
-            btnCancelar.FlatStyle = FlatStyle.Flat;
             btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(780, 28);
+            btnCancelar.Location = new Point(956, 14);
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(159, 33);
+            btnCancelar.Size = new Size(176, 42);
             btnCancelar.TabIndex = 3;
             btnCancelar.Text = "Cancelar";
-            btnCancelar.UseVisualStyleBackColor = false;
+            btnCancelar.UseVisualStyleBackColor = true;
             // 
             // btnConfirmar
             // 
             btnConfirmar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnConfirmar.BackColor = Color.ForestGreen;
-            btnConfirmar.FlatStyle = FlatStyle.Flat;
+            btnConfirmar.BackColor = Color.Green;
             btnConfirmar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConfirmar.ForeColor = Color.White;
-            btnConfirmar.Location = new Point(593, 28);
+            btnConfirmar.Location = new Point(680, 14);
             btnConfirmar.Name = "btnConfirmar";
-            btnConfirmar.Size = new Size(163, 33);
+            btnConfirmar.Size = new Size(260, 42);
             btnConfirmar.TabIndex = 2;
-            btnConfirmar.Text = "Confirmar compra";
+            btnConfirmar.Text = "Revisar compra";
             btnConfirmar.UseVisualStyleBackColor = false;
             // 
             // lblTotal
             // 
-            lblTotal.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            lblTotal.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             lblTotal.AutoSize = true;
+            lblTotal.BackColor = Color.Transparent;
             lblTotal.Font = new Font("Segoe UI", 13.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotal.Location = new Point(349, 28);
+            lblTotal.Location = new Point(30, 16);
             lblTotal.Name = "lblTotal";
             lblTotal.Size = new Size(143, 31);
             lblTotal.TabIndex = 1;
@@ -330,50 +295,64 @@
             // 
             // btnQuitar
             // 
-            btnQuitar.Anchor = AnchorStyles.Left;
-            btnQuitar.BackColor = Color.White;
-            btnQuitar.FlatStyle = FlatStyle.Flat;
-            btnQuitar.Location = new Point(84, 28);
+            btnQuitar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnQuitar.BackColor = Color.FromArgb(255, 192, 192);
+            btnQuitar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnQuitar.Location = new Point(41, 300);
             btnQuitar.Name = "btnQuitar";
-            btnQuitar.Size = new Size(94, 33);
-            btnQuitar.TabIndex = 0;
-            btnQuitar.Text = "Quitar producto";
+            btnQuitar.Size = new Size(176, 40);
+            btnQuitar.TabIndex = 5;
+            btnQuitar.Text = "Quitar";
             btnQuitar.UseVisualStyleBackColor = false;
             // 
-            // dgvCompra
+            // btnVaciar
+            //
+            btnVaciar.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnVaciar.BackColor = Color.Firebrick;
+            btnVaciar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnVaciar.ForeColor = SystemColors.ButtonHighlight;
+            btnVaciar.Location = new Point(253, 300);
+            btnVaciar.Name = "btnVaciar";
+            btnVaciar.Size = new Size(176, 40);
+            btnVaciar.TabIndex = 6;
+            btnVaciar.Text = "Vaciar compra";
+            btnVaciar.UseVisualStyleBackColor = false;
             // 
-            dgvCompra.BackgroundColor = Color.White;
+            // dgvCompra
+            //
+            dgvCompra.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dgvCompra.BackgroundColor = SystemColors.ButtonHighlight;
             dgvCompra.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvCompra.Dock = DockStyle.Fill;
-            dgvCompra.Location = new Point(0, 324);
+            dgvCompra.Location = new Point(41, 42);
             dgvCompra.Name = "dgvCompra";
             dgvCompra.RowHeadersWidth = 51;
-            dgvCompra.Size = new Size(951, 192);
+            dgvCompra.Size = new Size(1089, 248);
             dgvCompra.TabIndex = 4;
             // 
             // FrmAltaCompra
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(951, 596);
-            Controls.Add(dgvCompra);
+            BackColor = Color.FromArgb(250, 248, 240);
+            ClientSize = new Size(1180, 740);
+            Controls.Add(panelDetalle);
             Controls.Add(panelAcciones);
             Controls.Add(panelBuscador);
             Controls.Add(panelDatos);
-            Controls.Add(panelHeader);
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
+            FormBorderStyle = FormBorderStyle.Sizable;
+            MinimumSize = new Size(920, 660);
+            MaximizeBox = true;
             MinimizeBox = false;
             Name = "FrmAltaCompra";
             StartPosition = FormStartPosition.CenterParent;
             Text = "Nueva Compra";
-            panelHeader.ResumeLayout(false);
-            panelHeader.PerformLayout();
             panelDatos.ResumeLayout(false);
             panelDatos.PerformLayout();
             panelBuscador.ResumeLayout(false);
             panelBuscador.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)nudCantidad).EndInit();
+            panelDetalle.ResumeLayout(false);
+            panelDetalle.PerformLayout();
             panelAcciones.ResumeLayout(false);
             panelAcciones.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dgvCompra).EndInit();
@@ -382,32 +361,29 @@
 
         #endregion
 
-        private Panel panelHeader;
-        private Label lblTitulo;
         private Panel panelDatos;
         private ComboBox cmbProveedor;
         private Label lblProveedor;
         private TextBox txtComprobante;
         private Label lblComprobante;
-        private Label lblAyudaComprobante;
         private DateTimePicker dtpFecha;
         private Label lblFecha;
         private Panel panelBuscador;
         private NumericUpDown nudCantidad;
         private Label lblCantidad;
-        private ComboBox cmbResultados;
-        private Label lblResultados;
-        private TextBox txtBuscarProducto;
+        private ComboBox txtBuscarProducto;
         private Label lblBuscarProducto;
+        private Panel panelDetalle;
+        private Label lblTituloDetalle;
         private Label lblInfoProducto;
         private TextBox txtCostoUnitario;
         private Label lblCosto;
         private Panel panelAcciones;
         private Label lblTotal;
         private Button btnQuitar;
+        private Button btnVaciar;
         private Button btnCancelar;
         private Button btnConfirmar;
         private DataGridView dgvCompra;
-        private Button btnAgregar;
     }
 }

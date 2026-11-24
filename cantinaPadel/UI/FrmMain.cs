@@ -85,10 +85,15 @@ namespace cantinaPadel
         }
 
         // Muestra el módulo Caja en el panel de contenido
-        private void AbrirCaja()
+        private void AbrirCaja(bool abrirFormularioApertura = false, bool abrirFormularioCierre = false)
         {
             Navegar("Caja");
-            AbrirEnPanel(new cantinaPadel.UI.FrmGestionCaja());
+            var gestionCaja = new cantinaPadel.UI.FrmGestionCaja();
+            AbrirEnPanel(gestionCaja);
+            if (abrirFormularioApertura)
+                gestionCaja.MostrarFormularioApertura();
+            else if (abrirFormularioCierre)
+                gestionCaja.MostrarFormularioCierre();
         }
 
 
@@ -137,7 +142,7 @@ namespace cantinaPadel
             if (TieneCajaAbierta())
             {
                 e.Cancel = true;
-                AvisarCajaAbierta("salir del programa");
+                AvisarCajaAbierta("salir del programa", abrirFormularioCierre: true);
                 return;
             }
 
@@ -184,11 +189,12 @@ namespace cantinaPadel
             return false;
         }
 
-        private void AvisarCajaAbierta(string accion)
+        private void AvisarCajaAbierta(string accion, bool abrirFormularioCierre = false)
         {
             MessageBox.Show(this,
-                $"La caja está abierta. Cerrala desde el módulo Caja antes de {accion}.\n\nSi no podés cerrarla, pedile a un administrador que la cierre.",
+                $"La caja está abierta. Te llevo al módulo Caja para que la cierres antes de {accion}.",
                 "Caja abierta", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            AbrirCaja(abrirFormularioCierre: abrirFormularioCierre);
         }
 
         // Método para navegar a un módulo específico, actualizando el título del módulo y el título de la ventana
@@ -211,7 +217,7 @@ namespace cantinaPadel
             // Sin caja abierta no se puede vender: se avisa y se lleva al usuario a la pantalla de Caja
             if (!PuedeUsarPuntoVenta())
             {
-                AbrirCaja();
+                AbrirCaja(abrirFormularioApertura: true);
                 return;
             }
 

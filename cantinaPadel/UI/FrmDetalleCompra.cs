@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Drawing;
+using System.Windows.Forms;
 using cantinaPadel.Models;
 
 namespace cantinaPadel.UI;
@@ -14,8 +16,8 @@ public sealed class FrmDetalleCompra : Form
 
         Text = $"Detalle de compra N° {compra.IdCompra}";
         StartPosition = FormStartPosition.CenterParent;
-        MinimumSize = new Size(760, 480);
-        Size = new Size(960, 620);
+        MinimumSize = new Size(760, 440);
+        Size = new Size(920, 590);
         BackColor = SystemColors.Info;
         Font = new Font("Segoe UI", 9F, FontStyle.Regular);
 
@@ -30,17 +32,47 @@ public sealed class FrmDetalleCompra : Form
             ? "No disponible"
             : $"{personaEmpleado.Nombre} {personaEmpleado.Apellido}".Trim();
 
-        var encabezado = new Label
+        var layout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            Padding = new Padding(18, 12, 18, 12),
-            BackColor = Color.Gold,
-            TextAlign = ContentAlignment.MiddleLeft,
-            Text = $"Proveedor: {nombreProveedor}     ·     Fecha: {compra.FechaCompra:dd/MM/yyyy HH:mm}\n" +
-                   $"Comprobante: {compra.NumeroComprobante ?? "-"}     ·     Registrada por: {registradoPor}\n" +
-                   $"Estado: {(compra.Anulada ? "Anulada" : "Activa")}",
-            AutoEllipsis = true
+            ColumnCount = 1,
+            RowCount = 3,
+            BackColor = SystemColors.Info
         };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
+
+        var encabezado = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Padding = new Padding(16, 8, 16, 6),
+            BackColor = Color.FromArgb(255, 248, 220),
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        encabezado.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        encabezado.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+        encabezado.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        encabezado.Controls.Add(new Label
+        {
+            Text = $"Detalle de compra #{compra.IdCompra}",
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Font = new Font("Segoe UI", 13F, FontStyle.Bold),
+            TextAlign = ContentAlignment.MiddleLeft
+        }, 0, 0);
+        encabezado.Controls.Add(new Label
+        {
+            Text = $"Proveedor: {nombreProveedor}  ·  Fecha: {compra.FechaCompra:dd/MM/yyyy HH:mm}  ·  Estado: {(compra.Anulada ? "Anulada" : "Activa")}\n" +
+                   $"Comprobante: {compra.NumeroComprobante ?? "-"}  ·  Registrada por: {registradoPor}",
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            ForeColor = SystemColors.GrayText,
+            TextAlign = ContentAlignment.MiddleLeft,
+            AutoEllipsis = true
+        }, 0, 1);
 
         var grilla = new DataGridView
         {
@@ -48,13 +80,16 @@ public sealed class FrmDetalleCompra : Form
             ReadOnly = true,
             AllowUserToAddRows = false,
             AllowUserToDeleteRows = false,
+            AllowUserToResizeRows = false,
             MultiSelect = false,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             RowHeadersVisible = false,
             AutoGenerateColumns = false,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            RowTemplate = { Height = 34 },
+            ColumnHeadersHeight = 34,
             BackgroundColor = Color.White,
-            GridColor = SystemColors.Menu,
+            GridColor = SystemColors.ControlLight,
             EditMode = DataGridViewEditMode.EditProgrammatically
         };
         grilla.Columns.Add(new DataGridViewTextBoxColumn
@@ -79,59 +114,51 @@ public sealed class FrmDetalleCompra : Form
             DefaultCellStyle = new DataGridViewCellStyle
             { Format = "C2", FormatProvider = Es, Alignment = DataGridViewContentAlignment.MiddleRight }
         });
-        PaginadorGrilla.Mostrar(grilla, compra.Detalles.Select(d => new
+        grilla.DataSource = compra.Detalles.Select(d => new
         {
             Producto = d.Producto?.Nombre ?? $"Producto #{d.IdProducto}",
             Codigo = d.Producto?.CodigoBarras ?? "-",
             Cantidad = d.Cantidad.ToString("N0", Es),
             Costo = d.PrecioUnitario,
             d.Subtotal
-        }).ToList());
+        }).ToList();
 
-        var total = new Label
+        var pie = new TableLayoutPanel
         {
-            AutoSize = true,
-            Text = $"Total: {compra.Total.ToString("C2", Es)}",
-            Font = new Font(Font, FontStyle.Bold),
-            TextAlign = ContentAlignment.MiddleRight,
-            Margin = new Padding(12)
+            Dock = DockStyle.Fill,
+            Padding = new Padding(12, 7, 12, 7),
+            BackColor = SystemColors.Info,
+            ColumnCount = 2,
+            RowCount = 1
         };
+        pie.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        pie.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        string cantidadProductos = compra.Detalles.Count == 1 ? "1 producto" : $"{compra.Detalles.Count} productos";
+        pie.Controls.Add(new Label
+        {
+            Text = $"{cantidadProductos}  ·  Total: {compra.Total.ToString("C2", Es)}",
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.MiddleLeft,
+            Font = new Font("Segoe UI", 9F, FontStyle.Bold)
+        }, 0, 0);
         var cerrar = new Button
         {
             Text = "Cerrar",
-            Size = new Size(130, 38),
+            Size = new Size(110, 36),
+            Dock = DockStyle.Right,
             BackColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            DialogResult = DialogResult.Cancel,
-            Margin = new Padding(8)
+            DialogResult = DialogResult.Cancel
         };
         CancelButton = cerrar;
+        pie.Controls.Add(cerrar, 1, 0);
+        cerrar.Click += (_, _) => Close();
 
-        var pie = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.RightToLeft,
-            WrapContents = false,
-            Padding = new Padding(8),
-            BackColor = SystemColors.Info
-        };
-        pie.Controls.Add(cerrar);
-        pie.Controls.Add(total);
-
-        var contenido = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            ColumnCount = 1,
-            RowCount = 3,
-            Padding = new Padding(10),
-            BackColor = SystemColors.Info
-        };
-        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 100));
-        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 64));
-        contenido.Controls.Add(encabezado, 0, 0);
-        contenido.Controls.Add(grilla, 0, 1);
-        contenido.Controls.Add(pie, 0, 2);
-        Controls.Add(contenido);
+        grilla.Margin = new Padding(12, 8, 12, 0);
+        layout.Controls.Add(encabezado, 0, 0);
+        layout.Controls.Add(grilla, 0, 1);
+        layout.Controls.Add(pie, 0, 2);
+        Controls.Add(layout);
     }
 }

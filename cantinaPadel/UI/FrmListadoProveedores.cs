@@ -18,6 +18,10 @@ namespace cantinaPadel.UI
         {
             InitializeComponent();
             _logicaProveedor = new LogicaProveedor();
+            ConvencionVistasPersonas.ConfigurarListado(
+                this, panelFiltros, panelAcciones, label1, txtBuscarNombre, label2, cmbEstado,
+                btnNuevo, btnModificar, btnBajaLogica, dgvProveedores);
+            txtBuscarNombre.PlaceholderText = "Nombre, empresa o DNI";
         }
 
         private void FrmListadoProveedores_Load(object sender, EventArgs e)

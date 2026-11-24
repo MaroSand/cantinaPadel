@@ -29,6 +29,7 @@ namespace cantinaPadel.UI
             cmbCategoriaFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
             cmbMarcaFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
             cmbEstadoFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
+            cmbStockFiltro.SelectedIndexChanged += Filtro_SelectedIndexChanged;
             btnNuevo.Click += btnNuevo_Click;
             btnModificar.Click += btnModificar_Click;
             btnBajaLogica.Click += btnBajaLogica_Click;
@@ -161,6 +162,11 @@ namespace cantinaPadel.UI
                 cmbEstadoFiltro.Items.Clear();
                 cmbEstadoFiltro.Items.AddRange(new object[] { "Activos", "Inactivos", "Todos" });
                 cmbEstadoFiltro.SelectedIndex = 0;
+
+                cmbStockFiltro.DropDownStyle = ComboBoxStyle.DropDownList;
+                cmbStockFiltro.Items.Clear();
+                cmbStockFiltro.Items.AddRange(new object[] { "Todos", "Stock bajo" });
+                cmbStockFiltro.SelectedIndex = 0;
             }
             catch (Exception ex)
             {
@@ -185,6 +191,8 @@ namespace cantinaPadel.UI
                 };
 
                 var productos = _logicaProducto.Buscar(texto, idCategoria, idMarca, activo);
+                if (cmbStockFiltro.SelectedIndex == 1)
+                    productos = productos.Where(p => p.StockBajo).ToList();
 
                 PaginadorGrilla.Mostrar(dgvProductos, productos.Select(p => new
                 {

@@ -63,6 +63,14 @@ public class LogicaReporteVentas
     public ResumenReporteVentas CalcularResumen(IEnumerable<FilaReporteVentas> filas)
         => CalculadorReporteVentas.CalcularResumen(filas);
 
+    public List<DetalleVentaReporte> ObtenerDetallesVenta(int idVenta)
+    {
+        if (idVenta <= 0)
+            throw new ArgumentException("La venta seleccionada no es válida.", nameof(idVenta));
+
+        return _reporte.ObtenerDetallesVenta(idVenta);
+    }
+
     public List<FilaReporteVentas> Generar(FiltroReporteVentas filtro)
     {
         Validar(filtro);

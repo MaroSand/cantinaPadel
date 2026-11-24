@@ -1,4 +1,5 @@
 using cantinaPadel.BLL;
+using cantinaPadel.Models;
 
 namespace cantinaPadel.UI
 {
@@ -10,7 +11,12 @@ namespace cantinaPadel.UI
         private DateTimePicker dtpFecha = null!;
         private TextBox txtBuscarCliente = null!;
         private CheckBox chkIncluirCancelados = null!;
-        private DataGridView dgvClientes = null!;
+        private Panel _panelRaiz = null!;
+        private Panel _panelResultadosClientes = null!;
+        private ListBox _listaResultadosClientes = null!;
+        private Label _lblSinResultados = null!;
+        private List<ClienteBusquedaTurno> _clientesEncontrados = new();
+        private bool _asignandoTextoCliente;
         private DataGridView dgvHorarios = null!;
         private DataGridView dgvReservas = null!;
         private Button btnReservar = null!;
@@ -51,17 +57,17 @@ namespace cantinaPadel.UI
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 8
+                RowCount = 7,
+                Margin = Padding.Empty
             };
             layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
-            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
-            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 37));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 44));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 67));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 43));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 67));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 57));
 
             var filtros = new FlowLayoutPanel
             {
@@ -88,10 +94,15 @@ namespace cantinaPadel.UI
 
             txtBuscarCliente = new TextBox
             {
-                Width = 260,
-                Margin = new Padding(0, 0, 8, 8)
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 2, 0, 2),
+                Font = new Font("Segoe UI", 10F),
+                AccessibleName = "Buscar cliente",
+                AccessibleDescription = "Escribí al menos dos letras y elegí un resultado de la lista desplegable.",
+                PlaceholderText = "Buscar por apellido, nombre, DNI o email"
             };
             txtBuscarCliente.KeyDown += txtBuscarCliente_KeyDown;
+            txtBuscarCliente.Leave += txtBuscarCliente_Leave;
 
             // Único mecanismo de búsqueda de clientes: búsqueda en vivo (Enter la lanza al instante).
             // Espera 300ms sin que se tipee nada antes de consultar la bd
@@ -101,79 +112,121 @@ namespace cantinaPadel.UI
                 _debounceBusquedaCliente.Stop();
                 BuscarClientes();
             };
+            Disposed += (_, _) => _debounceBusquedaCliente.Dispose();
             txtBuscarCliente.TextChanged += (_, _) =>
             {
+                if (_asignandoTextoCliente)
+                    return;
+
+                bool habiaClienteSeleccionado = _idClienteSeleccionado > 0;
+                _idClienteSeleccionado = 0;
+                lblClienteSeleccionado.Text = "Cliente seleccionado: ninguno.";
+                OcultarResultadosClientes();
+                ActualizarEstadoBotonReservar();
+                if (habiaClienteSeleccionado)
+                    ActualizarVistaReservas();
+
                 _debounceBusquedaCliente.Stop();
                 _debounceBusquedaCliente.Start();
             };
 
             chkIncluirCancelados = new CheckBox
             {
-                Text = "Incluir cancelados",
+                Text = "Incluir cancelados del cliente",
                 AutoSize = true,
-                Margin = new Padding(0, 26, 16, 8)
+                Margin = new Padding(0, 26, 16, 8),
+                Enabled = false,
+                AccessibleDescription = "Disponible al seleccionar un cliente."
             };
             chkIncluirCancelados.CheckedChanged += (_, _) => ActualizarVistaReservas();
 
             btnActualizar = CrearBoton("Actualizar");
+            btnActualizar.Width = 118;
+            btnActualizar.Height = 36;
+            btnActualizar.Margin = new Padding(0, 18, 8, 8);
+            btnActualizar.BackColor = Color.White;
+            btnActualizar.UseVisualStyleBackColor = false;
             btnActualizar.Click += (_, _) => RefrescarDatos();
 
             btnReservar = CrearBoton("Registrar alquiler");
+            btnReservar.Width = 168;
+            btnReservar.Height = 36;
+            btnReservar.Margin = new Padding(8, 0, 0, 0);
+            btnReservar.BackColor = Color.Gold;
+            btnReservar.FlatStyle = FlatStyle.Flat;
+            btnReservar.FlatAppearance.BorderSize = 0;
+            btnReservar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnReservar.ForeColor = Color.FromArgb(35, 35, 35);
+            btnReservar.UseVisualStyleBackColor = false;
+            btnReservar.Enabled = false;
             btnReservar.Click += btnReservar_Click;
 
             var modalidad = CrearGrupoModalidad();
 
             filtros.Controls.Add(CrearCampo("Cancha", cmbCancha));
-            filtros.Controls.Add(CrearCampo("Primera fecha", dtpFecha));
+            filtros.Controls.Add(CrearCampo("Fecha inicial", dtpFecha));
             filtros.Controls.Add(modalidad);
-            filtros.Controls.Add(CrearCampo("Buscar cliente", txtBuscarCliente));
-            filtros.Controls.Add(chkIncluirCancelados);
             filtros.Controls.Add(btnActualizar);
-            filtros.Controls.Add(btnReservar);
 
             lblClienteSeleccionado = CrearLeyenda("Cliente seleccionado: ninguno.");
-            lblResumenReserva = CrearLeyenda("Reserva: por dia, 1 turno.");
+            lblResumenReserva = CrearLeyenda("Reserva: por día, 1 turno.");
+            lblClienteSeleccionado.BackColor = Color.FromArgb(248, 249, 250);
+            lblResumenReserva.BackColor = Color.FromArgb(255, 249, 230);
 
-            dgvClientes = CrearGrilla();
-            ConfigurarColumnasClientes();
-            dgvClientes.SelectionChanged += dgvClientes_SelectionChanged;
+            var estadoReserva = CrearResumenReserva();
+            var busquedaCliente = CrearPanelBusquedaCliente();
 
             dgvHorarios = CrearGrilla();
             ConfigurarColumnasHorarios();
             dgvHorarios.SelectionChanged += dgvHorarios_SelectionChanged;
+            dgvHorarios.Enter += (_, _) => OcultarResultadosClientes();
 
-            lblSeleccionHorario = CrearLeyenda("Horarios disponibles: seleccione una banda libre.");
-            lblSeleccionReserva = CrearLeyenda("Seleccione una reserva activa para cancelar.");
-
-            var reservasHeader = new FlowLayoutPanel
-            {
-                Dock = DockStyle.Top,
-                AutoSize = true,
-                WrapContents = true,
-                Padding = new Padding(0, 12, 0, 8)
-            };
+            lblSeleccionHorario = CrearLeyenda("Elegí una banda libre para continuar.");
+            lblSeleccionReserva = CrearLeyenda("Elegí una reserva activa para cancelar.");
+            var encabezadoHorarios = CrearEncabezadoSeccion("Horarios disponibles", lblSeleccionHorario, btnReservar);
 
             btnCancelar = CrearBoton("Cancelar turno");
+            btnCancelar.Width = 142;
+            btnCancelar.Height = 34;
+            btnCancelar.Margin = new Padding(8, 0, 0, 0);
             btnCancelar.ForeColor = Color.DarkRed;
+            btnCancelar.Enabled = false;
             btnCancelar.Click += btnCancelar_Click;
 
-            reservasHeader.Controls.Add(lblSeleccionReserva);
-            reservasHeader.Controls.Add(btnCancelar);
+            chkIncluirCancelados.Text = "Mostrar cancelados";
+            chkIncluirCancelados.Margin = new Padding(8, 8, 4, 0);
+            var accionesReservas = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                WrapContents = false,
+                FlowDirection = FlowDirection.LeftToRight,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            accionesReservas.Controls.Add(chkIncluirCancelados);
+            accionesReservas.Controls.Add(btnCancelar);
+            var encabezadoReservas = CrearEncabezadoSeccion("Turnos reservados", lblSeleccionReserva, accionesReservas);
 
             dgvReservas = CrearGrilla();
             ConfigurarColumnasReservas();
             dgvReservas.SelectionChanged += dgvReservas_SelectionChanged;
+            dgvReservas.Enter += (_, _) => OcultarResultadosClientes();
 
             layout.Controls.Add(filtros, 0, 0);
-            layout.Controls.Add(lblClienteSeleccionado, 0, 1);
-            layout.Controls.Add(lblResumenReserva, 0, 2);
-            layout.Controls.Add(dgvClientes, 0, 3);
-            layout.Controls.Add(lblSeleccionHorario, 0, 4);
-            layout.Controls.Add(dgvHorarios, 0, 5);
-            layout.Controls.Add(reservasHeader, 0, 6);
-            layout.Controls.Add(dgvReservas, 0, 7);
+            layout.Controls.Add(busquedaCliente, 0, 1);
+            layout.Controls.Add(estadoReserva, 0, 2);
+            layout.Controls.Add(encabezadoHorarios, 0, 3);
+            layout.Controls.Add(dgvHorarios, 0, 4);
+            layout.Controls.Add(encabezadoReservas, 0, 5);
+            layout.Controls.Add(dgvReservas, 0, 6);
 
-            Controls.Add(layout);
+            _panelRaiz = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+            _panelRaiz.Controls.Add(layout);
+            InicializarListaResultadosClientes();
+            _panelRaiz.Controls.Add(_panelResultadosClientes);
+            _panelResultadosClientes.BringToFront();
+            _panelRaiz.Resize += (_, _) => PosicionarResultadosClientes();
+            Controls.Add(_panelRaiz);
 
             Load += FrmAlquilerDia_Load;
         }
@@ -197,11 +250,10 @@ namespace cantinaPadel.UI
 
         private void RefrescarDatos()
         {
-            ActualizarResumenReserva();
-
             if (cmbCancha?.SelectedValue is int idCancha)
                 CargarHorarios(idCancha);
 
+            ActualizarResumenReserva();
             ActualizarVistaReservas();
         }
 
@@ -224,29 +276,191 @@ namespace cantinaPadel.UI
         {
             try
             {
-                _idClienteSeleccionado = 0;
-                lblClienteSeleccionado.Text = "Cliente seleccionado: ninguno.";
+                string texto = txtBuscarCliente.Text.Trim();
+                if (texto.Length < 2)
+                {
+                    _clientesEncontrados.Clear();
+                    _listaResultadosClientes.DataSource = null;
+                    OcultarResultadosClientes();
+                    return;
+                }
 
-                var clientes = _logica.BuscarClientes(txtBuscarCliente.Text)
-                    .Select(c => new
-                    {
-                        c.IdCliente,
-                        Cliente = c.NombreCompleto,
-                        c.Dni,
-                        c.Email,
-                        c.Telefono
-                    })
-                    .ToList();
-
-                PaginadorGrilla.Mostrar(dgvClientes, clientes);
-
-                // Al lanzar una nueva búsqueda se pierde la selección anterior, así que la grilla de reservas vuelve a mostrar el día/cancha actual
-                ActualizarVistaReservas();
+                _clientesEncontrados = _logica.BuscarClientes(texto);
+                _listaResultadosClientes.DataSource = null;
+                _listaResultadosClientes.DataSource = _clientesEncontrados;
+                _listaResultadosClientes.DisplayMember = nameof(ClienteBusquedaTurno.NombreCompleto);
+                _listaResultadosClientes.SelectedIndex = -1;
+                _lblSinResultados.Visible = _clientesEncontrados.Count == 0;
+                _listaResultadosClientes.Visible = _clientesEncontrados.Count > 0;
+                _lblSinResultados.Text = "No encontramos clientes. Probá con otro nombre, DNI o email.";
+                MostrarResultadosClientes();
             }
             catch (Exception ex)
             {
+                OcultarResultadosClientes();
                 MessageBox.Show($"Error al buscar clientes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        private void InicializarListaResultadosClientes()
+        {
+            _listaResultadosClientes = new ListBox
+            {
+                Dock = DockStyle.Fill,
+                DrawMode = DrawMode.OwnerDrawFixed,
+                ItemHeight = 44,
+                IntegralHeight = false,
+                BorderStyle = BorderStyle.None,
+                Font = new Font("Segoe UI", 9F),
+                BackColor = Color.White,
+                FormattingEnabled = true,
+                Visible = false,
+                TabStop = true,
+                AccessibleName = "Resultados de clientes",
+                AccessibleDescription = "Usá las flechas y Enter para elegir un cliente."
+            };
+            _listaResultadosClientes.DrawItem += DibujarResultadoCliente;
+            _listaResultadosClientes.Format += (_, e) =>
+            {
+                if (e.ListItem is ClienteBusquedaTurno cliente)
+                    e.Value = string.Join(" · ", new[] { cliente.NombreCompleto, cliente.Dni, cliente.Email }
+                        .Where(texto => !string.IsNullOrWhiteSpace(texto)));
+            };
+            _listaResultadosClientes.MouseClick += (_, e) =>
+            {
+                if (e.Button == MouseButtons.Left)
+                    SeleccionarResultadoCliente();
+            };
+            _listaResultadosClientes.KeyDown += ListaResultadosClientes_KeyDown;
+
+            _lblSinResultados = new Label
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(12, 8, 12, 8),
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 9F),
+                ForeColor = Color.DimGray,
+                BackColor = Color.White,
+                Visible = false
+            };
+
+            _panelResultadosClientes = new Panel
+            {
+                Visible = false,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.White,
+                Padding = Padding.Empty
+            };
+            _panelResultadosClientes.Controls.Add(_listaResultadosClientes);
+            _panelResultadosClientes.Controls.Add(_lblSinResultados);
+        }
+
+        private void DibujarResultadoCliente(object? sender, DrawItemEventArgs e)
+        {
+            e.DrawBackground();
+            if (e.Index < 0 || e.Index >= _listaResultadosClientes.Items.Count ||
+                _listaResultadosClientes.Items[e.Index] is not ClienteBusquedaTurno cliente)
+                return;
+
+            bool seleccionado = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+            Color colorTexto = e.ForeColor;
+            Color colorDetalle = seleccionado ? e.ForeColor : Color.DimGray;
+            var areaNombre = new Rectangle(e.Bounds.X + 10, e.Bounds.Y + 3, e.Bounds.Width - 20, 19);
+            var areaDetalle = new Rectangle(e.Bounds.X + 10, e.Bounds.Y + 22, e.Bounds.Width - 20, 18);
+            using var fuenteNombre = new Font(_listaResultadosClientes.Font, FontStyle.Bold);
+            using var fuenteDetalle = new Font(_listaResultadosClientes.Font.FontFamily, 8.5F, FontStyle.Regular);
+            string detalle = string.Join("  ·  ", new[]
+            {
+                string.IsNullOrWhiteSpace(cliente.Dni) ? null : $"DNI {cliente.Dni}",
+                string.IsNullOrWhiteSpace(cliente.Email) ? null : cliente.Email
+            }.Where(texto => texto != null));
+
+            TextRenderer.DrawText(e.Graphics, cliente.NombreCompleto, fuenteNombre, areaNombre, colorTexto,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine);
+            TextRenderer.DrawText(e.Graphics, detalle, fuenteDetalle, areaDetalle, colorDetalle,
+                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.SingleLine);
+            e.DrawFocusRectangle();
+        }
+
+        private void MostrarResultadosClientes()
+        {
+            PosicionarResultadosClientes();
+            _panelResultadosClientes.Visible = true;
+            _panelResultadosClientes.BringToFront();
+        }
+
+        private void PosicionarResultadosClientes()
+        {
+            if (_panelRaiz == null || _panelResultadosClientes == null || !txtBuscarCliente.IsHandleCreated)
+                return;
+
+            Point origen = _panelRaiz.PointToClient(txtBuscarCliente.PointToScreen(Point.Empty));
+            int ancho = Math.Max(180, Math.Min(txtBuscarCliente.Width, _panelRaiz.ClientSize.Width - origen.X - 8));
+            int altoDeseado = _clientesEncontrados.Count == 0
+                ? 48
+                : Math.Min(5, _clientesEncontrados.Count) * _listaResultadosClientes.ItemHeight + 2;
+            int altoDisponible = Math.Max(44, _panelRaiz.ClientSize.Height - origen.Y - txtBuscarCliente.Height - 8);
+            int arriba = origen.Y + txtBuscarCliente.Height + 2;
+            if (_clientesEncontrados.Count > 0)
+                altoDeseado = Math.Min(altoDeseado, Math.Max(_listaResultadosClientes.ItemHeight, altoDisponible / _listaResultadosClientes.ItemHeight * _listaResultadosClientes.ItemHeight));
+
+            _panelResultadosClientes.Location = new Point(Math.Max(0, origen.X), arriba);
+            _panelResultadosClientes.Size = new Size(ancho, Math.Min(altoDeseado, altoDisponible));
+        }
+
+        private void OcultarResultadosClientes()
+        {
+            if (_panelResultadosClientes != null)
+                _panelResultadosClientes.Visible = false;
+        }
+
+        private void SeleccionarResultadoCliente()
+        {
+            int indice = _listaResultadosClientes.SelectedIndex;
+            if (indice < 0 || indice >= _clientesEncontrados.Count)
+                return;
+
+            var cliente = _clientesEncontrados[indice];
+            _debounceBusquedaCliente.Stop();
+            _idClienteSeleccionado = cliente.IdCliente;
+            _asignandoTextoCliente = true;
+            txtBuscarCliente.Text = cliente.NombreCompleto;
+            txtBuscarCliente.SelectionStart = txtBuscarCliente.TextLength;
+            _asignandoTextoCliente = false;
+            lblClienteSeleccionado.Text = string.IsNullOrWhiteSpace(cliente.Dni)
+                ? $"Cliente seleccionado: {cliente.NombreCompleto}"
+                : $"Cliente seleccionado: {cliente.NombreCompleto} · DNI {cliente.Dni}";
+            OcultarResultadosClientes();
+            ActualizarEstadoBotonReservar();
+            ActualizarVistaReservas();
+            txtBuscarCliente.Focus();
+        }
+
+        private void ListaResultadosClientes_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                SeleccionarResultadoCliente();
+            }
+            else if (e.KeyCode == Keys.Escape)
+            {
+                e.SuppressKeyPress = true;
+                OcultarResultadosClientes();
+                txtBuscarCliente.Focus();
+            }
+        }
+
+        private void txtBuscarCliente_Leave(object? sender, EventArgs e)
+        {
+            if (!IsHandleCreated || IsDisposed)
+                return;
+
+            BeginInvoke(new Action(() =>
+            {
+                if (!IsDisposed && !_panelResultadosClientes.ContainsFocus)
+                    OcultarResultadosClientes();
+            }));
         }
 
         private void CargarHorarios(int idCancha)
@@ -265,10 +479,15 @@ namespace cantinaPadel.UI
                     })
                     .ToList();
 
-                PaginadorGrilla.Mostrar(dgvHorarios, horarios);
+                dgvHorarios.DataSource = horarios;
+                LimpiarSeleccion(dgvHorarios);
+                _horaInicioSeleccionada = null;
+                _horaFinSeleccionada = null;
                 lblSeleccionHorario.Text = horarios.Count == 0
-                    ? "No quedan horarios disponibles para hoy."
-                    : "Horarios disponibles: seleccione una banda libre.";
+                    ? "No hay horarios disponibles para esta fecha."
+                    : "Elegí una banda libre para continuar.";
+                ActualizarEstadoBotonReservar();
+                ActualizarResumenReserva();
             }
             catch (Exception ex)
             {
@@ -297,9 +516,12 @@ namespace cantinaPadel.UI
                     .ToList();
 
                 PaginadorGrilla.Mostrar(dgvReservas, reservas);
+                LimpiarSeleccion(dgvReservas);
+                _idInstanciaSeleccionada = 0;
+                btnCancelar.Enabled = false;
                 lblSeleccionReserva.Text = reservas.Count == 0
-                    ? "Reservas del dia: no hay turnos activos para esta cancha y fecha."
-                    : "Reservas del dia: seleccione una reserva activa para cancelar.";
+                    ? "No hay turnos activos para esta cancha y fecha."
+                    : "Elegí un turno activo para habilitar su cancelación.";
             }
             catch (Exception ex)
             {
@@ -331,9 +553,12 @@ namespace cantinaPadel.UI
                     .ToList();
 
                 PaginadorGrilla.Mostrar(dgvReservas, reservas);
+                LimpiarSeleccion(dgvReservas);
+                _idInstanciaSeleccionada = 0;
+                btnCancelar.Enabled = false;
                 lblSeleccionReserva.Text = reservas.Count == 0
-                    ? "Reservas del cliente: no tiene turnos reservados."
-                    : "Reservas del cliente: seleccione una reserva activa para cancelar.";
+                    ? "Este cliente no tiene turnos reservados."
+                    : "Elegí un turno activo para habilitar su cancelación.";
             }
             catch (Exception ex)
             {
@@ -449,62 +674,84 @@ namespace cantinaPadel.UI
             _horaFinSeleccionada = null;
 
             if (dgvHorarios.CurrentRow == null)
+            {
+                lblSeleccionHorario.Text = "Elegí una banda libre para continuar.";
+                ActualizarEstadoBotonReservar();
+                ActualizarResumenReserva();
                 return;
+            }
 
             string estado = dgvHorarios.CurrentRow.Cells["Estado"].Value?.ToString() ?? string.Empty;
             if (!string.Equals(estado, "Libre", StringComparison.OrdinalIgnoreCase))
             {
                 lblSeleccionHorario.Text = string.Equals(estado, "Iniciado", StringComparison.OrdinalIgnoreCase)
                     ? "La banda seleccionada ya empezó o ya pasó."
-                    : "La banda seleccionada ya esta ocupada.";
+                    : "La banda seleccionada ya está ocupada.";
+                ActualizarEstadoBotonReservar();
+                ActualizarResumenReserva();
                 return;
             }
 
             if (dgvHorarios.CurrentRow.Cells["HoraInicio"].Value is not TimeSpan horaInicio ||
                 dgvHorarios.CurrentRow.Cells["HoraFin"].Value is not TimeSpan horaFin)
             {
+                ActualizarEstadoBotonReservar();
                 return;
             }
 
             _horaInicioSeleccionada = horaInicio;
             _horaFinSeleccionada = horaFin;
             lblSeleccionHorario.Text = $"Horario seleccionado: {dgvHorarios.CurrentRow.Cells["Horario"].Value}";
+            ActualizarEstadoBotonReservar();
             ActualizarResumenReserva();
-        }
-
-        private void dgvClientes_SelectionChanged(object? sender, EventArgs e)
-        {
-            _idClienteSeleccionado = 0;
-
-            if (dgvClientes.CurrentRow == null)
-            {
-                ActualizarVistaReservas();
-                return;
-            }
-
-            object? idValue = dgvClientes.CurrentRow.Cells["IdCliente"].Value;
-            if (idValue == null)
-            {
-                ActualizarVistaReservas();
-                return;
-            }
-
-            _idClienteSeleccionado = Convert.ToInt32(idValue);
-            lblClienteSeleccionado.Text = $"Cliente seleccionado: {dgvClientes.CurrentRow.Cells["Cliente"].Value}";
-
-            // Al elegir un cliente de la búsqueda, la grilla de reservas pasa a mostrar todos sus turnos activos
-            ActualizarVistaReservas();
         }
 
         private void txtBuscarCliente_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter)
-                return;
+            if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
+            {
+                _debounceBusquedaCliente.Stop();
+                if (!_panelResultadosClientes.Visible)
+                    BuscarClientes();
 
-            e.SuppressKeyPress = true;
-            // frena el timer si estaba corriendo, por si el usuario apreta Enter antes de que pasen los 300ms
-            _debounceBusquedaCliente.Stop();
-            BuscarClientes();
+                if (_listaResultadosClientes.Items.Count > 0)
+                {
+                    int indice = _listaResultadosClientes.SelectedIndex;
+                    if (e.KeyCode == Keys.Down)
+                        _listaResultadosClientes.SelectedIndex = Math.Min(_listaResultadosClientes.Items.Count - 1, indice + 1);
+                    else
+                        _listaResultadosClientes.SelectedIndex = indice < 0
+                            ? _listaResultadosClientes.Items.Count - 1
+                            : Math.Max(0, indice - 1);
+                }
+
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+                return;
+            }
+
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                _debounceBusquedaCliente.Stop();
+                if (!_panelResultadosClientes.Visible)
+                    BuscarClientes();
+
+                if (_listaResultadosClientes.Items.Count > 0)
+                {
+                    if (_listaResultadosClientes.SelectedIndex < 0)
+                        _listaResultadosClientes.SelectedIndex = 0;
+                    SeleccionarResultadoCliente();
+                }
+
+                e.Handled = true;
+            }
+            else if (e.KeyCode == Keys.Escape && _panelResultadosClientes.Visible)
+            {
+                OcultarResultadosClientes();
+                e.SuppressKeyPress = true;
+                e.Handled = true;
+            }
         }
 
         private void dgvReservas_SelectionChanged(object? sender, EventArgs e)
@@ -512,10 +759,43 @@ namespace cantinaPadel.UI
             _idInstanciaSeleccionada = 0;
 
             if (dgvReservas.CurrentRow == null)
+            {
+                lblSeleccionReserva.Text = "Elegí un turno activo para habilitar su cancelación.";
+                btnCancelar.Enabled = false;
                 return;
+            }
 
             _idInstanciaSeleccionada = Convert.ToInt32(dgvReservas.CurrentRow.Cells["IdInstancia"].Value);
-            lblSeleccionReserva.Text = $"Reserva seleccionada: {dgvReservas.CurrentRow.Cells["Horario"].Value}";
+            string estado = dgvReservas.CurrentRow.Cells["Estado"].Value?.ToString() ?? string.Empty;
+            DateTime fecha = Convert.ToDateTime(dgvReservas.CurrentRow.Cells["FechaValor"].Value);
+            bool estaActiva = string.Equals(estado, InstanciaTurno.EstadoActiva, StringComparison.OrdinalIgnoreCase);
+            bool esFutura = fecha.Date >= DateTime.Today;
+            btnCancelar.Enabled = estaActiva && esFutura;
+
+            lblSeleccionReserva.Text = !estaActiva
+                ? "El turno seleccionado ya está cancelado."
+                : !esFutura
+                    ? "No se pueden cancelar turnos de fechas pasadas."
+                    : $"Turno seleccionado: {fecha:dd/MM/yyyy} · {dgvReservas.CurrentRow.Cells["Horario"].Value}";
+        }
+
+        private void ActualizarEstadoBotonReservar()
+        {
+            if (chkIncluirCancelados != null)
+                chkIncluirCancelados.Enabled = _idClienteSeleccionado > 0;
+
+            if (btnReservar == null)
+                return;
+
+            btnReservar.Enabled = _idClienteSeleccionado > 0 &&
+                _horaInicioSeleccionada.HasValue && _horaFinSeleccionada.HasValue &&
+                cmbCancha?.SelectedValue is int idCancha && idCancha > 0;
+        }
+
+        private static void LimpiarSeleccion(DataGridView grilla)
+        {
+            grilla.ClearSelection();
+            grilla.CurrentCell = null;
         }
 
         private string ObtenerModalidadSeleccionada()
@@ -536,7 +816,7 @@ namespace cantinaPadel.UI
                 : "sin horario seleccionado";
 
             lblResumenReserva.Text = modalidad == LogicaTurnoDia.ModalidadDia
-                ? $"Reserva: por dia, {dtpFecha.Value:dd/MM/yyyy}, {horario}."
+                ? $"Reserva: por día, {dtpFecha.Value:dd/MM/yyyy}, {horario}."
                 : $"Reserva: {modalidad.ToLower()}, del {dtpFecha.Value:dd/MM/yyyy} al {fechaFin:dd/MM/yyyy}, {cantidadTurnos} turnos, {horario}.";
         }
 
@@ -547,12 +827,13 @@ namespace cantinaPadel.UI
                 Text = "Modalidad",
                 Width = 270,
                 Height = 64,
-                Margin = new Padding(0, 0, 16, 0)
+                Margin = new Padding(0, 0, 16, 0),
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             };
 
             rdoDia = new RadioButton
             {
-                Text = "Por dia",
+                Text = "Por día",
                 Checked = true,
                 AutoSize = true,
                 Location = new Point(10, 28)
@@ -602,11 +883,112 @@ namespace cantinaPadel.UI
             return new Button
             {
                 Text = texto,
-                AutoSize = true,
-                Height = 34,
+                AutoSize = false,
+                Height = 36,
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
                 Margin = new Padding(0, 18, 10, 8),
-                Padding = new Padding(12, 0, 12, 0)
+                Padding = new Padding(10, 0, 10, 0)
             };
+        }
+
+        private Control CrearPanelBusquedaCliente()
+        {
+            var panel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Height = 42,
+                ColumnCount = 2,
+                RowCount = 1,
+                Margin = new Padding(0, 4, 0, 4),
+                Padding = Padding.Empty
+            };
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var etiqueta = new Label
+            {
+                Text = "Cliente para reservar",
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold),
+                Margin = new Padding(0, 0, 12, 0)
+            };
+            panel.Controls.Add(etiqueta, 0, 0);
+            panel.Controls.Add(txtBuscarCliente, 1, 0);
+            return panel;
+        }
+
+        private Control CrearResumenReserva()
+        {
+            var panel = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Height = 38,
+                ColumnCount = 2,
+                RowCount = 1,
+                CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
+                Margin = new Padding(0, 2, 0, 4),
+                Padding = Padding.Empty
+            };
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 42));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            lblClienteSeleccionado.Dock = DockStyle.Fill;
+            lblResumenReserva.Dock = DockStyle.Fill;
+            panel.Controls.Add(lblClienteSeleccionado, 0, 0);
+            panel.Controls.Add(lblResumenReserva, 1, 0);
+            return panel;
+        }
+
+        private static Control CrearEncabezadoSeccion(string titulo, Label estado, Control acciones)
+        {
+            var encabezado = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                Height = 58,
+                ColumnCount = 2,
+                RowCount = 2,
+                Margin = new Padding(0, 7, 0, 2),
+                Padding = Padding.Empty
+            };
+            encabezado.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            encabezado.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            encabezado.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+            encabezado.RowStyles.Add(new RowStyle(SizeType.Percent, 50));
+
+            var etiquetaTitulo = new Label
+            {
+                Text = titulo,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 11F, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
+                Margin = Padding.Empty
+            };
+            estado.Dock = DockStyle.Fill;
+            estado.Font = new Font("Segoe UI", 9F);
+            estado.ForeColor = Color.DimGray;
+            estado.Padding = Padding.Empty;
+
+            var barraAcciones = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                WrapContents = false,
+                FlowDirection = FlowDirection.LeftToRight,
+                Anchor = AnchorStyles.Right,
+                Dock = DockStyle.Right,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            acciones.Margin = acciones is Button ? new Padding(8, 0, 0, 0) : Padding.Empty;
+            barraAcciones.Controls.Add(acciones);
+
+            encabezado.Controls.Add(etiquetaTitulo, 0, 0);
+            encabezado.Controls.Add(estado, 0, 1);
+            encabezado.Controls.Add(barraAcciones, 1, 0);
+            encabezado.SetRowSpan(barraAcciones, 2);
+            return encabezado;
         }
 
         private static Control CrearCampo(string etiqueta, Control control)
@@ -615,17 +997,21 @@ namespace cantinaPadel.UI
             {
                 Width = control.Width + 12,
                 Height = 64,
-                Margin = new Padding(0, 0, 12, 0)
+                Margin = new Padding(0, 0, 12, 0),
+                Padding = Padding.Empty
             };
 
             var label = new Label
             {
                 Text = etiqueta,
                 AutoSize = true,
-                Location = new Point(0, 0)
+                Location = new Point(0, 0),
+                Font = new Font("Segoe UI", 9F, FontStyle.Bold)
             };
 
             control.Location = new Point(0, 26);
+            if (control is ComboBox or DateTimePicker)
+                control.Font = new Font("Segoe UI", 9F);
             panel.Controls.Add(label);
             panel.Controls.Add(control);
 
@@ -637,8 +1023,13 @@ namespace cantinaPadel.UI
             return new Label
             {
                 Text = texto,
-                AutoSize = true,
-                Margin = new Padding(0, 8, 18, 8)
+                AutoSize = false,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Padding = new Padding(8, 0, 8, 0),
+                Margin = Padding.Empty,
+                Font = new Font("Segoe UI", 9F)
             };
         }
 
@@ -655,9 +1046,26 @@ namespace cantinaPadel.UI
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 BackgroundColor = Color.White,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                BorderStyle = BorderStyle.FixedSingle,
+                BorderStyle = BorderStyle.None,
+                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal,
+                EnableHeadersVisualStyles = false,
                 ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
-                RowHeadersVisible = false
+                ColumnHeadersDefaultCellStyle =
+                {
+                    BackColor = Color.FromArgb(245, 246, 248),
+                    ForeColor = Color.FromArgb(45, 55, 65),
+                    Font = new Font("Segoe UI", 9F, FontStyle.Bold)
+                },
+                DefaultCellStyle =
+                {
+                    SelectionBackColor = Color.FromArgb(255, 241, 190),
+                    SelectionForeColor = Color.FromArgb(35, 35, 35),
+                    Padding = new Padding(6, 0, 6, 0)
+                },
+                RowHeadersVisible = false,
+                Margin = Padding.Empty,
+                Font = new Font("Segoe UI", 9F),
+                RowTemplate = { Height = 32 }
             };
         }
 
@@ -668,16 +1076,6 @@ namespace cantinaPadel.UI
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoraInicio", DataPropertyName = "HoraInicio", Visible = false });
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { Name = "HoraFin", DataPropertyName = "HoraFin", Visible = false });
             dgvHorarios.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Estado", Name = "Estado", DataPropertyName = "Estado", FillWeight = 25 });
-        }
-
-        private void ConfigurarColumnasClientes()
-        {
-            dgvClientes.Columns.Clear();
-            dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { Name = "IdCliente", DataPropertyName = "IdCliente", Visible = false });
-            dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Cliente", Name = "Cliente", DataPropertyName = "Cliente", FillWeight = 40 });
-            dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "DNI", Name = "Dni", DataPropertyName = "Dni", FillWeight = 18 });
-            dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Email", Name = "Email", DataPropertyName = "Email", FillWeight = 30 });
-            dgvClientes.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Telefono", Name = "Telefono", DataPropertyName = "Telefono", FillWeight = 22 });
         }
 
         private void ConfigurarColumnasReservas()

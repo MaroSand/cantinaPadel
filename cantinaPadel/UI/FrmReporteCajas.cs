@@ -29,9 +29,9 @@ public sealed class FrmReporteCajas : Form
     private readonly Label _totalTarjeta = new();
     private readonly Label _totalGeneral = new();
     private readonly Button _limpiar = new();
-    private readonly Button _csv = Boton("Exportar CSV", Color.SteelBlue);
-    private readonly Button _excel = Boton("Exportar Excel", Color.ForestGreen);
-    private readonly Button _pdf = Boton("Exportar PDF", Color.IndianRed);
+    private readonly Button _csv = ConvencionReportes.CrearBotonExportar("Exportar CSV", Color.SteelBlue);
+    private readonly Button _excel = ConvencionReportes.CrearBotonExportar("Exportar Excel", Color.ForestGreen);
+    private readonly Button _pdf = ConvencionReportes.CrearBotonExportar("Exportar PDF", Color.IndianRed);
     private List<TurnoCaja> _turnos = new();
     private string _filtros = string.Empty;
     private static readonly string[] Encabezados = { "N.º turno", "Empleado", "Estado", "Apertura", "Cierre", "Inicial", "Efectivo esperado", "Efectivo final", "Dif. efectivo", "Ventas tarjeta", "Ventas transferencia" };
@@ -59,26 +59,21 @@ public sealed class FrmReporteCajas : Form
 
     private void Construir()
     {
-        var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
+        var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = Padding.Empty, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
         contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 110));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
         contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 154));
 
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 3 };
-        foreach (var ancho in new[] { 17f, 17f, 25f, 23f, 18f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
-        navegacion.Controls.AddRange(new Control[] { _mesAnterior, _mesSeleccionado, _mesSiguiente });
-        filtros.Controls.Add(navegacion, 0, 0);
-        filtros.SetColumnSpan(navegacion, 5);
-        AgregarFiltro(filtros, 0, "Desde", _desde, 1, 2); AgregarFiltro(filtros, 1, "Hasta", _hasta, 1, 2);
-        AgregarFiltro(filtros, 2, "Empleado", _empleado, 1, 2); AgregarFiltro(filtros, 3, "Estado", _estado, 1, 2);
-        _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat; filtros.Controls.Add(_limpiar, 4, 2);
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarNavegacionMes(filtros, _mesAnterior, _mesSeleccionado, _mesSiguiente);
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Desde", _desde);
+        ConvencionReportes.AgregarFiltro(filtros, 1, "Hasta", _hasta);
+        ConvencionReportes.AgregarFiltro(filtros, 2, "Estado", _estado);
+        ConvencionReportes.AgregarFiltro(filtros, 4, "Empleado", _empleado);
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, _limpiar, "Limpiar");
 
-        _grilla.Dock = DockStyle.Fill; _grilla.Margin = Padding.Empty; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false; _grilla.MultiSelect = false;
+        _grilla.Dock = DockStyle.Fill; ConvencionReportes.ConfigurarMargenGrilla(_grilla); _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false; _grilla.MultiSelect = false;
         _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false; _grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _grilla.RowTemplate.Height = 30; _grilla.ColumnHeadersHeight = 34; _grilla.BackgroundColor = Color.White; _grilla.GridColor = SystemColors.ControlLight;
         _grilla.AutoGenerateColumns = false;
@@ -89,7 +84,7 @@ public sealed class FrmReporteCajas : Form
         AddCol("CierreTarjeta", "Ventas tarjeta", 9, "C2");
         AddCol("CierreTransferencia", "Ventas transferencia", 10, "C2");
 
-        var pie = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12, 8, 12, 7), BackColor = SystemColors.Info, ColumnCount = 1, RowCount = 2 };
+        var pie = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = new Padding(12, 5, 12, 8), BackColor = SystemColors.Info, ColumnCount = 1, RowCount = 2 };
         pie.RowStyles.Add(new RowStyle(SizeType.Absolute, 78)); pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         var totales = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, ColumnCount = 4, RowCount = 1 };
@@ -105,7 +100,7 @@ public sealed class FrmReporteCajas : Form
         filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         filaAcciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         _resumen.Dock = DockStyle.Fill; _resumen.Margin = Padding.Empty; _resumen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        var botones = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 470, WrapContents = false, Padding = new Padding(0, 4, 0, 0), Margin = Padding.Empty };
+        var botones = ConvencionReportes.CrearContenedorBotonesExportar();
         botones.Controls.AddRange(new Control[] { _csv, _excel, _pdf });
         _resumen.TextAlign = ContentAlignment.MiddleRight;
         filaAcciones.Controls.Add(botones, 0, 0); filaAcciones.Controls.Add(_resumen, 1, 0);
@@ -247,14 +242,6 @@ public sealed class FrmReporteCajas : Form
         var hoy = DateTime.Today;
         _mesSiguiente.Enabled = mes < new DateTime(hoy.Year, hoy.Month, 1);
     }
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control)
-        => AgregarFiltro(panel, col, titulo, control, 0, 1);
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control, int filaTitulo, int filaControl)
-    {
-        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, filaTitulo);
-        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, filaControl);
-    }
-    private static Button Boton(string texto, Color color) => new() { Text = texto, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0), BackColor = color, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Enabled = false };
     private static Control CrearTarjetaTotal(string titulo, Label importe, bool sinMargenDerecho = false)
     {
         var tarjeta = new Panel

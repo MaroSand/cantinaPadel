@@ -32,6 +32,10 @@ namespace cantinaPadel.UI
             _logica = new LogicaCliente();
             _modoSeleccion = modoSeleccion;
             ConfigurarModo();
+            ConvencionVistasPersonas.ConfigurarListado(
+                this, panelFiltros, panelAcciones, label1, txtBuscar, label2, cmbEstado,
+                btnNuevo, btnModificar, btnBajaLogica, dgvClientes, btnCancelar);
+            txtBuscar.PlaceholderText = "Nombre, email o DNI";
         }
 
         // En modo normal, btnCancelar no se ve y la pantalla queda idéntica a la de siempre

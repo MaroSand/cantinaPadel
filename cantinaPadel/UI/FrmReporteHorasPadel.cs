@@ -23,31 +23,31 @@ public sealed class FrmReporteHorasPadel : Form
     private readonly DateTimePicker desde = new() { Format = DateTimePickerFormat.Short };
     private readonly DateTimePicker hasta = new() { Format = DateTimePickerFormat.Short };
     private readonly DataGridView grilla = new();
-    private readonly Label resumen = new() { AutoSize = true, Padding = new Padding(8), BackColor = Color.White };
+    private readonly Label resumen = new();
     private List<FilaCancelacion> filas = new();
     private List<InstanciaTurno> datos = new();
 
     public FrmReporteHorasPadel()
     {
         Text = "Historial de turnos cancelados";
-        BackColor = Color.White;
+        BackColor = SystemColors.Info;
         Font = new Font("Segoe UI", 9F);
-        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Padding = new Padding(10), BackColor = Color.White };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Margin = Padding.Empty, Padding = Padding.Empty, BackColor = SystemColors.Info };
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        var filtros = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 7, 0, 0), BackColor = Color.Gold };
-        filtros.Controls.Add(new Label { Text = "Canceladas desde", AutoSize = true, Padding = new Padding(0, 7, 4, 0) });
-        filtros.Controls.Add(desde);
-        filtros.Controls.Add(new Label { Text = "hasta", AutoSize = true, Padding = new Padding(8, 7, 4, 0) });
-        filtros.Controls.Add(hasta);
-        var buscar = new Button { Text = "Buscar", Width = 85, Height = 27, Margin = new Padding(10, 0, 0, 0) };
-        filtros.Controls.Add(buscar);
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarTitulo(filtros, "Turnos cancelados por período");
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Desde", desde);
+        ConvencionReportes.AgregarFiltro(filtros, 1, "Hasta", hasta);
+        var buscar = new Button();
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, buscar, "Buscar");
         desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         hasta.Value = DateTime.Today;
         buscar.Click += (_, _) => Cargar();
 
         grilla.Dock = DockStyle.Fill;
+        ConvencionReportes.ConfigurarMargenGrilla(grilla);
         grilla.ReadOnly = true;
         grilla.AllowUserToAddRows = false;
         grilla.AllowUserToDeleteRows = false;
@@ -71,6 +71,12 @@ public sealed class FrmReporteHorasPadel : Form
             using var detalle = new FrmHistorialTurnosCancelados(fila.Cliente, fila.Instancias);
             detalle.ShowDialog(this);
         };
+
+        resumen.Dock = DockStyle.Fill;
+        resumen.Margin = Padding.Empty;
+        resumen.Padding = new Padding(12, 5, 12, 8);
+        resumen.BackColor = SystemColors.Info;
+        resumen.TextAlign = ContentAlignment.MiddleLeft;
 
         root.Controls.Add(filtros, 0, 0);
         root.Controls.Add(grilla, 0, 1);
@@ -165,7 +171,7 @@ public sealed class FrmHistorialTurnosCancelados : Form
         cerrar.Click += (_, _) => Close();
         root.Controls.Add(cerrar, 0, 2);
         Controls.Add(root);
-        PaginadorGrilla.Mostrar(grid, detalles);
+        grid.DataSource = detalles;
     }
 
     private sealed class Detalle

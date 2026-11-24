@@ -30,7 +30,6 @@
         {
             panelAcciones = new Panel();
             btnAnular = new Button();
-            btnDetalle = new Button();
             btnNueva = new Button();
             lblResumen = new Label();
             panelFiltros = new Panel();
@@ -53,7 +52,6 @@
             // 
             panelAcciones.BackColor = SystemColors.Info;
             panelAcciones.Controls.Add(btnAnular);
-            panelAcciones.Controls.Add(btnDetalle);
             panelAcciones.Controls.Add(btnNueva);
             panelAcciones.Controls.Add(lblResumen);
             panelAcciones.Dock = DockStyle.Bottom;
@@ -75,19 +73,6 @@
             btnAnular.TabIndex = 1;
             btnAnular.Text = "Anular compra";
             btnAnular.UseVisualStyleBackColor = false;
-            // 
-            // btnDetalle
-            // 
-            btnDetalle.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnDetalle.BackColor = Color.Khaki;
-            btnDetalle.FlatStyle = FlatStyle.Flat;
-            btnDetalle.Font = new Font("Segoe UI", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnDetalle.Location = new Point(518, 52);
-            btnDetalle.Name = "btnDetalle";
-            btnDetalle.Size = new Size(270, 46);
-            btnDetalle.TabIndex = 2;
-            btnDetalle.Text = "Ver detalle";
-            btnDetalle.UseVisualStyleBackColor = false;
             // 
             // btnNueva
             // 
@@ -253,7 +238,6 @@
         private Button btnLimpiar;
         private CheckBox chkIncluirAnuladas;
         private Button btnNueva;
-        private Button btnDetalle;
         private Button btnAnular;
     }
 }

@@ -36,7 +36,7 @@
             rbPorcentaje = new System.Windows.Forms.RadioButton();
             rbManual = new System.Windows.Forms.RadioButton();
             nudPrecioManual = new System.Windows.Forms.NumericUpDown();
-            btnAplicarPrecioManual = new System.Windows.Forms.Button();
+            btnAlternarSeleccion = new System.Windows.Forms.Button();
             lblAyudaPrecio = new System.Windows.Forms.Label();
             dgvPreview = new System.Windows.Forms.DataGridView();
             panelFiltros.SuspendLayout();
@@ -152,7 +152,7 @@
             panelAcciones.Controls.Add(rbPorcentaje);
             panelAcciones.Controls.Add(rbManual);
             panelAcciones.Controls.Add(nudPrecioManual);
-            panelAcciones.Controls.Add(btnAplicarPrecioManual);
+            panelAcciones.Controls.Add(btnAlternarSeleccion);
             panelAcciones.Controls.Add(lblAyudaPrecio);
             panelAcciones.Dock = System.Windows.Forms.DockStyle.Bottom;
             panelAcciones.Location = new System.Drawing.Point(0, 657);
@@ -219,17 +219,17 @@
             nudPrecioManual.Size = new System.Drawing.Size(160, 39);
             nudPrecioManual.TabIndex = 4;
             // 
-            // btnAplicarPrecioManual
+            // btnAlternarSeleccion
             // 
-            btnAplicarPrecioManual.BackColor = System.Drawing.Color.White;
-            btnAplicarPrecioManual.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            btnAplicarPrecioManual.Location = new System.Drawing.Point(800, 10);
-            btnAplicarPrecioManual.Margin = new System.Windows.Forms.Padding(6, 4, 6, 4);
-            btnAplicarPrecioManual.Name = "btnAplicarPrecioManual";
-            btnAplicarPrecioManual.Size = new System.Drawing.Size(240, 47);
-            btnAplicarPrecioManual.TabIndex = 5;
-            btnAplicarPrecioManual.Text = "Aplicar a tildados";
-            btnAplicarPrecioManual.UseVisualStyleBackColor = false;
+            btnAlternarSeleccion.BackColor = System.Drawing.Color.White;
+            btnAlternarSeleccion.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            btnAlternarSeleccion.Location = new System.Drawing.Point(800, 10);
+            btnAlternarSeleccion.Margin = new System.Windows.Forms.Padding(6, 4, 6, 4);
+            btnAlternarSeleccion.Name = "btnAlternarSeleccion";
+            btnAlternarSeleccion.Size = new System.Drawing.Size(240, 47);
+            btnAlternarSeleccion.TabIndex = 5;
+            btnAlternarSeleccion.Text = "Tildar todos";
+            btnAlternarSeleccion.UseVisualStyleBackColor = false;
             // 
             // lblAyudaPrecio
             // 
@@ -240,7 +240,7 @@
             lblAyudaPrecio.Name = "lblAyudaPrecio";
             lblAyudaPrecio.Size = new System.Drawing.Size(992, 32);
             lblAyudaPrecio.TabIndex = 2;
-            lblAyudaPrecio.Text = ("Tip: tildá los productos en \"Aplicar\" y usá \"Precio manual\" para asignarles un pr" + "ecio puntual.");
+            lblAyudaPrecio.Text = "El precio manual se ingresa sin IVA; la columna Precio Nuevo muestra el importe final con IVA.";
             // 
             // dgvPreview
             // 
@@ -293,7 +293,7 @@
         private NumericUpDown nudPorcentaje;
         private RadioButton rbManual;
         private NumericUpDown nudPrecioManual;
-        private Button btnAplicarPrecioManual;
+        private Button btnAlternarSeleccion;
         private Label lblAyudaPrecio;
         private Button btnConfirmar;
         private System.Windows.Forms.DataGridView dgvPreview;

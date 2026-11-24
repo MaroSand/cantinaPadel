@@ -56,7 +56,7 @@ namespace cantinaPadel.Models
         public decimal PrecioConIva => Math.Round(PrecioVenta * 1.21m, 2);
 
         [NotMapped]
-        public bool StockBajo => StockActual <= StockMinimo;
+        public bool StockBajo => ControlaStock && StockActual <= StockMinimo;
 
         [NotMapped]
         public bool EsHoraPadel => string.Equals(
@@ -69,5 +69,9 @@ namespace cantinaPadel.Models
             Categoria?.Nombre?.Trim(),
             global::cantinaPadel.Models.Categoria.NombreCategoriaVarios,
             StringComparison.OrdinalIgnoreCase);
+
+        [NotMapped]
+        // Hora Pádel y la categoría Varios no representan unidades inventariables.
+        public bool ControlaStock => !EsHoraPadel && !EsVarios;
     }
 }

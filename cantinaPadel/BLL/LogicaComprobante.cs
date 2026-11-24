@@ -60,11 +60,25 @@ namespace cantinaPadel.BLL
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
 
 
-        // En Argentina, Factura A solo se le puede emitir a un cliente Responsable Inscripto (con CUIT); a Consumidor Final, o a
-        // cualquier otra condición de IVA, corresponde Factura B o C
-        private const string CondicionIvaResponsableInscripto = "Responsable Inscripto";
-
         private readonly IComprobanteRepository _repo;
+
+        private static readonly HashSet<string> CondicionesQueAdmitenFacturaA = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Responsable Inscripto", "Monotributista"
+        };
+
+        private static readonly HashSet<string> CondicionesQueAdmitenFacturaB = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Responsable No Inscripto", "No Responsable", "IVA Exento", "Consumidor Final",
+            "Sujeto No Categorizado", "IVA Liberado", "Pequeño Contribuyente Eventual"
+        };
+
+        private static readonly HashSet<string> CondicionesQueAdmitenFacturaC = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Responsable Inscripto", "Responsable No Inscripto", "No Responsable", "IVA Exento",
+            "Consumidor Final", "Monotributista", "Sujeto No Categorizado", "IVA Liberado",
+            "Pequeño Contribuyente Eventual"
+        };
 
         private static readonly IComprobanteRepository _repositorioEnMemoria = new ComprobanteRepositoryEnMemoria();
 
@@ -78,16 +92,36 @@ namespace cantinaPadel.BLL
             _repo = repo;
         }
 
-        // Numeración correlativa por tipo de comprobante
-        public long GenerarProximoNumero(TipoComprobante tipo)
-            => _repo.ObtenerUltimoNumero(tipo, PUNTO_VENTA) + 1;
+        // El número interno identifica la operación de venta. Cada pago de cuenta corriente tiene su propia venta hija,
+        // por lo que obtiene un número distinto al de la venta original sin mantener un contador en memoria.
+        public long GenerarNumero(int idVenta)
+            => idVenta > 0 ? idVenta : throw new ArgumentOutOfRangeException(nameof(idVenta), "La venta debe estar guardada antes de emitir el comprobante.");
+
+        public static bool TipoPermitidoParaCliente(TipoComprobante tipo, string? condicionIva) => tipo switch
+        {
+            TipoComprobante.FacturaA => condicionIva != null && CondicionesQueAdmitenFacturaA.Contains(condicionIva.Trim()),
+            TipoComprobante.FacturaB => condicionIva != null && CondicionesQueAdmitenFacturaB.Contains(condicionIva.Trim()),
+            TipoComprobante.FacturaC => condicionIva != null && CondicionesQueAdmitenFacturaC.Contains(condicionIva.Trim()),
+            _ => true
+        };
+
+        public static TipoComprobante? TipoPredeterminadoParaCliente(string? condicionIva)
+        {
+            if (TipoPermitidoParaCliente(TipoComprobante.FacturaA, condicionIva)) return TipoComprobante.FacturaA;
+            if (TipoPermitidoParaCliente(TipoComprobante.FacturaB, condicionIva)) return TipoComprobante.FacturaB;
+            if (TipoPermitidoParaCliente(TipoComprobante.FacturaC, condicionIva)) return TipoComprobante.FacturaC;
+            return TipoComprobante.Ticket;
+        }
 
         // Valida, arma el Comprobante, conserva su número correlativo en memoria y resuelve la entrega elegida
         // (imprimir / mandar por email / no emitir nada)
-        public Comprobante ConfirmarEmision(DatosVentaParaComprobante datos, TipoComprobante tipo, FormaEntrega formaEntrega)
+        public Comprobante ConfirmarEmision(DatosVentaParaComprobante datos, TipoComprobante tipo, FormaEntrega formaEntrega, string? rutaPdfImpresion = null)
         {
             if (datos == null)
                 throw new ArgumentException("Los datos de la venta son obligatorios.");
+
+            if (datos.IdVenta <= 0)
+                throw new ArgumentException("La venta debe registrarse antes de emitir el comprobante.", nameof(datos));
 
             // Una venta pagada con Cuenta Corriente no se factura; como máximo se emite un remito (queda pendiente de facturar
             // hasta que el cliente cancele la deuda). Esta validación es un resguardo de fondo: la UI (FrmSeleccionComprobante) ya debería
@@ -102,10 +136,13 @@ namespace cantinaPadel.BLL
             // tampoco habilita Factura A, y sin CUIT no hay a quién facturarle A
             if (tipo == TipoComprobante.FacturaA)
             {
-                bool esResponsableInscripto = string.Equals(datos.CondicionIvaCliente, CondicionIvaResponsableInscripto, StringComparison.OrdinalIgnoreCase);
-                if (!esResponsableInscripto || string.IsNullOrWhiteSpace(datos.CuitCliente))
-                    throw new ArgumentException("Para emitir Factura A el cliente debe estar cargado como Responsable Inscripto con CUIT. Elegí Factura B/C o cargá esos datos en la ficha del cliente.");
+                bool admiteFacturaA = datos.CondicionIvaCliente != null && CondicionesQueAdmitenFacturaA.Contains(datos.CondicionIvaCliente.Trim());
+                if (!admiteFacturaA || string.IsNullOrWhiteSpace(datos.CuitCliente))
+                    throw new ArgumentException("Para emitir Factura A el cliente debe estar cargado como Responsable Inscripto o Monotributista con CUIT. Elegí otro comprobante o completá sus datos.");
             }
+
+            if (!TipoPermitidoParaCliente(tipo, datos.CondicionIvaCliente))
+                throw new ArgumentException($"La condición frente al IVA del cliente no permite emitir {EtiquetaTipo(tipo)}.");
 
             if (formaEntrega == FormaEntrega.Email && string.IsNullOrWhiteSpace(datos.EmailCliente))
                 throw new ArgumentException("Para enviar el comprobante por email hace falta el email del cliente.");
@@ -115,19 +152,20 @@ namespace cantinaPadel.BLL
                 IdVenta = datos.IdVenta,
                 Tipo = tipo,
                 PuntoVenta = PUNTO_VENTA,
-                Numero = GenerarProximoNumero(tipo),
+                Numero = GenerarNumero(datos.IdVenta),
                 FormaEntrega = formaEntrega,
                 Total = datos.Total,
                 IdUsuario = Sesion.IdUsuario,
                 FechaEmision = DateTime.Now
             };
 
-            _repo.Agregar(comprobante);
-
             switch (formaEntrega)
             {
                 case FormaEntrega.Imprimir:
-                    Imprimir(comprobante, datos);
+                    if (!string.IsNullOrWhiteSpace(rutaPdfImpresion))
+                        GuardarPdf(comprobante, datos, rutaPdfImpresion);
+                    else
+                        Imprimir(comprobante, datos);
                     break;
                 case FormaEntrega.Email:
                     EnviarPorEmail(comprobante, datos);
@@ -228,14 +266,34 @@ namespace cantinaPadel.BLL
             _ => tipo.ToString()
         };
 
+        public static string DescribirErrorEnvio(Exception error)
+        {
+            var detalle = new StringBuilder();
+            for (Exception? actual = error; actual != null; actual = actual.InnerException)
+            {
+                if (detalle.Length > 0)
+                    detalle.Append(" Detalle: ");
+
+                if (actual is SmtpException smtpError)
+                    detalle.Append($"{smtpError.Message} (estado SMTP: {smtpError.StatusCode})");
+                else
+                    detalle.Append(actual.Message);
+            }
+
+            return detalle.ToString();
+        }
+
         // Impresión directa vía PrintDocument (impresora del sistema por defecto).
         // No se agregó ninguna librería de PDF: si el usuario deja configurada "Microsoft Print to PDF" como impresora predeterminada, esto mismo
         // exporta a PDF
         private void Imprimir(Comprobante comprobante, DatosVentaParaComprobante datos)
         {
             string texto = GenerarTexto(comprobante, datos);
+            string nombreBase = NombreArchivoSugerido(comprobante, datos);
 
             using var doc = new PrintDocument();
+            doc.DocumentName = nombreBase;
+            doc.PrinterSettings.PrintFileName = nombreBase + ".pdf";
             doc.PrintPage += (s, e) =>
             {
                 e.Graphics!.DrawString(texto, new Font("Consolas", 10), Brushes.Black, 10, 10);
@@ -243,19 +301,49 @@ namespace cantinaPadel.BLL
             doc.Print();
         }
 
-        // TODO: por ahora usa la configuración de SMTP que tenga la máquina (SmtpClient sin parámetros lee app.config). Falta definir de dónde
-        // sale esa configuración real (usuario/contraseña de la cantina)
         private void EnviarPorEmail(Comprobante comprobante, DatosVentaParaComprobante datos)
         {
+            var configuracion = ConfiguracionCorreoComprobante.Cargar();
             string texto = GenerarTexto(comprobante, datos);
+            byte[] pdf = GeneradorPdfComprobante.Generar(comprobante, datos);
 
             using var mensaje = new MailMessage();
+            mensaje.From = new MailAddress(configuracion.Remitente, "Cantina Padel");
             mensaje.To.Add(datos.EmailCliente!);
             mensaje.Subject = $"{EtiquetaTipo(comprobante.Tipo)} Nº {comprobante.NumeroFormateado} - Cantina Padel";
-            mensaje.Body = texto;
+            mensaje.Body = $"Hola {datos.NombreCliente},\r\n\r\nAdjuntamos tu comprobante en formato PDF.\r\n\r\n{texto}\r\nSaludos,\r\nCantina Padel";
+            mensaje.BodyEncoding = Encoding.UTF8;
+            mensaje.SubjectEncoding = Encoding.UTF8;
 
-            using var smtp = new SmtpClient();
+            using var streamPdf = new MemoryStream(pdf);
+            string nombreArchivo = $"{EtiquetaTipo(comprobante.Tipo)}-{comprobante.NumeroFormateado.Replace('-', '_')}.pdf";
+            mensaje.Attachments.Add(new Attachment(streamPdf, nombreArchivo, "application/pdf"));
+
+            using var smtp = new SmtpClient(configuracion.Host, configuracion.Puerto)
+            {
+                EnableSsl = configuracion.UsarSsl,
+                UseDefaultCredentials = false,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                Timeout = 30000
+            };
+            if (!string.IsNullOrWhiteSpace(configuracion.Usuario))
+                smtp.Credentials = new System.Net.NetworkCredential(configuracion.Usuario, configuracion.Contrasena);
+
             smtp.Send(mensaje);
+        }
+
+        public static string NombreArchivoSugerido(Comprobante comprobante, DatosVentaParaComprobante datos)
+        {
+            string nombre = $"{EtiquetaTipo(comprobante.Tipo)} - {datos.NombreCliente}";
+            foreach (char caracterInvalido in Path.GetInvalidFileNameChars())
+                nombre = nombre.Replace(caracterInvalido, '_');
+            return nombre.Trim();
+        }
+
+        private static void GuardarPdf(Comprobante comprobante, DatosVentaParaComprobante datos, string rutaPdf)
+        {
+            byte[] pdf = GeneradorPdfComprobante.Generar(comprobante, datos);
+            File.WriteAllBytes(rutaPdf, pdf);
         }
     }
 

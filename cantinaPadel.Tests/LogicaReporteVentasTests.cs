@@ -16,6 +16,7 @@ public class LogicaReporteVentasTests
         public DateTime? Hasta { get; private set; }
         public string? FormaPago { get; private set; }
         public int? IdEmpleado { get; private set; }
+        public List<DetalleVentaReporte> Detalles { get; set; } = new();
 
         public DatosReporteVentas ObtenerDatos(DateTime desde, DateTime hasta, string? formaPago, int? idEmpleado)
         {
@@ -26,6 +27,8 @@ public class LogicaReporteVentasTests
             IdEmpleado = idEmpleado;
             return Datos;
         }
+
+        public List<DetalleVentaReporte> ObtenerDetallesVenta(int idVenta) => Detalles;
     }
 
     private sealed class EmpleadosFalso : IEmpleadoRepository

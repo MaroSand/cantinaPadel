@@ -30,7 +30,7 @@ public class VentaRepository : IVentaRepository
             if (!productos.TryGetValue(idProducto, out var producto) || !producto.Activo)
                 throw new InvalidOperationException("Uno de los productos ya no se encuentra disponible.");
 
-            if (producto.EsHoraPadel)
+            if (!producto.ControlaStock)
                 continue;
 
             int cantidadManual = cantidades.Total - cantidades.Escaneadas;
@@ -42,7 +42,7 @@ public class VentaRepository : IVentaRepository
         foreach (var (idProducto, cantidades) in cantidadPorProducto)
         {
             var producto = productos[idProducto];
-            if (!producto.EsHoraPadel)
+            if (producto.ControlaStock)
                 producto.StockActual -= cantidades.Total;
         }
 

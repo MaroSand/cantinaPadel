@@ -6,6 +6,38 @@ namespace cantinaPadel.DAL.Repositories;
 
 public class ReporteVentasRepository : IReporteVentasRepository
 {
+    public List<DetalleVentaReporte> ObtenerDetallesVenta(int idVenta)
+    {
+        using var ctx = new AppDbContext();
+
+        var detalles = (from detalle in ctx.DetallesVenta.AsNoTracking()
+                        join producto in ctx.Productos.AsNoTracking()
+                            on detalle.IdProducto equals (int?)producto.IdProducto into productos
+                        from producto in productos.DefaultIfEmpty()
+                        where detalle.IdVenta == idVenta
+                        orderby detalle.IdDetalle
+                        select new
+                        {
+                            detalle.IdDetalle,
+                            detalle.IdTurno,
+                            detalle.PrecioUnitario,
+                            detalle.Subtotal,
+                            detalle.Pagado,
+                            NombreProducto = producto == null ? null : producto.Nombre
+                        })
+            .ToList();
+
+        return detalles.Select(detalle => new DetalleVentaReporte
+        {
+            Articulo = !string.IsNullOrWhiteSpace(detalle.NombreProducto)
+                ? detalle.NombreProducto
+                : detalle.IdTurno.HasValue ? $"Turno de pádel #{detalle.IdTurno.Value}" : $"Artículo #{detalle.IdDetalle}",
+            PrecioUnitario = detalle.PrecioUnitario,
+            Subtotal = detalle.Subtotal,
+            Pagado = detalle.Pagado
+        }).ToList();
+    }
+
     public DatosReporteVentas ObtenerDatos(DateTime desde, DateTime hasta, string? formaPago, int? idEmpleado)
     {
         using var ctx = new AppDbContext();

@@ -106,7 +106,7 @@
             btnGuardar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btnGuardar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
             btnGuardar.ForeColor = System.Drawing.Color.White;
-            btnGuardar.Location = new System.Drawing.Point(748, 517);
+            btnGuardar.Location = new System.Drawing.Point(155, 517);
             btnGuardar.Name = "btnGuardar";
             btnGuardar.Size = new System.Drawing.Size(523, 66);
             btnGuardar.TabIndex = 0;
@@ -130,7 +130,7 @@
             btnCancelar.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             btnCancelar.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)0));
             btnCancelar.ForeColor = System.Drawing.Color.White;
-            btnCancelar.Location = new System.Drawing.Point(155, 517);
+            btnCancelar.Location = new System.Drawing.Point(748, 517);
             btnCancelar.Name = "btnCancelar";
             btnCancelar.Size = new System.Drawing.Size(523, 66);
             btnCancelar.TabIndex = 1;
