@@ -22,9 +22,15 @@ public sealed class FrmReporteCompras : Form
     private readonly TextBox _producto = new();
     private readonly DataGridView _grilla = new();
     private readonly Label _resumen = new();
-    private readonly Button _csv = Boton("Exportar CSV", Color.SteelBlue);
-    private readonly Button _excel = Boton("Exportar Excel", Color.ForestGreen);
-    private readonly Button _pdf = Boton("Exportar PDF", Color.IndianRed);
+    private readonly Label _comprasActual = new();
+    private readonly Label _comprasAnterior = new();
+    private readonly Label _comprasVariacion = new();
+    private readonly Label _montoActual = new();
+    private readonly Label _montoAnterior = new();
+    private readonly Label _montoVariacion = new();
+    private readonly Button _csv = ConvencionReportes.CrearBotonExportar("Exportar CSV", Color.SteelBlue);
+    private readonly Button _excel = ConvencionReportes.CrearBotonExportar("Exportar Excel", Color.ForestGreen);
+    private readonly Button _pdf = ConvencionReportes.CrearBotonExportar("Exportar PDF", Color.IndianRed);
     private readonly Button _limpiar = new();
     private List<Compra> _compras = new();
     private string _filtros = string.Empty;
@@ -81,32 +87,80 @@ public sealed class FrmReporteCompras : Form
 
     private void Construir()
     {
-        var filtros = new TableLayoutPanel { Dock = DockStyle.Top, Height = 110, BackColor = Color.Gold, Padding = new Padding(12, 7, 12, 7), ColumnCount = 5, RowCount = 3 };
-        foreach (var ancho in new[] { 16f, 16f, 27f, 25f, 16f }) filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, ancho));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 30)); filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22)); filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        var navegacion = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, FlowDirection = FlowDirection.LeftToRight, Margin = Padding.Empty };
-        navegacion.Controls.AddRange(new Control[] { _mesAnterior, _mesSeleccionado, _mesSiguiente });
-        filtros.Controls.Add(navegacion, 0, 0); filtros.SetColumnSpan(navegacion, 5);
-        AgregarFiltro(filtros, 0, "Desde", _desde, 1, 2); AgregarFiltro(filtros, 1, "Hasta", _hasta, 1, 2);
-        _proveedor.DropDownStyle = ComboBoxStyle.DropDownList;
-        AgregarFiltro(filtros, 2, "Proveedor", _proveedor, 1, 2); AgregarFiltro(filtros, 3, "Producto o código", _producto, 1, 2);
-        _limpiar.Text = "Limpiar"; _limpiar.Dock = DockStyle.Fill; _limpiar.BackColor = Color.White; _limpiar.FlatStyle = FlatStyle.Flat;
-        filtros.Controls.Add(_limpiar, 4, 2);
+        var contenido = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            BackColor = SystemColors.Info,
+            ColumnCount = 1,
+            RowCount = 3
+        };
+        contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 142));
 
-        _grilla.Dock = DockStyle.Fill; _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false;
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarNavegacionMes(filtros, _mesAnterior, _mesSeleccionado, _mesSiguiente);
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Desde", _desde);
+        ConvencionReportes.AgregarFiltro(filtros, 1, "Hasta", _hasta);
+        _proveedor.DropDownStyle = ComboBoxStyle.DropDownList;
+        ConvencionReportes.AgregarFiltro(filtros, 2, "Proveedor", _proveedor);
+        ConvencionReportes.AgregarFiltro(filtros, 3, "Producto o código", _producto, 2);
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, _limpiar, "Limpiar");
+
+        _grilla.Dock = DockStyle.Fill; ConvencionReportes.ConfigurarMargenGrilla(_grilla); _grilla.ReadOnly = true; _grilla.AllowUserToAddRows = false; _grilla.AllowUserToDeleteRows = false;
         _grilla.MultiSelect = false; _grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect; _grilla.RowHeadersVisible = false;
         _grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill; _grilla.RowTemplate.Height = 30; _grilla.ColumnHeadersHeight = 34;
         _grilla.BackgroundColor = Color.White; _grilla.GridColor = SystemColors.ControlLight; _grilla.AutoGenerateColumns = false;
         AddCol("IdCompra", "N.º compra", 8); AddCol("Fecha", "Fecha", 14, "dd/MM/yyyy HH:mm"); AddCol("Proveedor", "Proveedor", 17);
         AddCol("Productos", "Productos", 26); AddCol("Unidades", "Unid.", 7); AddCol("Comprobante", "Comprobante", 11);
         AddCol("Empleado", "Empleado", 11); AddCol("Total", "Total", 12, "C2");
+        _grilla.CellDoubleClick += (_, e) =>
+        {
+            if (e.RowIndex < 0 || _grilla.Rows[e.RowIndex].DataBoundItem is not FilaCompra fila) return;
+            AbrirDetalleCompra(fila.IdCompra);
+        };
 
-        var pie = new Panel { Dock = DockStyle.Bottom, Height = 62, Padding = new Padding(12, 8, 12, 6), BackColor = SystemColors.Info };
-        var botones = new FlowLayoutPanel { Dock = DockStyle.Left, Width = 470, WrapContents = false };
+        var pie = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            Margin = Padding.Empty,
+            Padding = new Padding(12, 5, 12, 8),
+            BackColor = SystemColors.Info,
+            ColumnCount = 1,
+            RowCount = 2
+        };
+        pie.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        pie.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        pie.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
+
+        var tarjetas = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, BackColor = SystemColors.Info };
+        tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        tarjetas.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        tarjetas.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        tarjetas.Controls.Add(CrearTarjetaComparacion("COMPRAS", _comprasActual, _comprasAnterior, _comprasVariacion), 0, 0);
+        tarjetas.Controls.Add(CrearTarjetaComparacion("MONTO TOTAL", _montoActual, _montoAnterior, _montoVariacion, sinMargenDerecho: true), 1, 0);
+
+        var filaAcciones = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty };
+        filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 470));
+        filaAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        filaAcciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var botones = ConvencionReportes.CrearContenedorBotonesExportar();
         botones.Controls.AddRange(new Control[] { _csv, _excel, _pdf });
-        _resumen.Dock = DockStyle.Fill; _resumen.TextAlign = ContentAlignment.MiddleRight; _resumen.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-        pie.Controls.Add(_resumen); pie.Controls.Add(botones);
-        Controls.Add(_grilla); Controls.Add(pie); Controls.Add(filtros);
+        _resumen.Dock = DockStyle.Fill;
+        _resumen.TextAlign = ContentAlignment.MiddleRight;
+        _resumen.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        _resumen.ForeColor = Color.Firebrick;
+        filaAcciones.Controls.Add(botones, 0, 0);
+        filaAcciones.Controls.Add(_resumen, 1, 0);
+        pie.Controls.Add(tarjetas, 0, 0);
+        pie.Controls.Add(filaAcciones, 0, 1);
+        contenido.Controls.Add(filtros, 0, 0);
+        contenido.Controls.Add(_grilla, 0, 1);
+        contenido.Controls.Add(pie, 0, 2);
+        Controls.Add(contenido);
     }
 
     private void AddCol(string name, string title, float weight, string? format = null)
@@ -114,12 +168,6 @@ public sealed class FrmReporteCompras : Form
         var col = new DataGridViewTextBoxColumn { Name = name, DataPropertyName = name, HeaderText = title, FillWeight = weight };
         if (format != null) col.DefaultCellStyle = new DataGridViewCellStyle { Format = format, FormatProvider = Es, Alignment = DataGridViewContentAlignment.MiddleRight };
         _grilla.Columns.Add(col);
-    }
-
-    private static void AgregarFiltro(TableLayoutPanel panel, int col, string titulo, Control control, int filaTitulo = 0, int filaControl = 1)
-    {
-        panel.Controls.Add(new Label { Text = titulo, Dock = DockStyle.Fill, TextAlign = ContentAlignment.BottomLeft, Font = new Font("Segoe UI", 9F, FontStyle.Bold) }, col, filaTitulo);
-        control.Dock = DockStyle.Fill; control.Margin = new Padding(0, 2, 6, 0); panel.Controls.Add(control, col, filaControl);
     }
 
     private void NavegarMes(int desplazamiento)
@@ -160,6 +208,9 @@ public sealed class FrmReporteCompras : Form
             PaginadorGrilla.Mostrar(_grilla, filas);
             _filtros = $"Período: {desde:dd/MM/yyyy} al {hasta:dd/MM/yyyy}  |  Proveedor: {proveedor?.Nombre ?? "Todos"}  |  Producto: {(string.IsNullOrWhiteSpace(_producto.Text) ? "Todos" : _producto.Text.Trim())}";
             var total = _compras.Sum(c => c.Total);
+            _comprasActual.Text = _compras.Count.ToString("N0", Es);
+            _montoActual.Text = total.ToString("C2", Es);
+            _resumen.Text = string.Empty;
             var desdeAnterior = desde.AddMonths(-1);
             var hastaAnterior = hasta.AddMonths(-1);
             try
@@ -167,20 +218,57 @@ public sealed class FrmReporteCompras : Form
                 var comprasAnteriores = _logica.Buscar(proveedor?.Id, desdeAnterior, hastaAnterior, _producto.Text.Trim());
                 var totalAnterior = comprasAnteriores.Sum(c => c.Total);
                 var diferencia = total - totalAnterior;
-                var signo = diferencia > 0m ? "+" : string.Empty;
-                _resumen.Text = $"{_compras.Count} compras  |  Total: {total.ToString("C2", Es)}\n" +
-                    $"Período anterior ({desdeAnterior:dd/MM} al {hastaAnterior:dd/MM}): {totalAnterior.ToString("C2", Es)}  |  Variación: {signo}{diferencia.ToString("C2", Es)}";
+                var diferenciaCompras = _compras.Count - comprasAnteriores.Count;
+                _comprasAnterior.Text = $"Anterior ({desdeAnterior:dd/MM} al {hastaAnterior:dd/MM}): {comprasAnteriores.Count:N0}";
+                _comprasVariacion.Text = $"{FlechaCambio(diferenciaCompras)} {FormatearCambio(diferenciaCompras)} compras";
+                _montoAnterior.Text = $"Anterior ({desdeAnterior:dd/MM} al {hastaAnterior:dd/MM}): {totalAnterior.ToString("C2", Es)}";
+                _montoVariacion.Text = $"{FlechaCambio(diferencia)} {FormatearCambio(diferencia)}";
             }
             catch
             {
-                _resumen.Text = $"{_compras.Count} compras  |  Total del período: {total.ToString("C2", Es)}\nNo se pudo cargar la comparación con el período anterior.";
+                _comprasAnterior.Text = _montoAnterior.Text = "Comparación no disponible";
+                _comprasVariacion.Text = _montoVariacion.Text = "—";
+                _resumen.Text = "No se pudo cargar la comparación con el período anterior.";
+                _resumen.ForeColor = SystemColors.GrayText;
             }
             HabilitarExportacion(_compras.Count > 0);
         }
-        catch (Exception ex) { _compras.Clear(); PaginadorGrilla.Limpiar(_grilla); _resumen.Text = ex.Message; HabilitarExportacion(false); }
+        catch (Exception ex)
+        {
+            _compras.Clear();
+            PaginadorGrilla.Limpiar(_grilla);
+            _comprasActual.Text = _montoActual.Text = "—";
+            _comprasAnterior.Text = _montoAnterior.Text = "Comparación no disponible";
+            _comprasVariacion.Text = _montoVariacion.Text = "—";
+            _resumen.Text = ex.Message;
+            _resumen.ForeColor = Color.Firebrick;
+            HabilitarExportacion(false);
+        }
     }
 
     private void ProgramarBusqueda() { _debounce.Stop(); _debounce.Start(); }
+
+    private void AbrirDetalleCompra(int idCompra)
+    {
+        try
+        {
+            var compra = _logica.ObtenerPorId(idCompra);
+            if (compra == null)
+            {
+                MessageBox.Show(this, "La compra seleccionada ya no existe.", "Compra no encontrada",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Buscar();
+                return;
+            }
+
+            using var detalle = new FrmDetalleCompra(compra);
+            detalle.ShowDialog(this);
+        }
+        catch (Exception ex)
+        {
+            MostrarError("No se pudo cargar el detalle de la compra", ex);
+        }
+    }
 
     private void Exportar(Formato formato)
     {
@@ -203,7 +291,69 @@ public sealed class FrmReporteCompras : Form
     }
 
     private void HabilitarExportacion(bool habilitado) { _csv.Enabled = habilitado; _excel.Enabled = habilitado; _pdf.Enabled = habilitado; }
-    private static Button Boton(string texto, Color color) => new() { Text = texto, Size = new Size(145, 36), Margin = new Padding(0, 0, 8, 0), BackColor = color, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 10F, FontStyle.Bold), Enabled = false };
+    private static Control CrearTarjetaComparacion(string titulo, Label actual, Label anterior, Label variacion, bool sinMargenDerecho = false)
+    {
+        var tarjeta = new Panel
+        {
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, sinMargenDerecho ? 0 : 8, 0),
+            Padding = new Padding(10, 6, 10, 5),
+            BackColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle
+        };
+        var acento = new Panel { Dock = DockStyle.Left, Width = 4, BackColor = Color.DarkGoldenrod };
+        var contenido = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 3,
+            Padding = new Padding(8, 0, 0, 0),
+            Margin = Padding.Empty,
+            BackColor = Color.White
+        };
+        contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 17));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 27));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var etiqueta = new Label
+        {
+            Text = titulo,
+            Dock = DockStyle.Fill,
+            TextAlign = ContentAlignment.MiddleLeft,
+            ForeColor = Color.DimGray,
+            Font = new Font("Segoe UI", 8.5F, FontStyle.Bold)
+        };
+        actual.Dock = DockStyle.Fill;
+        actual.TextAlign = ContentAlignment.MiddleLeft;
+        actual.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+        anterior.Dock = DockStyle.Fill;
+        anterior.TextAlign = ContentAlignment.MiddleLeft;
+        anterior.Font = new Font("Segoe UI", 8.5F);
+        anterior.ForeColor = Color.DimGray;
+        anterior.AutoEllipsis = true;
+        variacion.Dock = DockStyle.Fill;
+        variacion.TextAlign = ContentAlignment.MiddleRight;
+        variacion.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
+        variacion.ForeColor = Color.ForestGreen;
+        variacion.AutoEllipsis = true;
+
+        var detalle = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty, Padding = Padding.Empty, BackColor = Color.White };
+        detalle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 65));
+        detalle.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 35));
+        detalle.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        detalle.Controls.Add(anterior, 0, 0);
+        detalle.Controls.Add(variacion, 1, 0);
+        contenido.Controls.Add(etiqueta, 0, 0);
+        contenido.Controls.Add(actual, 0, 1);
+        contenido.Controls.Add(detalle, 0, 2);
+        tarjeta.Controls.Add(contenido);
+        tarjeta.Controls.Add(acento);
+        return tarjeta;
+    }
+    private static string FlechaCambio(decimal cambio) => cambio > 0m ? "↑" : cambio < 0m ? "↓" : "·";
+    private static string FormatearCambio(decimal cambio) => (cambio > 0m ? "+" : string.Empty) + cambio.ToString("C2", Es);
+    private static string FormatearCambio(int cambio) => (cambio > 0 ? "+" : string.Empty) + cambio.ToString("N0", Es);
     private void MostrarError(string titulo, Exception ex) => MessageBox.Show(this, $"{titulo}: {ex.Message}", "Reporte de compras", MessageBoxButtons.OK, MessageBoxIcon.Error);
     private sealed class FilaCompra { public int IdCompra { get; set; } public DateTime Fecha { get; set; } public string Proveedor { get; set; } = ""; public string Productos { get; set; } = ""; public int Unidades { get; set; } public string Comprobante { get; set; } = ""; public string Empleado { get; set; } = ""; public decimal Total { get; set; } }
 }

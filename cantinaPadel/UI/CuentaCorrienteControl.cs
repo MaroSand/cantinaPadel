@@ -758,9 +758,12 @@ public class CuentaCorrienteControl : UserControl
     // Cada pago tiene su propia venta, por eso puede emitirse como factura aunque no haya saldado productos completos.
     private void MostrarComprobantePago(ResultadoPagoCuentaCorriente resultado, Cliente cliente, decimal creditoPrevio, string tipoPago, decimal pagaCon = 0m, decimal vuelto = 0m)
     {
+        if (resultado.IdVentaPago is not int idVentaPago || idVentaPago <= 0)
+            throw new InvalidOperationException("El pago se registró sin una venta asociada; no se puede emitir un comprobante con número persistente.");
+
         var datos = new DatosVentaParaComprobante
         {
-            IdVenta = resultado.IdVentaPago ?? (resultado.ItemsPagados.Count > 0 ? resultado.ItemsPagados[0].IdVenta : 0),
+            IdVenta = idVentaPago,
             Total = resultado.MontoRecibido,
             NombreCliente = $"{cliente.Persona.Nombre} {cliente.Persona.Apellido}",
             EmailCliente = cliente.Email,
@@ -784,6 +787,18 @@ public class CuentaCorrienteControl : UserControl
         };
 
         using var comprobante = new FrmSeleccionComprobante(datos);
-        comprobante.ShowDialog(FindForm());
+        if (comprobante.ShowDialog(FindForm()) == DialogResult.OK && comprobante.TipoSeleccionado != null && comprobante.FormaEntregaSeleccionada != null)
+        {
+            new LogicaVenta().ActualizarTipoComprobante(idVentaPago, comprobante.TipoSeleccionado.Value);
+            try
+            {
+                new LogicaComprobante().ConfirmarEmision(datos, comprobante.TipoSeleccionado.Value, comprobante.FormaEntregaSeleccionada.Value, comprobante.RutaPdfImpresionSeleccionada);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(FindForm(), $"El pago quedó registrado, pero no se pudo entregar el comprobante. Número: {idVentaPago:D8}. Detalle: {LogicaComprobante.DescribirErrorEnvio(ex)}",
+                    "Comprobante no entregado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
     }
 }

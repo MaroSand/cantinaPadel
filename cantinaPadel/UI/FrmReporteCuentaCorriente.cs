@@ -7,7 +7,7 @@ namespace cantinaPadel.UI;
 
 public sealed class FrmReporteCuentaCorriente : Form
 {
-    private const int FilasPorPagina = 10;
+    private const int FilasPorPagina = 20;
     private static readonly CultureInfo Es = new("es-AR");
     private readonly LogicaReporteCuentaCorriente _logica = new();
     private readonly TextBox _buscar = new();
@@ -44,6 +44,7 @@ public sealed class FrmReporteCuentaCorriente : Form
         _ordenar.Click += (_, _) =>
         {
             _ordenDescendente = !_ordenDescendente;
+            ActualizarIndicadorOrden();
             _paginaActual = 0;
             ActualizarListado();
         };
@@ -63,54 +64,27 @@ public sealed class FrmReporteCuentaCorriente : Form
 
     private void Construir()
     {
-        var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
+        var contenido = new TableLayoutPanel { Dock = DockStyle.Fill, Margin = Padding.Empty, Padding = Padding.Empty, ColumnCount = 1, RowCount = 3, BackColor = SystemColors.Info };
         contenido.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
-        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 82));
+        contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
         contenido.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         contenido.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));
 
-        var filtros = new TableLayoutPanel
-        {
-            Dock = DockStyle.Fill,
-            Margin = Padding.Empty,
-            Padding = new Padding(12, 7, 12, 7),
-            BackColor = Color.Gold,
-            ColumnCount = 3,
-            RowCount = 2
-        };
-        filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 58));
-        filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21));
-        filtros.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 21));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Absolute, 22));
-        filtros.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarTitulo(filtros, "Saldos de clientes");
 
         _buscar.PlaceholderText = "Nombre, apellido o DNI";
-        AgregarFiltro(filtros, 0, "Buscar cliente", _buscar);
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Buscar cliente", _buscar, 4);
         _estado.DropDownStyle = ComboBoxStyle.DropDownList;
         _estado.Items.AddRange(new object[] { "Deudores", "Al día", "Todos" });
         _estado.SelectedIndex = 0;
-        AgregarFiltro(filtros, 1, "Estado de cuenta", _estado);
-        filtros.Controls.Add(new Label
-        {
-            Text = "Ordenar por monto",
-            Dock = DockStyle.Fill,
-            TextAlign = ContentAlignment.BottomLeft,
-            Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-        }, 2, 0);
-        _ordenar.Text = "↕";
-        _ordenar.AccessibleName = "Ordenar por monto";
-        _ordenar.Dock = DockStyle.Left;
-        _ordenar.Size = new Size(38, 32);
-        _ordenar.Margin = new Padding(0, 2, 0, 0);
-        _ordenar.BackColor = Color.White;
-        _ordenar.FlatStyle = FlatStyle.Flat;
-        _ordenar.FlatAppearance.BorderColor = Color.FromArgb(205, 195, 150);
-        _ordenar.FlatAppearance.BorderSize = 1;
-        _ordenar.Font = new Font("Segoe UI Symbol", 15F, FontStyle.Regular);
-        filtros.Controls.Add(_ordenar, 2, 1);
+        ConvencionReportes.AgregarFiltro(filtros, 4, "Estado de cuenta", _estado);
+        ConvencionReportes.AgregarEtiquetaFiltro(filtros, 5, "Ordenar por monto");
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, _ordenar, "Ordenar");
+        ActualizarIndicadorOrden();
 
         _grilla.Dock = DockStyle.Fill;
-        _grilla.Margin = Padding.Empty;
+        ConvencionReportes.ConfigurarMargenGrilla(_grilla);
         _grilla.ReadOnly = true;
         _grilla.AllowUserToAddRows = false;
         _grilla.AllowUserToDeleteRows = false;
@@ -160,7 +134,7 @@ public sealed class FrmReporteCuentaCorriente : Form
         {
             Dock = DockStyle.Fill,
             Margin = Padding.Empty,
-            Padding = new Padding(12, 7, 12, 7),
+            Padding = new Padding(12, 5, 12, 8),
             BackColor = SystemColors.Info,
             ColumnCount = 2,
             RowCount = 1
@@ -289,18 +263,12 @@ public sealed class FrmReporteCuentaCorriente : Form
         }
     }
 
-    private static void AgregarFiltro(TableLayoutPanel panel, int columna, string titulo, Control control)
+    private void ActualizarIndicadorOrden()
     {
-        panel.Controls.Add(new Label
-        {
-            Text = titulo,
-            Dock = DockStyle.Fill,
-            TextAlign = ContentAlignment.BottomLeft,
-            Font = new Font("Segoe UI", 9F, FontStyle.Bold)
-        }, columna, 0);
-        control.Dock = DockStyle.Fill;
-        control.Margin = new Padding(0, 2, 8, 0);
-        panel.Controls.Add(control, columna, 1);
+        _ordenar.Text = _ordenDescendente ? "↓ Monto" : "↑ Monto";
+        _ordenar.AccessibleName = _ordenDescendente
+            ? "Ordenar por monto descendente"
+            : "Ordenar por monto ascendente";
     }
 
     private static void ConfigurarBotonPagina(Button boton, string texto)

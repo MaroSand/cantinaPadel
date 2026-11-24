@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Text;
 using System.Windows.Forms;
 
@@ -15,11 +16,11 @@ namespace cantinaPadel.UI
         // Constantes para los nombres de los métodos de pago que requieren un tratamiento especial
         private const string MetodoPagoCuentaCorriente = "Cuenta Corriente";
 
-        private readonly LogicaComprobante _logica;
         private readonly DatosVentaParaComprobante _datos;
 
-        // Propiedad pública para acceder al comprobante generado después de la confirmación
-        public Comprobante? ComprobanteGenerado { get; private set; }
+        public TipoComprobante? TipoSeleccionado { get; private set; }
+        public FormaEntrega? FormaEntregaSeleccionada { get; private set; }
+        public string? RutaPdfImpresionSeleccionada { get; private set; }
 
         // Constructor por defecto que inicializa el formulario con datos de venta vacíos
         public FrmSeleccionComprobante()
@@ -28,18 +29,13 @@ namespace cantinaPadel.UI
         }
 
         public FrmSeleccionComprobante(DatosVentaParaComprobante datos)
-            : this(datos, new LogicaComprobante())
-        {
-        }
-
-        public FrmSeleccionComprobante(DatosVentaParaComprobante datos, LogicaComprobante logica)
         {
             InitializeComponent();
 
             _datos = datos ?? throw new ArgumentException("Los datos de la venta son obligatorios.");
-            _logica = logica;
 
             lblTotalValor.Text = _datos.Total.ToString("C");
+            rbNoEmitir.Checked = true;
 
             btnCancelar.Click += btnCancelar_Click;
 
@@ -56,6 +52,26 @@ namespace cantinaPadel.UI
                 // En cuenta corriente el total es solo un estimado (puede cambiar si suben los precios)
                 lblTotalTexto.Text = "Total estimado :";
             }
+            else
+            {
+                ConfigurarTiposPorCondicionIva();
+            }
+        }
+
+        private void ConfigurarTiposPorCondicionIva()
+        {
+            rbFacturaA.Enabled = LogicaComprobante.TipoPermitidoParaCliente(TipoComprobante.FacturaA, _datos.CondicionIvaCliente);
+            rbFacturaB.Enabled = LogicaComprobante.TipoPermitidoParaCliente(TipoComprobante.FacturaB, _datos.CondicionIvaCliente);
+            rbFacturaC.Enabled = LogicaComprobante.TipoPermitidoParaCliente(TipoComprobante.FacturaC, _datos.CondicionIvaCliente);
+
+            var predeterminado = LogicaComprobante.TipoPredeterminadoParaCliente(_datos.CondicionIvaCliente);
+            switch (predeterminado)
+            {
+                case TipoComprobante.FacturaA: rbFacturaA.Checked = true; break;
+                case TipoComprobante.FacturaB: rbFacturaB.Checked = true; break;
+                case TipoComprobante.FacturaC: rbFacturaC.Checked = true; break;
+                case TipoComprobante.Ticket: rbTicket.Checked = true; break;
+            }
         }
 
         private void panelCuerpo_Paint(object sender, PaintEventArgs e)
@@ -63,7 +79,7 @@ namespace cantinaPadel.UI
 
         }
 
-        // Evento del botón "Confirmar" que valida la selección de tipo de comprobante y forma de entrega, y genera el comprobante
+        // Este diálogo solo captura la selección. La venta debe persistirse antes de emitir el comprobante.
         private void btnConfirmar_Click(object sender, EventArgs e)
         {
             TipoComprobante? tipo = ObtenerTipoSeleccionado();
@@ -84,9 +100,28 @@ namespace cantinaPadel.UI
                 return;
             }
 
+            if (formaEntrega == FormaEntrega.Imprimir && ImpresoraPredeterminadaEsPdf())
+            {
+                var comprobanteSugerido = new Comprobante { Tipo = tipo.Value };
+                using var dialogo = new SaveFileDialog
+                {
+                    AddExtension = true,
+                    DefaultExt = "pdf",
+                    FileName = $"{LogicaComprobante.NombreArchivoSugerido(comprobanteSugerido, _datos)}.pdf",
+                    Filter = "Documento PDF (*.pdf)|*.pdf",
+                    OverwritePrompt = true,
+                    Title = "Guardar comprobante impreso en PDF"
+                };
+                if (dialogo.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                RutaPdfImpresionSeleccionada = dialogo.FileName;
+            }
+
             try
             {
-                ComprobanteGenerado = _logica.ConfirmarEmision(_datos, tipo.Value, formaEntrega.Value);
+                TipoSeleccionado = tipo.Value;
+                FormaEntregaSeleccionada = formaEntrega.Value;
                 DialogResult = DialogResult.OK;
                 Close();
             }
@@ -120,6 +155,12 @@ namespace cantinaPadel.UI
             if (rbEmail.Checked) return FormaEntrega.Email;
             if (rbNoEmitir.Checked) return FormaEntrega.NoEmitir;
             return null;
+        }
+
+        private static bool ImpresoraPredeterminadaEsPdf()
+        {
+            string nombreImpresora = new PrinterSettings().PrinterName;
+            return nombreImpresora.Contains("PDF", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

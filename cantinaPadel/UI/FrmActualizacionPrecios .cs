@@ -54,12 +54,18 @@ namespace cantinaPadel.UI
             cmbMarcaFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             cmbProveedorFiltro.SelectedIndexChanged += (s, e2) => ActualizarListado();
             nudPorcentaje.ValueChanged += (s, e2) => RecalcularPreciosPorPorcentaje();
+            nudPrecioManual.ValueChanged += (_, _) =>
+            {
+                ActualizarPrecioManualSeleccionados();
+                PaginadorGrilla.Refrescar(dgvPreview);
+            };
             dgvPreview.CellContentClick += dgvPreview_CellContentClick;
+            dgvPreview.CellValueChanged += dgvPreview_CellValueChanged;
 
             rbPorcentaje.CheckedChanged += (s, e2) => AlternarModo();
             rbManual.CheckedChanged += (s, e2) => AlternarModo();
 
-            btnAplicarPrecioManual.Click += btnAplicarPrecioManual_Click;
+            btnAlternarSeleccion.Click += (_, _) => AlternarSeleccionTodos();
             btnConfirmar.Click += btnConfirmar_Click;
 
             AlternarModo();
@@ -111,9 +117,9 @@ namespace cantinaPadel.UI
             dgvPreview.Columns.Add(new DataGridViewTextBoxColumn
             {
                 Name = "PrecioNuevo",
-                DataPropertyName = "PrecioNuevo",
-                HeaderText = "Precio Nuevo",
-                Width = 130,
+                DataPropertyName = nameof(ProductoPrecioPreview.PrecioNuevoConIva),
+                HeaderText = "Precio Nuevo c/IVA",
+                Width = 160,
                 // Ya no se edita directo en la grilla: se calcula por
                 // porcentaje o se asigna con el campo "Precio manual".
                 ReadOnly = true,
@@ -207,7 +213,11 @@ namespace cantinaPadel.UI
                         item.Aplicar = false;
                 }
 
+                if (rbManual.Checked)
+                    ActualizarPrecioManualSeleccionados();
+
                 PaginadorGrilla.Mostrar(dgvPreview, _listado);
+                ActualizarBotonAlternarSeleccion();
             }
             catch (Exception ex)
             {
@@ -240,16 +250,72 @@ namespace cantinaPadel.UI
             dgvPreview.CommitEdit(DataGridViewDataErrorContexts.Commit);
         }
 
+        private void dgvPreview_CellValueChanged(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0 || dgvPreview.Columns[e.ColumnIndex].Name != "Aplicar") return;
 
-        // Alterna entre modo "Por porcentaje" y modo "Precio manual": habilita los controles del modo activo, deshabilita los del otro, y descarta
-        // los precios calculados/cargados en el modo anterior para no mezclarlos
+            if (rbManual.Checked)
+            {
+                ActualizarPrecioManualSeleccionados();
+                PaginadorGrilla.Refrescar(dgvPreview);
+            }
+
+            ActualizarBotonAlternarSeleccion();
+        }
+
+        private void AlternarSeleccionTodos()
+        {
+            if (_listado.Count == 0) return;
+
+            // Si la selección está completa, limpia todo; ante una selección parcial, completa todos los resultados filtrados.
+            bool tildarTodos = _listado.Any(item => !item.Aplicar);
+            foreach (var item in _listado)
+                item.Aplicar = tildarTodos;
+
+            if (rbManual.Checked)
+                ActualizarPrecioManualSeleccionados();
+
+            PaginadorGrilla.Refrescar(dgvPreview);
+            ActualizarBotonAlternarSeleccion();
+        }
+
+        private void ActualizarBotonAlternarSeleccion()
+        {
+            bool hayResultados = _listado.Count > 0;
+            bool todosTildados = hayResultados && _listado.All(item => item.Aplicar);
+            btnAlternarSeleccion.Enabled = hayResultados;
+            btnAlternarSeleccion.Text = todosTildados ? "Destildar todos" : "Tildar todos";
+        }
+
+        // En modo manual, el valor ingresado se asigna automáticamente a los productos tildados.
+        private void ActualizarPrecioManualSeleccionados()
+        {
+            if (!rbManual.Checked) return;
+
+            decimal precioManual = nudPrecioManual.Value;
+            foreach (var item in _listado)
+            {
+                if (item.Aplicar && precioManual > 0)
+                {
+                    item.PrecioNuevo = precioManual;
+                    item.EditadoManualmente = true;
+                }
+                else
+                {
+                    item.PrecioNuevo = item.PrecioActual;
+                    item.EditadoManualmente = false;
+                }
+            }
+        }
+
+
+        // Alterna entre modo "Por porcentaje" y modo "Precio manual" y descarta los precios del modo anterior.
         private void AlternarModo()
         {
             bool porPorcentaje = rbPorcentaje.Checked;
 
             nudPorcentaje.Enabled = porPorcentaje;
             nudPrecioManual.Enabled = !porPorcentaje;
-            btnAplicarPrecioManual.Enabled = !porPorcentaje;
 
             foreach (var item in _listado)
             {
@@ -259,39 +325,8 @@ namespace cantinaPadel.UI
 
             if (porPorcentaje)
                 RecalcularPreciosPorPorcentaje();
-
-            PaginadorGrilla.Refrescar(dgvPreview);
-        }
-
-        // El usuario cargó un precio en el campo "Precio manual" y hace click en "Aplicar a tildados":
-        // pisa el PrecioNuevo de los productos tildados en la columna "Aplicar" y los marca como editados a mano
-        // (para que el recálculo automático por porcentaje no los sobrescriba)
-        private void btnAplicarPrecioManual_Click(object? sender, EventArgs e)
-        {
-            var seleccionados = _listado.Where(p => p.Aplicar).ToList();
-
-            if (seleccionados.Count == 0)
-            {
-                MessageBox.Show("Tildá al menos un producto en la columna \"Aplicar\" para asignarle el precio manual.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            decimal precioManual = nudPrecioManual.Value;
-
-            // No se permite $0 ni negativos: el precio manual tiene que ser mayor a $0
-            if (precioManual <= 0)
-            {
-                MessageBox.Show("El precio debe ser mayor a $0.",
-                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            foreach (var item in seleccionados)
-            {
-                item.PrecioNuevo = precioManual;
-                item.EditadoManualmente = true;
-            }
+            else
+                ActualizarPrecioManualSeleccionados();
 
             PaginadorGrilla.Refrescar(dgvPreview);
         }
@@ -305,6 +340,13 @@ namespace cantinaPadel.UI
             {
                 MessageBox.Show("No hay productos tildados para actualizar.",
                     "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (rbManual.Checked && nudPrecioManual.Value <= 0)
+            {
+                MessageBox.Show("El precio manual debe ser mayor a $0.",
+                    "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 

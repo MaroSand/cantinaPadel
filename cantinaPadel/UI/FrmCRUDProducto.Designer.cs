@@ -334,13 +334,14 @@
             // btnGuardar
             // 
             btnGuardar.BackColor = Color.ForestGreen;
+            btnGuardar.FlatAppearance.BorderSize = 0;
             btnGuardar.FlatStyle = FlatStyle.Flat;
-            btnGuardar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnGuardar.Font = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnGuardar.ForeColor = Color.White;
-            btnGuardar.Location = new Point(100, 10);
-            btnGuardar.Margin = new Padding(2);
+            btnGuardar.Location = new Point(312, 10);
+            btnGuardar.Margin = Padding.Empty;
             btnGuardar.Name = "btnGuardar";
-            btnGuardar.Size = new Size(380, 41);
+            btnGuardar.Size = new Size(180, 42);
             btnGuardar.TabIndex = 0;
             btnGuardar.Text = "Guardar";
             btnGuardar.UseVisualStyleBackColor = false;
@@ -348,13 +349,14 @@
             // btnCancelar
             // 
             btnCancelar.BackColor = Color.IndianRed;
+            btnCancelar.FlatAppearance.BorderSize = 0;
             btnCancelar.FlatStyle = FlatStyle.Flat;
-            btnCancelar.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnCancelar.Font = new Font("Segoe UI", 10F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnCancelar.ForeColor = Color.White;
-            btnCancelar.Location = new Point(520, 10);
-            btnCancelar.Margin = new Padding(2);
+            btnCancelar.Location = new Point(508, 10);
+            btnCancelar.Margin = Padding.Empty;
             btnCancelar.Name = "btnCancelar";
-            btnCancelar.Size = new Size(380, 41);
+            btnCancelar.Size = new Size(180, 42);
             btnCancelar.TabIndex = 1;
             btnCancelar.Text = "Cancelar";
             btnCancelar.UseVisualStyleBackColor = false;

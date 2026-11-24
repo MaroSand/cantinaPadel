@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace cantinaPadel.UI;
 
-/// <summary>Pages a grid in groups of ten while keeping the complete filtered set in memory.</summary>
+/// <summary>Pages a grid in groups of twenty while keeping the complete filtered set in memory.</summary>
 internal sealed class PaginadorGrilla
 {
     private const int TamanoPagina = 20;

@@ -110,11 +110,11 @@ public class FrmMetodoPago : Form
         layout.Controls.Add(pagos, 0, 3);
 
         var acciones = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true, FlowDirection = FlowDirection.RightToLeft };
-        var btnCancelar = new Button { Text = "Cancelar", AutoSize = true, DialogResult = DialogResult.Cancel };
-        var btnConfirmar = new Button { Text = "Confirmar venta", AutoSize = true, BackColor = Color.PaleGreen };
+        var btnCancelar = new Button { Text = "Cancelar", AutoSize = true, DialogResult = DialogResult.Cancel, TabIndex = 1 };
+        var btnConfirmar = new Button { Text = "Confirmar venta", AutoSize = true, BackColor = Color.PaleGreen, TabIndex = 0 };
         btnConfirmar.Click += btnConfirmar_Click;
-        acciones.Controls.Add(btnConfirmar);
         acciones.Controls.Add(btnCancelar);
+        acciones.Controls.Add(btnConfirmar);
         layout.Controls.Add(acciones, 0, 4);
         Controls.Add(layout);
         AcceptButton = btnConfirmar;
@@ -246,8 +246,19 @@ public class FrmMetodoPago : Form
             };
 
             using var comprobante = new FrmSeleccionComprobante(datos);
-            if (comprobante.ShowDialog(this) == DialogResult.OK && comprobante.ComprobanteGenerado != null)
-                _logicaVenta.ActualizarTipoComprobante(venta.IdVenta, comprobante.ComprobanteGenerado.Tipo);
+            if (comprobante.ShowDialog(this) == DialogResult.OK && comprobante.TipoSeleccionado != null && comprobante.FormaEntregaSeleccionada != null)
+            {
+                _logicaVenta.ActualizarTipoComprobante(venta.IdVenta, comprobante.TipoSeleccionado.Value);
+                try
+                {
+                    new LogicaComprobante().ConfirmarEmision(datos, comprobante.TipoSeleccionado.Value, comprobante.FormaEntregaSeleccionada.Value, comprobante.RutaPdfImpresionSeleccionada);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(this, $"La venta quedó registrada, pero no se pudo entregar el comprobante. Número: {venta.IdVenta:D8}. Detalle: {LogicaComprobante.DescribirErrorEnvio(ex)}",
+                        "Comprobante no entregado", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
 
             DialogResult = DialogResult.OK;
             Close();

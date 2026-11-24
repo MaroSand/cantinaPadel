@@ -34,7 +34,7 @@ namespace cantinaPadel.BLL
     }
 
     // Carrito de venta de FrmPuntoVenta
-    // Agrupa los productos y valida stock para unidades ingresadas manualmente. Las horas de pádel no usan stock;
+    // Agrupa los productos y valida stock para unidades ingresadas manualmente. Hora Pádel y Varios no usan stock;
     // el punto de venta autoriza las unidades leídas por el escáner.
     // Esta clase no depende de ningún repositorio, solo necesita los Producto ya obtenidos (por LogicaProducto.Buscar / ObtenerPorCodigoBarras)
     // para validar stock contra lo cargado
@@ -91,6 +91,9 @@ namespace cantinaPadel.BLL
 
             var existente = _items.FirstOrDefault(i => i.Producto.IdProducto == producto.IdProducto);
             int cantidadFinal = (existente?.Cantidad ?? 0) + cantidad;
+            if (producto.EsVarios && cantidadFinal > 1)
+                throw new ArgumentException("Los productos de la categoría Varios se venden por importe y no admiten cantidad mayor a 1.");
+
             int cantidadEscaneadaFinal = (existente?.CantidadEscaneada ?? 0) + (porEscaner ? cantidad : 0);
             int cantidadManualFinal = (existente?.CantidadManual ?? 0) + (porEscaner ? 0 : cantidad);
 
@@ -117,6 +120,9 @@ namespace cantinaPadel.BLL
                 return;
             }
 
+            if (item.Producto.EsVarios && cantidadNueva > 1)
+                throw new ArgumentException("Los productos de la categoría Varios se venden por importe y no admiten cantidad mayor a 1.");
+
             int cantidadEscaneadaNueva = Math.Min(item.CantidadEscaneada, cantidadNueva);
             ValidarStock(item.Producto, cantidadNueva - cantidadEscaneadaNueva);
             item.Cantidad = cantidadNueva;
@@ -139,7 +145,7 @@ namespace cantinaPadel.BLL
 
         private static void ValidarStock(Producto producto, int cantidadManualPedida)
         {
-            if (producto.EsHoraPadel)
+            if (!producto.ControlaStock)
                 return;
 
             int stockDisponible = Math.Max(0, producto.StockActual);

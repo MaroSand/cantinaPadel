@@ -204,15 +204,112 @@ public class FrmGestionCaja : Form
     {
         EstiloCaja.Preparar(this, "Gestión de Caja");
         Size = new Size(880, 570);
+        BackColor = Color.FromArgb(250, 248, 240);
+
+        _abrir.Size = new Size(160, 42);
+        _cerrar.Size = new Size(160, 42);
+        _retiro.Size = new Size(160, 42);
+        _agregarEfectivo.Size = new Size(160, 42);
+
         var root = new TableLayoutPanel
-        { Dock = DockStyle.Fill, Padding = new Padding(18), RowCount = 3, ColumnCount = 1 };
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-        root.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        {
+            BackColor = BackColor,
+            ColumnCount = 1,
+            Dock = DockStyle.Fill,
+            Padding = new Padding(12),
+            RowCount = 3
+        };
+        root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 72));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.Controls.Add(EstiloCaja.Etiqueta("Caja", true));
-        var bar = new FlowLayoutPanel { Dock = DockStyle.Fill, AutoSize = true };
-        bar.Controls.AddRange(new Control[] { _abrir, _cerrar, _retiro, _agregarEfectivo, _estado });
-        root.Controls.Add(bar);
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 76));
+
+        var encabezado = new Panel
+        {
+            BackColor = BackColor,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 0, 8)
+        };
+        var contenidoEncabezado = new TableLayoutPanel
+        {
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            Padding = new Padding(16, 4, 16, 4),
+            RowCount = 1
+        };
+        contenidoEncabezado.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 44));
+        contenidoEncabezado.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 56));
+        contenidoEncabezado.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var identidad = new Panel { Dock = DockStyle.Fill, BackColor = BackColor };
+        identidad.Controls.Add(new Label
+        {
+            AutoSize = true,
+            Font = new Font("Segoe UI", 13.2F, FontStyle.Bold),
+            Location = new Point(0, 0),
+            Text = "Caja"
+        });
+        identidad.Controls.Add(new Label
+        {
+            AutoSize = true,
+            Font = new Font("Segoe UI", 9F),
+            ForeColor = Color.DimGray,
+            Location = new Point(2, 32),
+            Text = "Apertura, cierre y movimientos de efectivo"
+        });
+
+        _estado.AutoEllipsis = true;
+        _estado.AutoSize = false;
+        _estado.BackColor = Color.FromArgb(231, 244, 234);
+        _estado.Dock = DockStyle.Fill;
+        _estado.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        _estado.ForeColor = Color.FromArgb(35, 112, 73);
+        _estado.Margin = Padding.Empty;
+        _estado.Padding = new Padding(12, 0, 12, 0);
+        _estado.TextAlign = ContentAlignment.MiddleRight;
+        contenidoEncabezado.Controls.Add(identidad, 0, 0);
+        contenidoEncabezado.Controls.Add(_estado, 1, 0);
+        encabezado.Controls.Add(contenidoEncabezado);
+
+        var panelPie = new Panel
+        {
+            BackColor = Color.White,
+            BorderStyle = BorderStyle.FixedSingle,
+            Dock = DockStyle.Fill
+        };
+        var gruposAcciones = new TableLayoutPanel
+        {
+            ColumnCount = 2,
+            Dock = DockStyle.Fill,
+            Padding = new Padding(8, 4, 8, 4),
+            RowCount = 1
+        };
+        gruposAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        gruposAcciones.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+        gruposAcciones.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+        var accionesPrimarias = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.LeftToRight,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            WrapContents = false
+        };
+        accionesPrimarias.Controls.AddRange(new Control[] { _abrir, _agregarEfectivo });
+
+        var accionesCaja = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            Margin = Padding.Empty,
+            Padding = Padding.Empty,
+            WrapContents = false
+        };
+        accionesCaja.Controls.AddRange(new Control[] { _cerrar, _retiro });
+        gruposAcciones.Controls.Add(accionesPrimarias, 0, 0);
+        gruposAcciones.Controls.Add(accionesCaja, 1, 0);
+        panelPie.Controls.Add(gruposAcciones);
         _historial.Columns.Add(new DataGridViewTextBoxColumn
         { DataPropertyName = nameof(TurnoCaja.IdCaja), HeaderText = "Caja empleado", Width = 85 });
         _historial.Columns.Add(new DataGridViewTextBoxColumn
@@ -313,29 +410,24 @@ public class FrmGestionCaja : Form
             HeaderText = "Registrado por",
             Width = 180
         });
-        var pestañas = new TabControl { Dock = DockStyle.Fill };
-        var tabCajas = new TabPage("Turnos de caja");
-        tabCajas.Controls.Add(_historial);
-        var tabMovimientos = new TabPage("Ingresos y retiros");
-        tabMovimientos.Controls.Add(_historialEfectivo);
+        var pestañas = new TabControl { BackColor = BackColor, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 0, 8) };
+        var tabCajas = new TabPage("Turnos de caja") { BackColor = BackColor, Padding = Padding.Empty };
+        var contenidoCajas = new Panel { BackColor = BackColor, Dock = DockStyle.Fill, Padding = new Padding(12) };
+        contenidoCajas.Controls.Add(_historial);
+        tabCajas.Controls.Add(contenidoCajas);
+        var tabMovimientos = new TabPage("Ingresos y retiros") { BackColor = BackColor, Padding = Padding.Empty };
+        var contenidoMovimientos = new Panel { BackColor = BackColor, Dock = DockStyle.Fill, Padding = new Padding(12) };
+        contenidoMovimientos.Controls.Add(_historialEfectivo);
+        tabMovimientos.Controls.Add(contenidoMovimientos);
         pestañas.TabPages.Add(tabCajas);
         // El historial de ingresos y retiros solo lo ve el administrador
         if (Sesion.Rol == "Admin") pestañas.TabPages.Add(tabMovimientos);
-        root.Controls.Add(pestañas);
+        root.Controls.Add(encabezado, 0, 0);
+        root.Controls.Add(pestañas, 0, 1);
+        root.Controls.Add(panelPie, 0, 2);
         Controls.Add(root);
-        _abrir.Click += (_, _) =>
-        {
-            using var f = new FrmAperturaCaja(_logica);
-            if (f.ShowDialog(this) == DialogResult.OK) Actualizar();
-        };
-        _cerrar.Click += (_, _) =>
-        {
-            var caja = ElegirCajaACerrar();
-            if (caja == null) return;
-
-            using var f = new FrmCierreCaja(_logica, caja);
-            if (f.ShowDialog(this) == DialogResult.OK) Actualizar();
-        };
+        _abrir.Click += (_, _) => MostrarFormularioApertura();
+        _cerrar.Click += (_, _) => MostrarFormularioCierre();
         _retiro.Click += (_, _) =>
         {
             var caja = _logica.ObtenerCajaAbierta(Sesion.IdUsuario);
@@ -374,6 +466,21 @@ public class FrmGestionCaja : Form
         Load += (_, _) => Actualizar();
     }
 
+    public void MostrarFormularioApertura()
+    {
+        using var formulario = new FrmAperturaCaja(_logica);
+        if (formulario.ShowDialog(this) == DialogResult.OK) Actualizar();
+    }
+
+    public void MostrarFormularioCierre()
+    {
+        var caja = ElegirCajaACerrar();
+        if (caja == null) return;
+
+        using var formulario = new FrmCierreCaja(_logica, caja);
+        if (formulario.ShowDialog(this) == DialogResult.OK) Actualizar();
+    }
+
     // Caja que se va a cerrar: la propia. El Admin, si hay varias cajas abiertas, elige cuál (por ejemplo,
     // la de un empleado que no volvió a loguearse después de un corte de luz)
     private TurnoCaja? ElegirCajaACerrar()
@@ -410,8 +517,14 @@ public class FrmGestionCaja : Form
             var abiertas = esAdmin ? _logica.ObtenerCajasAbiertas(Sesion.Rol) : new List<TurnoCaja>();
             _estado.Text = propia == null
                 ? "No tenés una caja abierta"
-                : $"Tu caja está abierta · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(propia.IdTurnoCaja):C2}";
+                : $"Caja abierta · Efectivo en caja: {_logica.ObtenerEfectivoDisponible(propia.IdTurnoCaja):C2}";
             if (esAdmin) _estado.Text += $" · Cajas abiertas en total: {abiertas.Count}";
+            _estado.BackColor = propia == null
+                ? Color.FromArgb(241, 243, 245)
+                : Color.FromArgb(231, 244, 234);
+            _estado.ForeColor = propia == null
+                ? Color.FromArgb(71, 85, 105)
+                : Color.FromArgb(35, 112, 73);
             // Cada empleado tiene su propia caja (cajas paralelas): solo puede abrir una si no tiene otra abierta
             _abrir.Enabled = propia == null;
             // El empleado cierra solo su caja; el Admin puede cerrar la de cualquiera (por ejemplo, si quedó abierta por un corte de luz)
@@ -635,9 +748,11 @@ public class FrmCierreCaja : Form
         var acciones = new FlowLayoutPanel
         { AutoSize = true, FlowDirection = FlowDirection.RightToLeft, Dock = DockStyle.Fill };
         var confirmar = EstiloCaja.BotonPuntoVenta("Confirmar cierre", Color.Green);
+        confirmar.TabIndex = 0;
         var cancelar = EstiloCaja.BotonPuntoVenta("Cancelar", Color.Firebrick);
-        acciones.Controls.Add(confirmar);
+        cancelar.TabIndex = 1;
         if (!obligatorio) acciones.Controls.Add(cancelar);
+        acciones.Controls.Add(confirmar);
         pie.Controls.Add(efectivo, 0, 0);
         pie.Controls.Add(acciones, 1, 0);
         root.Controls.Add(datosConteo, 0, 3);

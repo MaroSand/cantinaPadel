@@ -31,6 +31,8 @@
             panelFiltros = new System.Windows.Forms.Panel();
             cmbEstadoFiltro = new System.Windows.Forms.ComboBox();
             lblEstado = new System.Windows.Forms.Label();
+            cmbStockFiltro = new System.Windows.Forms.ComboBox();
+            lblStock = new System.Windows.Forms.Label();
             cmbMarcaFiltro = new System.Windows.Forms.ComboBox();
             lblMarca = new System.Windows.Forms.Label();
             cmbCategoriaFiltro = new System.Windows.Forms.ComboBox();
@@ -59,6 +61,8 @@
             panelFiltros.BackColor = System.Drawing.Color.Gold;
             panelFiltros.Controls.Add(cmbEstadoFiltro);
             panelFiltros.Controls.Add(lblEstado);
+            panelFiltros.Controls.Add(cmbStockFiltro);
+            panelFiltros.Controls.Add(lblStock);
             panelFiltros.Controls.Add(cmbMarcaFiltro);
             panelFiltros.Controls.Add(lblMarca);
             panelFiltros.Controls.Add(cmbCategoriaFiltro);
@@ -75,35 +79,55 @@
             // cmbEstadoFiltro
             // 
             cmbEstadoFiltro.FormattingEnabled = true;
-            cmbEstadoFiltro.Location = new System.Drawing.Point(1560, 26);
+            cmbEstadoFiltro.Location = new System.Drawing.Point(1198, 26);
             cmbEstadoFiltro.Margin = new System.Windows.Forms.Padding(5);
             cmbEstadoFiltro.Name = "cmbEstadoFiltro";
-            cmbEstadoFiltro.Size = new System.Drawing.Size(135, 40);
+            cmbEstadoFiltro.Size = new System.Drawing.Size(125, 40);
             cmbEstadoFiltro.TabIndex = 7;
             // 
             // lblEstado
             // 
             lblEstado.AutoSize = true;
-            lblEstado.Location = new System.Drawing.Point(1460, 30);
+            lblEstado.Location = new System.Drawing.Point(1110, 30);
             lblEstado.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblEstado.Name = "lblEstado";
             lblEstado.Size = new System.Drawing.Size(89, 32);
             lblEstado.TabIndex = 6;
             lblEstado.Text = "Estado:";
             // 
+            // cmbStockFiltro
+            //
+            cmbStockFiltro.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            cmbStockFiltro.FormattingEnabled = true;
+            cmbStockFiltro.Location = new System.Drawing.Point(1435, 26);
+            cmbStockFiltro.Margin = new System.Windows.Forms.Padding(5);
+            cmbStockFiltro.Name = "cmbStockFiltro";
+            cmbStockFiltro.Size = new System.Drawing.Size(240, 40);
+            cmbStockFiltro.TabIndex = 9;
+            //
+            // lblStock
+            //
+            lblStock.AutoSize = true;
+            lblStock.Location = new System.Drawing.Point(1350, 30);
+            lblStock.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
+            lblStock.Name = "lblStock";
+            lblStock.Size = new System.Drawing.Size(75, 32);
+            lblStock.TabIndex = 8;
+            lblStock.Text = "Stock:";
+            //
             // cmbMarcaFiltro
             // 
             cmbMarcaFiltro.FormattingEnabled = true;
-            cmbMarcaFiltro.Location = new System.Drawing.Point(1215, 26);
+            cmbMarcaFiltro.Location = new System.Drawing.Point(920, 26);
             cmbMarcaFiltro.Margin = new System.Windows.Forms.Padding(5);
             cmbMarcaFiltro.Name = "cmbMarcaFiltro";
-            cmbMarcaFiltro.Size = new System.Drawing.Size(220, 40);
+            cmbMarcaFiltro.Size = new System.Drawing.Size(170, 40);
             cmbMarcaFiltro.TabIndex = 5;
             // 
             // lblMarca
             // 
             lblMarca.AutoSize = true;
-            lblMarca.Location = new System.Drawing.Point(1130, 30);
+            lblMarca.Location = new System.Drawing.Point(835, 30);
             lblMarca.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblMarca.Name = "lblMarca";
             lblMarca.Size = new System.Drawing.Size(84, 32);
@@ -113,16 +137,16 @@
             // cmbCategoriaFiltro
             // 
             cmbCategoriaFiltro.FormattingEnabled = true;
-            cmbCategoriaFiltro.Location = new System.Drawing.Point(865, 26);
+            cmbCategoriaFiltro.Location = new System.Drawing.Point(610, 26);
             cmbCategoriaFiltro.Margin = new System.Windows.Forms.Padding(5);
             cmbCategoriaFiltro.Name = "cmbCategoriaFiltro";
-            cmbCategoriaFiltro.Size = new System.Drawing.Size(240, 40);
+            cmbCategoriaFiltro.Size = new System.Drawing.Size(200, 40);
             cmbCategoriaFiltro.TabIndex = 3;
             // 
             // lblCategoria
             // 
             lblCategoria.AutoSize = true;
-            lblCategoria.Location = new System.Drawing.Point(735, 30);
+            lblCategoria.Location = new System.Drawing.Point(480, 30);
             lblCategoria.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblCategoria.Name = "lblCategoria";
             lblCategoria.Size = new System.Drawing.Size(121, 32);
@@ -131,10 +155,10 @@
             // 
             // txtBuscar
             // 
-            txtBuscar.Location = new System.Drawing.Point(390, 26);
+            txtBuscar.Location = new System.Drawing.Point(130, 26);
             txtBuscar.Margin = new System.Windows.Forms.Padding(5);
             txtBuscar.Name = "txtBuscar";
-            txtBuscar.Size = new System.Drawing.Size(315, 39);
+            txtBuscar.Size = new System.Drawing.Size(320, 39);
             txtBuscar.TabIndex = 1;
             // 
             // lblBuscar
@@ -143,9 +167,9 @@
             lblBuscar.Location = new System.Drawing.Point(34, 30);
             lblBuscar.Margin = new System.Windows.Forms.Padding(5, 0, 5, 0);
             lblBuscar.Name = "lblBuscar";
-            lblBuscar.Size = new System.Drawing.Size(294, 32);
+            lblBuscar.Size = new System.Drawing.Size(80, 32);
             lblBuscar.TabIndex = 0;
-            lblBuscar.Text = "Buscar (nombre o código):";
+            lblBuscar.Text = "Buscar:";
             // 
             // tabControlMain
             // 
@@ -296,6 +320,8 @@
         private ComboBox cmbMarcaFiltro;
         private Label lblEstado;
         private ComboBox cmbEstadoFiltro;
+        private Label lblStock;
+        private ComboBox cmbStockFiltro;
         private TabControl tabControlMain;
         private TabPage tabPageProductos;
         private TabPage tabPageMarcas;

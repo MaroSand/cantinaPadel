@@ -23,7 +23,7 @@ public sealed class FrmReporteHorasPadel : Form
     private readonly DateTimePicker desde = new() { Format = DateTimePickerFormat.Short };
     private readonly DateTimePicker hasta = new() { Format = DateTimePickerFormat.Short };
     private readonly DataGridView grilla = new();
-    private readonly Label resumen = new() { AutoSize = true, Padding = new Padding(8) };
+    private readonly Label resumen = new();
     private List<FilaCancelacion> filas = new();
     private List<InstanciaTurno> datos = new();
 
@@ -32,22 +32,22 @@ public sealed class FrmReporteHorasPadel : Form
         Text = "Historial de turnos cancelados";
         BackColor = SystemColors.Info;
         Font = new Font("Segoe UI", 9F);
-        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Padding = new Padding(10) };
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Margin = Padding.Empty, Padding = Padding.Empty, BackColor = SystemColors.Info };
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, ConvencionReportes.AltoEncabezado));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 38));
-        var filtros = new FlowLayoutPanel { Dock = DockStyle.Fill, WrapContents = false, Padding = new Padding(0, 7, 0, 0) };
-        filtros.Controls.Add(new Label { Text = "Canceladas desde", AutoSize = true, Padding = new Padding(0, 7, 4, 0) });
-        filtros.Controls.Add(desde);
-        filtros.Controls.Add(new Label { Text = "hasta", AutoSize = true, Padding = new Padding(8, 7, 4, 0) });
-        filtros.Controls.Add(hasta);
-        var buscar = new Button { Text = "Buscar", Width = 85, Height = 27, Margin = new Padding(10, 0, 0, 0) };
-        filtros.Controls.Add(buscar);
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        var filtros = ConvencionReportes.CrearPanelFiltros();
+        ConvencionReportes.AgregarTitulo(filtros, "Turnos cancelados por período");
+        ConvencionReportes.AgregarFiltro(filtros, 0, "Desde", desde);
+        ConvencionReportes.AgregarFiltro(filtros, 1, "Hasta", hasta);
+        var buscar = new Button();
+        ConvencionReportes.ConfigurarAccionFiltro(filtros, buscar, "Buscar");
         desde.Value = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         hasta.Value = DateTime.Today;
         buscar.Click += (_, _) => Cargar();
 
         grilla.Dock = DockStyle.Fill;
+        ConvencionReportes.ConfigurarMargenGrilla(grilla);
         grilla.ReadOnly = true;
         grilla.AllowUserToAddRows = false;
         grilla.AllowUserToDeleteRows = false;
@@ -56,6 +56,8 @@ public sealed class FrmReporteHorasPadel : Form
         grilla.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         grilla.AutoGenerateColumns = false;
         grilla.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        grilla.BackgroundColor = Color.White;
+        grilla.GridColor = SystemColors.ControlLight;
         AddColumn(nameof(FilaCancelacion.Cliente), "Cliente", 18);
         AddColumn(nameof(FilaCancelacion.Modalidad), "Reserva", 10);
         AddColumn(nameof(FilaCancelacion.Cancha), "Cancha", 10);
@@ -69,6 +71,12 @@ public sealed class FrmReporteHorasPadel : Form
             using var detalle = new FrmHistorialTurnosCancelados(fila.Cliente, fila.Instancias);
             detalle.ShowDialog(this);
         };
+
+        resumen.Dock = DockStyle.Fill;
+        resumen.Margin = Padding.Empty;
+        resumen.Padding = new Padding(12, 5, 12, 8);
+        resumen.BackColor = SystemColors.Info;
+        resumen.TextAlign = ContentAlignment.MiddleLeft;
 
         root.Controls.Add(filtros, 0, 0);
         root.Controls.Add(grilla, 0, 1);
@@ -137,32 +145,33 @@ public sealed class FrmHistorialTurnosCancelados : Form
         StartPosition = FormStartPosition.CenterParent;
         Size = new Size(950, 560);
         MinimumSize = new Size(760, 420);
-        BackColor = SystemColors.Info;
+        BackColor = Color.White;
         Font = new Font("Segoe UI", 9F);
-        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Padding = new Padding(12) };
+        var root = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 3, ColumnCount = 1, Padding = new Padding(12), BackColor = Color.White };
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 65));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
-        root.Controls.Add(new Label { Text = $"Historial de turnos cancelados\n{cliente} · {instancias.Count} fechas", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12F, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft }, 0, 0);
+        root.Controls.Add(new Label { Text = $"Historial de turnos cancelados\n{cliente} · {instancias.Count} fechas", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 12F, FontStyle.Bold), TextAlign = ContentAlignment.MiddleLeft, BackColor = Color.Gold, Padding = new Padding(10, 0, 0, 0) }, 0, 0);
         var grid = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AllowUserToAddRows = false, RowHeadersVisible = false, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, SelectionMode = DataGridViewSelectionMode.FullRowSelect, AutoGenerateColumns = false, BackgroundColor = Color.White };
         grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(Detalle.Fecha), HeaderText = "Fecha del turno", FillWeight = 17, DefaultCellStyle = new DataGridViewCellStyle { Format = "dddd dd/MM/yyyy" } });
         grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(Detalle.Horario), HeaderText = "Horario", FillWeight = 12 });
         grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(Detalle.Cancha), HeaderText = "Cancha", FillWeight = 12 });
         grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(Detalle.FechaCancelacion), HeaderText = "Cancelado el", FillWeight = 19, DefaultCellStyle = new DataGridViewCellStyle { Format = "dd/MM/yyyy HH:mm" } });
         grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = nameof(Detalle.Actor), HeaderText = "Canceló", FillWeight = 28 });
-        PaginadorGrilla.Mostrar(grid, instancias.Select(i => new Detalle
+        var detalles = instancias.Select(i => new Detalle
         {
             Fecha = i.Fecha,
             Horario = $"{i.HorarioCancha.HoraInicio:hh\\:mm}–{i.HorarioCancha.HoraFin:hh\\:mm}",
             Cancha = i.HorarioCancha.Cancha?.Nombre ?? "",
             FechaCancelacion = i.FechaHoraCancelacion,
             Actor = i.EmpleadoCancelo == null ? "Usuario no disponible" : $"{i.EmpleadoCancelo.Persona.Nombre} {i.EmpleadoCancelo.Persona.Apellido} ({i.EmpleadoCancelo.NombreUsuario})"
-        }).ToList());
+        }).ToList();
         root.Controls.Add(grid, 0, 1);
         var cerrar = new Button { Text = "Cerrar", Dock = DockStyle.Right, Width = 105, Height = 34 };
         cerrar.Click += (_, _) => Close();
         root.Controls.Add(cerrar, 0, 2);
         Controls.Add(root);
+        grid.DataSource = detalles;
     }
 
     private sealed class Detalle

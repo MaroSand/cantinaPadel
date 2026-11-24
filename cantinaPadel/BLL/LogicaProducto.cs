@@ -12,6 +12,7 @@ namespace cantinaPadel.BLL
         public string Nombre { get; set; } = string.Empty;
         public decimal PrecioActual { get; set; }
         public decimal PrecioNuevo { get; set; }
+        public decimal PrecioNuevoConIva => Math.Round(PrecioNuevo * 1.21m, 2);
         // Tildado en la grilla: indica si este producto se incluye al confirmar. Por default viene tildado (true) al previsualizar
         public bool Aplicar { get; set; } = true;
         // No se muestra en la grilla. Se usa para que el recálculo automático por porcentaje no pise un precio que el

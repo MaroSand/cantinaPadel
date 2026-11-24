@@ -29,11 +29,11 @@
         private void InitializeComponent()
         {
             lblBuscarProducto = new Label();
-            txtBuscarProducto = new TextBox();
+            txtBuscarProducto = new ComboBox();
+            lblAyudaBusqueda = new Label();
             panel2 = new Panel();
             label2 = new Label();
             nudCantidad = new NumericUpDown();
-            cmbResultados = new ComboBox();
             panel3 = new Panel();
             btnVaciarCarrito = new Button();
             dgvCarrito = new DataGridView();
@@ -87,19 +87,35 @@
             // 
             // txtBuscarProducto
             // 
+            txtBuscarProducto.DropDownStyle = ComboBoxStyle.DropDown;
+            txtBuscarProducto.FormattingEnabled = true;
             txtBuscarProducto.Location = new Point(30, 42);
             txtBuscarProducto.MaxLength = 100;
+            txtBuscarProducto.MaxDropDownItems = 10;
             txtBuscarProducto.Name = "txtBuscarProducto";
-            txtBuscarProducto.Size = new Size(305, 27);
+            txtBuscarProducto.DropDownHeight = 240;
+            txtBuscarProducto.DropDownWidth = 420;
+            txtBuscarProducto.Size = new Size(305, 28);
             txtBuscarProducto.TabIndex = 3;
             // 
-            // panel2
+            // lblAyudaBusqueda
+            //
+            lblAyudaBusqueda.AutoSize = true;
+            lblAyudaBusqueda.Font = new Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lblAyudaBusqueda.ForeColor = Color.DimGray;
+            lblAyudaBusqueda.Location = new Point(30, 91);
+            lblAyudaBusqueda.Name = "lblAyudaBusqueda";
+            lblAyudaBusqueda.Size = new Size(376, 20);
+            lblAyudaBusqueda.TabIndex = 9;
+            lblAyudaBusqueda.Text = "Flechas para elegir · Enter confirma · F2: cantidad";
             // 
-            panel2.BackColor = Color.Gold;
+            // panel2
+            //
+            panel2.BackColor = Color.White;
             panel2.BorderStyle = BorderStyle.FixedSingle;
             panel2.Controls.Add(label2);
             panel2.Controls.Add(nudCantidad);
-            panel2.Controls.Add(cmbResultados);
+            panel2.Controls.Add(lblAyudaBusqueda);
             panel2.Controls.Add(lblBuscarProducto);
             panel2.Controls.Add(txtBuscarProducto);
             panel2.Location = new Point(28, 49);
@@ -125,26 +141,18 @@
             nudCantidad.TabIndex = 7;
             nudCantidad.Value = new decimal(new int[] { 1, 0, 0, 0 });
             // 
-            // cmbResultados
-            // 
-            cmbResultados.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbResultados.FormattingEnabled = true;
-            cmbResultados.Location = new Point(30, 91);
-            cmbResultados.Name = "cmbResultados";
-            cmbResultados.Size = new Size(305, 28);
-            cmbResultados.TabIndex = 4;
-            // 
             // panel3
             // 
-            panel3.BackColor = Color.Gold;
+            panel3.BackColor = Color.White;
             panel3.BorderStyle = BorderStyle.FixedSingle;
             panel3.Controls.Add(btnVaciarCarrito);
             panel3.Controls.Add(dgvCarrito);
             panel3.Controls.Add(label1);
             panel3.Controls.Add(btnQuitarDelCarrito);
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panel3.Location = new Point(28, 225);
             panel3.Name = "panel3";
-            panel3.Size = new Size(1031, 299);
+            panel3.Size = new Size(1108, 370);
             panel3.TabIndex = 8;
             // 
             // btnVaciarCarrito
@@ -152,7 +160,8 @@
             btnVaciarCarrito.BackColor = Color.Firebrick;
             btnVaciarCarrito.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnVaciarCarrito.ForeColor = SystemColors.ButtonHighlight;
-            btnVaciarCarrito.Location = new Point(253, 245);
+            btnVaciarCarrito.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnVaciarCarrito.Location = new Point(253, 316);
             btnVaciarCarrito.Name = "btnVaciarCarrito";
             btnVaciarCarrito.Size = new Size(176, 40);
             btnVaciarCarrito.TabIndex = 6;
@@ -161,14 +170,14 @@
             // 
             // dgvCarrito
             // 
-            dgvCarrito.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            dgvCarrito.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvCarrito.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvCarrito.BackgroundColor = SystemColors.ButtonHighlight;
             dgvCarrito.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dgvCarrito.Location = new Point(41, 42);
             dgvCarrito.Name = "dgvCarrito";
             dgvCarrito.RowHeadersWidth = 51;
-            dgvCarrito.Size = new Size(940, 197);
+            dgvCarrito.Size = new Size(1017, 268);
             dgvCarrito.TabIndex = 4;
             // 
             // label1
@@ -185,7 +194,8 @@
             // 
             btnQuitarDelCarrito.BackColor = Color.FromArgb(255, 192, 192);
             btnQuitarDelCarrito.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnQuitarDelCarrito.Location = new Point(41, 245);
+            btnQuitarDelCarrito.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnQuitarDelCarrito.Location = new Point(41, 316);
             btnQuitarDelCarrito.Name = "btnQuitarDelCarrito";
             btnQuitarDelCarrito.Size = new Size(176, 40);
             btnQuitarDelCarrito.TabIndex = 5;
@@ -194,14 +204,15 @@
             // 
             // panel4
             // 
-            panel4.BackColor = Color.Gold;
+            panel4.BackColor = Color.White;
             panel4.BorderStyle = BorderStyle.FixedSingle;
             panel4.Controls.Add(pnlEfectivo);
             panel4.Controls.Add(btnConfirmarVenta);
             panel4.Controls.Add(lblTotal);
-            panel4.Location = new Point(28, 631);
+            panel4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel4.Location = new Point(28, 703);
             panel4.Name = "panel4";
-            panel4.Size = new Size(1031, 70);
+            panel4.Size = new Size(1108, 70);
             panel4.TabIndex = 9;
             // 
             // btnConfirmarVenta
@@ -209,7 +220,8 @@
             btnConfirmarVenta.BackColor = Color.Green;
             btnConfirmarVenta.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnConfirmarVenta.ForeColor = Color.White;
-            btnConfirmarVenta.Location = new Point(721, 14);
+            btnConfirmarVenta.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnConfirmarVenta.Location = new Point(798, 14);
             btnConfirmarVenta.Name = "btnConfirmarVenta";
             btnConfirmarVenta.Size = new Size(260, 42);
             btnConfirmarVenta.TabIndex = 1;
@@ -283,9 +295,10 @@
             // grpMetodoPago
             // 
             grpMetodoPago.Controls.Add(flujoMetodoPago);
-            grpMetodoPago.Location = new Point(28, 531);
+            grpMetodoPago.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            grpMetodoPago.Location = new Point(28, 603);
             grpMetodoPago.Name = "grpMetodoPago";
-            grpMetodoPago.Size = new Size(1031, 92);
+            grpMetodoPago.Size = new Size(1108, 92);
             grpMetodoPago.TabIndex = 15;
             grpMetodoPago.TabStop = false;
             grpMetodoPago.Text = "Método de pago";
@@ -379,7 +392,7 @@
             // 
             // tabVenta
             // 
-            tabVenta.BackColor = Color.FromArgb(255, 255, 192);
+            tabVenta.BackColor = Color.FromArgb(250, 248, 240);
             tabVenta.Controls.Add(btnVerCuentaCorriente);
             tabVenta.Controls.Add(btnQuitarCliente);
             tabVenta.Controls.Add(lblClienteVenta);
@@ -398,7 +411,7 @@
             // 
             // tabCuentaCorriente
             // 
-            tabCuentaCorriente.BackColor = Color.FromArgb(255, 255, 192);
+            tabCuentaCorriente.BackColor = Color.FromArgb(250, 248, 240);
             tabCuentaCorriente.Controls.Add(cuentaCorrienteControl1);
             tabCuentaCorriente.Location = new Point(4, 29);
             tabCuentaCorriente.Name = "tabCuentaCorriente";
@@ -409,7 +422,7 @@
             // 
             // cuentaCorrienteControl1
             // 
-            cuentaCorrienteControl1.BackColor = Color.FromArgb(255, 255, 192);
+            cuentaCorrienteControl1.BackColor = Color.FromArgb(250, 248, 240);
             cuentaCorrienteControl1.Dock = DockStyle.Fill;
             cuentaCorrienteControl1.Location = new Point(3, 3);
             cuentaCorrienteControl1.Name = "cuentaCorrienteControl1";
@@ -459,7 +472,7 @@
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.FromArgb(255, 255, 192);
+            BackColor = Color.FromArgb(250, 248, 240);
             ClientSize = new Size(1172, 849);
             Controls.Add(tabsPrincipal);
             Name = "FrmPuntoVenta";
@@ -486,7 +499,8 @@
         #endregion
 
         private Label lblBuscarProducto;
-        private TextBox txtBuscarProducto;
+        private ComboBox txtBuscarProducto;
+        private Label lblAyudaBusqueda;
         private Panel panel2;
         private Panel panel3;
         private DataGridView dgvCarrito;
@@ -496,7 +510,6 @@
         private Button btnConfirmarVenta;
         private Label lblTotal;
         private Button btnVaciarCarrito;
-        private ComboBox cmbResultados;
         private Button btnAgregarCliente;
         private Button btnAgregarTurno;
         private Label lblClienteVenta;

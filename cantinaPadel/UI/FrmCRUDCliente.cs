@@ -34,6 +34,7 @@ namespace cantinaPadel.UI
             ConfigurarControlesRoles();
             CargarCondicionesIva();
             ConfigurarFormatoCuit();
+            ConvencionCrudPersonas.Configurar(this, panel1, label6, btnGuardar.Parent!, btnCancelar, btnGuardar);
             _logicaPersonaRoles = new LogicaPersonaRoles();
             _clienteEdicion = null;
         }
@@ -47,10 +48,6 @@ namespace cantinaPadel.UI
 
         private void ConfigurarControlesRoles()
         {
-            ClientSize = new Size(1000, 650);
-            btnCancelar.Location = new Point(104, 535);
-            btnGuardar.Location = new Point(531, 535);
-
             chkEsProveedor = new CheckBox { Text = "También es proveedor", Location = new Point(525, 82), AutoSize = true };
             lblNombreEmpresa = new Label { Text = "Empresa proveedor: *", Location = new Point(545, 122), AutoSize = true };
             txtNombreEmpresa = new TextBox { Location = new Point(705, 118), Size = new Size(230, 27), MaxLength = 50 };

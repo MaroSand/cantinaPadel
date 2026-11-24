@@ -17,6 +17,7 @@ namespace cantinaPadel.UI
         public FrmCRUDProducto()
         {
             InitializeComponent();
+            ConvencionCrudPersonas.ConfigurarBotones(this, panelFooter, btnCancelar, btnGuardar, centrarVerticalmente: true);
             _logicaProducto = new LogicaProducto();
             _productoEdicion = null;
             this.Text = "Nuevo Producto";

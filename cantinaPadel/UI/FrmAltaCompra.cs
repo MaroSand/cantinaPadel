@@ -20,12 +20,17 @@ namespace cantinaPadel.UI
         private readonly LogicaProducto _logicaProducto;
         private readonly LogicaCarritoCompra _carrito;
         private readonly ErrorProvider _errores = new() { BlinkStyle = ErrorBlinkStyle.NeverBlink };
+        private readonly ToolTip _ayudaTeclado = new() { AutomaticDelay = 350 };
+        private readonly bool _modoEmbebido;
+        private List<ProveedorOpcion> _proveedoresActivos = new();
+        private ProveedorOpcion? _proveedorElegido;
+        private bool _actualizandoComboProveedores;
 
         // Timer de debounce del buscador: cada tecla lo reinicia y la búsqueda real se hace cuando se deja de tipear 300ms
         // Como el lector de código de barras "tipea" muy rápido, la búsqueda se dispara recién cuando termina de leer
         private readonly System.Windows.Forms.Timer _debounceBusqueda = new() { Interval = 300 };
 
-        // Evita reentrancia al repoblar cmbResultados (cambia SelectedIndex y eso dispara eventos)
+        // Evita reentrancia cuando se actualiza la lista desplegable del buscador.
         private bool _actualizandoCombo;
 
         // Evita que al completar el texto del buscador por código (al elegir un producto) se dispare una nueva búsqueda
@@ -39,33 +44,72 @@ namespace cantinaPadel.UI
 
         // El listado la consulta al cerrar este formulario para saber si tiene que recargar sus datos
         public bool CompraRegistrada { get; private set; }
+        public event EventHandler? CompraConfirmada;
 
         // Se pone en true cuando el usuario ya confirmó que quiere descartar la compra en curso, para no preguntarle dos veces al cerrar
         private bool _descartando;
 
-        public FrmAltaCompra()
+        public FrmAltaCompra() : this(embebida: false) { }
+
+        public FrmAltaCompra(bool embebida)
         {
             InitializeComponent();
+            _modoEmbebido = embebida;
             _logicaCompra = new LogicaCompra();
             _logicaProducto = new LogicaProducto();
             _carrito = new LogicaCarritoCompra();
 
+            if (_modoEmbebido)
+            {
+                TopLevel = false;
+                FormBorderStyle = FormBorderStyle.None;
+                MinimumSize = Size.Empty;
+                MaximizeBox = false;
+                MinimizeBox = false;
+            }
+
             Load += FrmAltaCompra_Load;
+            Shown += FrmAltaCompra_Shown;
             FormClosing += FrmAltaCompra_FormClosing;
-            Disposed += (_, _) => _errores.Dispose();
+            Disposed += (_, _) =>
+            {
+                _errores.Dispose();
+                _ayudaTeclado.Dispose();
+            };
+        }
+
+        private void FrmAltaCompra_Shown(object? sender, EventArgs e)
+        {
+            if (_modoEmbebido)
+            {
+                BeginInvoke((MethodInvoker)EnfocarProveedor);
+                return;
+            }
+
+            var area = Screen.FromControl(this).WorkingArea;
+            int ancho = Math.Min(Width, Math.Max(MinimumSize.Width, area.Width - 32));
+            int alto = Math.Min(Height, Math.Max(MinimumSize.Height, area.Height - 32));
+            Size = new Size(ancho, alto);
+            Bounds = new Rectangle(
+                area.Left + (area.Width - Width) / 2,
+                area.Top + (area.Height - Height) / 2,
+                Width,
+                Height);
         }
 
         // ================= Carga inicial =================
 
         private void FrmAltaCompra_Load(object? sender, EventArgs e)
         {
+            ConfigurarLayoutConMargenes();
             ConfigurarControles();
             ConfigurarGrilla();
             SuscribirEventos();
 
             if (!CargarProveedores())
             {
-                Close();
+                if (!_modoEmbebido)
+                    Close();
                 return;
             }
 
@@ -74,14 +118,80 @@ namespace cantinaPadel.UI
             cmbProveedor.Focus();
         }
 
+        private void ConfigurarLayoutConMargenes()
+        {
+            var layoutCarga = new TableLayoutPanel
+            {
+                ColumnCount = 2,
+                Dock = DockStyle.Fill,
+                Padding = Padding.Empty,
+                RowCount = 1,
+                BackColor = BackColor,
+                Margin = new Padding(0, 0, 0, 15)
+            };
+            layoutCarga.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 483));
+            layoutCarga.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layoutCarga.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var layout = new TableLayoutPanel
+            {
+                ColumnCount = 1,
+                Dock = DockStyle.Fill,
+                Padding = new Padding(28, 49, 28, 43),
+                RowCount = 3,
+                BackColor = BackColor
+            };
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 176));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 70));
+
+            Controls.Remove(panelDatos);
+            Controls.Remove(panelBuscador);
+            Controls.Remove(panelDetalle);
+            Controls.Remove(panelAcciones);
+
+            panelDatos.Dock = DockStyle.Fill;
+            panelBuscador.Dock = DockStyle.Fill;
+            panelDetalle.Dock = DockStyle.Fill;
+            panelAcciones.Dock = DockStyle.Fill;
+            panelBuscador.Margin = new Padding(0, 0, 15, 0);
+            panelBuscador.BackColor = Color.White;
+            panelBuscador.BorderStyle = BorderStyle.FixedSingle;
+            panelDetalle.Margin = new Padding(0, 0, 0, 8);
+            panelAcciones.Margin = Padding.Empty;
+            panelDatos.BackColor = Color.White;
+            panelDatos.BorderStyle = BorderStyle.FixedSingle;
+            panelDatos.Margin = Padding.Empty;
+
+            layoutCarga.Controls.Add(panelBuscador, 0, 0);
+            layoutCarga.Controls.Add(panelDatos, 1, 0);
+
+            layout.Controls.Add(layoutCarga, 0, 0);
+            layout.Controls.Add(panelDetalle, 0, 1);
+            layout.Controls.Add(panelAcciones, 0, 2);
+            Controls.Add(layout);
+        }
+
         // Propiedades importantes que también se fijan acá por si en el Designer quedó alguna sin configurar
         private void ConfigurarControles()
         {
             Text = "Nueva Compra";
             CancelButton = btnCancelar;
 
-            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDownList;
-            cmbResultados.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbProveedor.DropDownStyle = ComboBoxStyle.DropDown;
+            cmbProveedor.AutoCompleteMode = AutoCompleteMode.None;
+            cmbProveedor.MaxDropDownItems = 10;
+            cmbProveedor.DropDownHeight = 240;
+            cmbProveedor.DropDownWidth = 480;
+            cmbProveedor.MaxLength = 100;
+            txtBuscarProducto.DropDownStyle = ComboBoxStyle.DropDown;
+            txtBuscarProducto.AutoCompleteMode = AutoCompleteMode.None;
+            txtBuscarProducto.MaxDropDownItems = 10;
+            txtBuscarProducto.DropDownHeight = 240;
+            txtBuscarProducto.DropDownWidth = 620;
+
+            btnCancelar.Text = _modoEmbebido ? "Descartar compra" : "Cancelar";
 
             // La fecha de la compra no puede ser futura. Por defecto, hoy
             dtpFecha.Format = DateTimePickerFormat.Short;
@@ -91,7 +201,6 @@ namespace cantinaPadel.UI
             txtComprobante.MaxLength = Compra.LargoMaximoComprobante;
             _errores.ContainerControl = this;
             txtBuscarProducto.MaxLength = 100;
-            txtBuscarProducto.PlaceholderText = "Nombre o código de barras...";
             txtCostoUnitario.MaxLength = 14;
             txtCostoUnitario.TextAlign = HorizontalAlignment.Right;
 
@@ -101,23 +210,37 @@ namespace cantinaPadel.UI
             nudCantidad.ThousandsSeparator = true;
             nudCantidad.Value = 1;
 
-            lblInfoProducto.Text = string.Empty;
+            MostrarInfo(string.Empty, esError: false);
+            _ayudaTeclado.SetToolTip(txtBuscarProducto, "Buscá o escaneá un producto. Flechas para recorrer coincidencias; Enter para elegir; F2 para ir a cantidad.");
+            _ayudaTeclado.SetToolTip(nudCantidad, "Ingresá la cantidad y presioná Enter para revisar el costo.");
+            _ayudaTeclado.SetToolTip(txtCostoUnitario, "Revisá el costo unitario de compra. Enter agrega el producto al detalle.");
+            _ayudaTeclado.SetToolTip(dgvCompra, "Seleccioná una fila y presioná Supr para quitar ese producto.");
         }
 
         private void SuscribirEventos()
         {
             txtBuscarProducto.TextChanged += txtBuscarProducto_TextChanged;
             txtBuscarProducto.KeyDown += txtBuscarProducto_KeyDown;
-            cmbResultados.SelectionChangeCommitted += cmbResultados_SelectionChangeCommitted;
+            txtBuscarProducto.SelectionChangeCommitted += txtBuscarProducto_SelectionChangeCommitted;
             nudCantidad.KeyDown += nudCantidad_KeyDown;
             txtCostoUnitario.KeyPress += txtCostoUnitario_KeyPress;
             txtCostoUnitario.KeyDown += txtCostoUnitario_KeyDown;
             txtCostoUnitario.Leave += txtCostoUnitario_Leave;
-            txtCostoUnitario.TextChanged += (_, _) => _errores.SetError(txtCostoUnitario, string.Empty);
-            cmbProveedor.SelectedIndexChanged += (_, _) => _errores.SetError(cmbProveedor, string.Empty);
+            txtCostoUnitario.TextChanged += (_, _) =>
+            {
+                _errores.SetError(txtCostoUnitario, string.Empty);
+                ActualizarEstadoAcciones();
+            };
+            cmbProveedor.TextUpdate += cmbProveedor_TextUpdate;
+            cmbProveedor.SelectionChangeCommitted += (_, _) =>
+            {
+                _proveedorElegido = cmbProveedor.SelectedItem as ProveedorOpcion;
+                _errores.SetError(cmbProveedor, string.Empty);
+                ActualizarEstadoAcciones();
+            };
             txtBuscarProducto.TextChanged += (_, _) => _errores.SetError(txtBuscarProducto, string.Empty);
-            btnAgregar.Click += btnAgregar_Click;
             btnQuitar.Click += btnQuitar_Click;
+            btnVaciar.Click += btnVaciar_Click;
             dgvCompra.KeyDown += dgvCompra_KeyDown;
             btnConfirmar.Click += btnConfirmar_Click;
             btnCancelar.Click += btnCancelar_Click;
@@ -131,11 +254,8 @@ namespace cantinaPadel.UI
         {
             try
             {
-                var proveedores = _logicaCompra.ObtenerProveedoresActivos();
-
-                cmbProveedor.Items.Clear();
-                cmbProveedor.Items.AddRange(proveedores.Cast<object>().ToArray());
-                cmbProveedor.SelectedIndex = -1;
+                _proveedoresActivos = _logicaCompra.ObtenerProveedoresActivos();
+                MostrarOpcionesProveedor(string.Empty, desplegar: false);
                 return true;
             }
             catch (Exception ex)
@@ -144,6 +264,75 @@ namespace cantinaPadel.UI
                     "Error de conexión", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
+        }
+
+        private void cmbProveedor_TextUpdate(object? sender, EventArgs e)
+        {
+            if (_actualizandoComboProveedores) return;
+
+            _proveedorElegido = null;
+            if (cmbProveedor.DroppedDown
+                && cmbProveedor.SelectedItem is ProveedorOpcion previsualizado
+                && string.Equals(cmbProveedor.Text, previsualizado.Texto, StringComparison.CurrentCultureIgnoreCase))
+            {
+                ActualizarEstadoAcciones();
+                return;
+            }
+
+            string texto = cmbProveedor.Text;
+            var coincidencias = string.IsNullOrWhiteSpace(texto)
+                ? _proveedoresActivos
+                : _proveedoresActivos
+                    .Where(p => p.Texto.Contains(texto.Trim(), StringComparison.CurrentCultureIgnoreCase))
+                    .ToList();
+
+            MostrarOpcionesProveedor(texto, desplegar: !string.IsNullOrWhiteSpace(texto));
+
+            if (string.IsNullOrWhiteSpace(texto))
+            {
+                _errores.SetError(cmbProveedor, string.Empty);
+            }
+            else if (coincidencias.Count == 0)
+            {
+                _errores.SetError(cmbProveedor, "No hay coincidencias. Revisá el nombre del proveedor.");
+            }
+            else
+            {
+                _errores.SetError(cmbProveedor, string.Empty);
+            }
+
+            _errores.SetError(cmbProveedor, string.Empty);
+            ActualizarEstadoAcciones();
+        }
+
+        private void MostrarOpcionesProveedor(string texto, bool desplegar)
+        {
+            var opciones = string.IsNullOrWhiteSpace(texto)
+                ? _proveedoresActivos
+                : _proveedoresActivos
+                    .Where(p => p.Texto.Contains(texto.Trim(), StringComparison.CurrentCultureIgnoreCase))
+                    .ToList();
+
+            _actualizandoComboProveedores = true;
+            try
+            {
+                cmbProveedor.BeginUpdate();
+                cmbProveedor.DroppedDown = false;
+                cmbProveedor.Items.Clear();
+                cmbProveedor.Items.AddRange(opciones.Cast<object>().ToArray());
+                cmbProveedor.SelectedIndex = -1;
+                cmbProveedor.Text = texto;
+                cmbProveedor.SelectionStart = texto.Length;
+                cmbProveedor.SelectionLength = 0;
+            }
+            finally
+            {
+                cmbProveedor.EndUpdate();
+                _actualizandoComboProveedores = false;
+            }
+
+            if (desplegar && opciones.Count > 0 && cmbProveedor.Focused)
+                cmbProveedor.DroppedDown = true;
         }
 
         private void ConfigurarGrilla()
@@ -192,19 +381,28 @@ namespace cantinaPadel.UI
 
         private void txtBuscarProducto_TextChanged(object? sender, EventArgs e)
         {
-            if (_suprimirBusqueda) return;
+            if (_suprimirBusqueda || _actualizandoCombo) return;
+            if (txtBuscarProducto.SelectedItem is ProductoItem seleccionado
+                && string.Equals(txtBuscarProducto.Text, seleccionado.ToString(), StringComparison.Ordinal)) return;
 
             _debounceBusqueda.Stop();
 
             // Si el usuario vuelve a escribir en el buscador, se descarta el producto que había elegido
             DescartarProductoElegido();
+            txtCostoUnitario.Clear();
 
-            if (SepararCantidad(txtBuscarProducto.Text).texto.Length < 2)
+            int largoBusqueda = SepararCantidad(txtBuscarProducto.Text).texto.Length;
+            if (largoBusqueda < 2)
             {
                 LimpiarCombo();
+                MostrarInfo(string.IsNullOrWhiteSpace(txtBuscarProducto.Text)
+                    ? string.Empty
+                    : "Ingresá al menos dos caracteres para buscar un producto.", esError: false);
                 return;
             }
 
+            MostrarInfo("Buscando coincidencias…", esError: false);
+            LimpiarCombo();
             _debounceBusqueda.Start();
         }
 
@@ -216,6 +414,14 @@ namespace cantinaPadel.UI
 
         private void txtBuscarProducto_KeyDown(object? sender, KeyEventArgs e)
         {
+            if (e.KeyCode == Keys.F2)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                IrACantidad();
+                return;
+            }
+
             if (e.KeyCode == Keys.Down || e.KeyCode == Keys.Up)
             {
                 e.Handled = true;
@@ -244,9 +450,15 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            if (cmbResultados.SelectedItem is ProductoItem resaltado)
+            if (txtBuscarProducto.SelectedItem is ProductoItem resaltado)
             {
                 ElegirProducto(resaltado.Producto);
+                return;
+            }
+
+            if (txtBuscarProducto.Items.Count > 0)
+            {
+                MoverSeleccionCombo(1);
                 return;
             }
 
@@ -254,11 +466,17 @@ namespace cantinaPadel.UI
                 BuscarProductos(avisarSiNoHayResultados: true);
         }
 
-        private void cmbResultados_SelectionChangeCommitted(object? sender, EventArgs e)
+        private void txtBuscarProducto_SelectionChangeCommitted(object? sender, EventArgs e)
         {
             if (_actualizandoCombo) return;
-            if (cmbResultados.SelectedItem is ProductoItem item)
+            if (txtBuscarProducto.SelectedItem is not ProductoItem item) return;
+
+            BeginInvoke((MethodInvoker)(() =>
+            {
+                // La navegación por flechas solo resalta; elegir con el mouse confirma la opción al cerrar la lista.
+                if (IsDisposed || txtBuscarProducto.DroppedDown || !ReferenceEquals(txtBuscarProducto.SelectedItem, item)) return;
                 ElegirProducto(item.Producto);
+            }));
         }
 
         private void BuscarProductos(bool avisarSiNoHayResultados = false)
@@ -302,42 +520,57 @@ namespace cantinaPadel.UI
                 // Mientras se tipea solo queda la lista vacía; el aviso aparece cuando se aprieta Enter, y es un texto en pantalla (no una ventana)
                 if (avisarSiNoHayResultados)
                     MostrarInfo($"No se encontró ningún producto para “{texto}”. Revise que esté bien escrito o pruebe con el código de barras.", esError: true);
+                else
+                    MostrarInfo("No se encontraron coincidencias. Revisá el nombre o el código de barras.", esError: false);
             }
             else
             {
-                lblInfoProducto.Text = string.Empty;
+                MostrarInfo("Elegí una coincidencia; después completá cantidad y costo. Enter agrega el producto.", esError: false);
             }
         }
 
         private void MostrarResultados(List<Producto> resultados)
         {
+            string texto = txtBuscarProducto.Text;
+            bool mantenerAbierto = txtBuscarProducto.Focused;
             _actualizandoCombo = true;
             try
             {
-                cmbResultados.DroppedDown = false;
-                cmbResultados.SelectedIndex = -1;
-                cmbResultados.Items.Clear();
+                txtBuscarProducto.BeginUpdate();
+                txtBuscarProducto.DroppedDown = false;
+                txtBuscarProducto.SelectedIndex = -1;
+                txtBuscarProducto.Items.Clear();
 
                 foreach (var p in resultados)
-                    cmbResultados.Items.Add(new ProductoItem(p));
+                    txtBuscarProducto.Items.Add(new ProductoItem(p));
 
-                // Queda resaltado el primero, así se elige con Enter sin tener que moverse
-                cmbResultados.SelectedIndex = cmbResultados.Items.Count > 0 ? 0 : -1;
+                txtBuscarProducto.SelectedIndex = -1;
+                txtBuscarProducto.Text = texto;
+                txtBuscarProducto.SelectionStart = txtBuscarProducto.Text.Length;
+                txtBuscarProducto.SelectionLength = 0;
             }
             finally
             {
+                txtBuscarProducto.EndUpdate();
                 _actualizandoCombo = false;
             }
+
+            if (resultados.Count > 0 && mantenerAbierto)
+                txtBuscarProducto.DroppedDown = true;
         }
 
         private void LimpiarCombo()
         {
+            string texto = txtBuscarProducto.Text;
             _actualizandoCombo = true;
             try
             {
-                cmbResultados.DroppedDown = false;
-                cmbResultados.SelectedIndex = -1;
-                cmbResultados.Items.Clear();
+                txtBuscarProducto.DroppedDown = false;
+                txtBuscarProducto.SelectedIndex = -1;
+                txtBuscarProducto.Items.Clear();
+                txtBuscarProducto.Text = texto;
+                txtBuscarProducto.SelectionStart = txtBuscarProducto.Text.Length;
+                txtBuscarProducto.SelectionLength = 0;
             }
             finally
             {
@@ -347,10 +580,14 @@ namespace cantinaPadel.UI
 
         private void MoverSeleccionCombo(int direccion)
         {
-            if (cmbResultados.Items.Count == 0) return;
+            if (txtBuscarProducto.Items.Count == 0) return;
 
-            int nuevoIndice = Math.Max(0, Math.Min(cmbResultados.Items.Count - 1, cmbResultados.SelectedIndex + direccion));
-            cmbResultados.SelectedIndex = nuevoIndice;
+            int nuevoIndice = Math.Max(0, Math.Min(txtBuscarProducto.Items.Count - 1, txtBuscarProducto.SelectedIndex + direccion));
+            _actualizandoCombo = true;
+            try { txtBuscarProducto.SelectedIndex = nuevoIndice; }
+            finally { _actualizandoCombo = false; }
+            if (!txtBuscarProducto.DroppedDown)
+                txtBuscarProducto.DroppedDown = true;
         }
 
         // El producto queda elegido: se muestra su nombre en el buscador, se sugiere su costo actual y el foco pasa a la cantidad
@@ -372,6 +609,7 @@ namespace cantinaPadel.UI
             string costoActual = producto.PrecioCosto > 0 ? producto.PrecioCosto.ToString("C2", Es) : "sin costo cargado";
             MostrarInfo($"Stock actual: {producto.StockActual:N0}   ·   Costo actual: {costoActual}", esError: false);
 
+            ActualizarEstadoAcciones();
             IrACantidad();
         }
 
@@ -379,6 +617,7 @@ namespace cantinaPadel.UI
         {
             _productoElegido = null;
             _cantidadPrefijo = null;
+            ActualizarEstadoAcciones();
         }
 
         private void IrACantidad()
@@ -459,8 +698,6 @@ namespace cantinaPadel.UI
         }
 
         // Compra en armado
-        private void btnAgregar_Click(object? sender, EventArgs e) => AgregarAlCarrito();
-
         private void AgregarAlCarrito()
         {
             if (_productoElegido == null)
@@ -517,7 +754,7 @@ namespace cantinaPadel.UI
             DescartarProductoElegido();
 
             _suprimirBusqueda = true;
-            try { txtBuscarProducto.Clear(); }
+            try { txtBuscarProducto.Text = string.Empty; }
             finally { _suprimirBusqueda = false; }
 
             LimpiarCombo();
@@ -525,7 +762,8 @@ namespace cantinaPadel.UI
             txtCostoUnitario.Clear();
             _errores.SetError(txtCostoUnitario, string.Empty);
             _errores.SetError(txtBuscarProducto, string.Empty);
-            lblInfoProducto.Text = string.Empty;
+            MostrarInfo(string.Empty, esError: false);
+            ActualizarEstadoAcciones();
         }
 
         private void btnQuitar_Click(object? sender, EventArgs e) => QuitarProductoSeleccionado();
@@ -554,6 +792,25 @@ namespace cantinaPadel.UI
             ActualizarTotal();
         }
 
+        private void btnVaciar_Click(object? sender, EventArgs e)
+        {
+            if (_carrito.Items.Count == 0) return;
+
+            var confirmacion = MessageBox.Show(this,
+                "¿Vaciar todos los productos cargados en esta compra?",
+                "Vaciar compra",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2);
+            if (confirmacion != DialogResult.Yes) return;
+
+            _carrito.Vaciar();
+            RefrescarGrilla();
+            ActualizarTotal();
+            LimpiarEntrada();
+            txtBuscarProducto.Focus();
+        }
+
         private void RefrescarGrilla()
         {
             PaginadorGrilla.Mostrar(dgvCompra, _carrito.Items.Select(i => new
@@ -572,7 +829,9 @@ namespace cantinaPadel.UI
 
         private void ActualizarEstadoAcciones()
         {
-            btnConfirmar.Enabled = _carrito.Items.Count > 0;
+            bool hayItems = _carrito.Items.Count > 0;
+            btnVaciar.Enabled = hayItems;
+            btnConfirmar.Enabled = hayItems && _proveedorElegido != null;
             btnQuitar.Enabled = _carrito.Items.Count > 0 && dgvCompra.CurrentRow != null;
         }
 
@@ -580,9 +839,9 @@ namespace cantinaPadel.UI
 
         private void btnConfirmar_Click(object? sender, EventArgs e)
         {
-            if (cmbProveedor.SelectedItem is not ProveedorOpcion proveedor)
+            if (_proveedorElegido is not ProveedorOpcion proveedor)
             {
-                _errores.SetError(cmbProveedor, "Seleccione el proveedor de la compra.");
+                _errores.SetError(cmbProveedor, "Busque y elija un proveedor de la lista.");
                 cmbProveedor.Focus();
                 return;
             }
@@ -595,6 +854,7 @@ namespace cantinaPadel.UI
                 return;
             }
 
+            Compra compra;
             try
             {
                 var items = _carrito.Items.ToList();
@@ -602,24 +862,35 @@ namespace cantinaPadel.UI
                 if (!ConfirmarImpactoCompra(proveedor, impacto, _carrito.Total)) return;
 
                 // El usuario activo y la fecha/hora de registro los resuelve LogicaCompra a partir de la sesión y la fecha elegida
-                var compra = _logicaCompra.RegistrarCompra(
+                compra = _logicaCompra.RegistrarCompra(
                     proveedor.IdProveedor, dtpFecha.Value.Date, txtComprobante.Text, items, Sesion.IdUsuario);
-
-                CompraRegistrada = true;
-                MessageBox.Show($"La compra N° {compra.IdCompra} se registró correctamente.",
-                    "Compra registrada", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                Close();
             }
             catch (ArgumentException ex)
             {
                 // Error de validación: se muestra el motivo y se conserva todo lo cargado para corregirlo
                 MessageBox.Show(ex.Message, "No se pudo registrar la compra", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"No se pudo registrar la compra y no se guardó nada: {ex.Message}",
                     "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
             }
+
+            CompraRegistrada = true;
+            if (_modoEmbebido)
+            {
+                ReiniciarCompraEnCurso();
+                MessageBox.Show(this, $"La compra N° {compra.IdCompra} se registró correctamente.",
+                    "Compra registrada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                CompraConfirmada?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            MessageBox.Show(this, $"La compra N° {compra.IdCompra} se registró correctamente.",
+                "Compra registrada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Close();
         }
 
         // Vista previa de los cambios de inventario y precios antes de confirmar la compra.
@@ -764,14 +1035,57 @@ namespace cantinaPadel.UI
         {
             if (_carrito.Items.Count > 0 && !ConfirmarDescarte()) return;
 
+            if (_modoEmbebido)
+            {
+                ReiniciarCompraEnCurso();
+                MostrarInfo("Compra descartada. Podés comenzar una nueva carga.", esError: false);
+                EnfocarProveedor();
+                return;
+            }
+
             _descartando = true;
             Close();
+        }
+
+        private void ReiniciarCompraEnCurso()
+        {
+            _debounceBusqueda.Stop();
+            _carrito.Vaciar();
+            _proveedorElegido = null;
+            _errores.Clear();
+
+            _actualizandoComboProveedores = true;
+            try
+            {
+                cmbProveedor.DroppedDown = false;
+                cmbProveedor.Items.Clear();
+                cmbProveedor.Items.AddRange(_proveedoresActivos.Cast<object>().ToArray());
+                cmbProveedor.SelectedIndex = -1;
+                cmbProveedor.Text = string.Empty;
+            }
+            finally
+            {
+                _actualizandoComboProveedores = false;
+            }
+
+            txtComprobante.Clear();
+            dtpFecha.Value = DateTime.Today;
+            RefrescarGrilla();
+            LimpiarEntrada();
+            ActualizarTotal();
+            ActualizarEstadoAcciones();
+        }
+
+        public void EnfocarProveedor()
+        {
+            if (!IsDisposed && cmbProveedor.CanFocus)
+                cmbProveedor.Focus();
         }
 
         // Lo mismo si se cierra con la X de la ventana
         private void FrmAltaCompra_FormClosing(object? sender, FormClosingEventArgs e)
         {
-            if (CompraRegistrada || _descartando || _carrito.Items.Count == 0) return;
+            if (_modoEmbebido || CompraRegistrada || _descartando || _carrito.Items.Count == 0) return;
             if (e.CloseReason != CloseReason.UserClosing) return;
 
             if (!ConfirmarDescarte())
@@ -790,7 +1104,10 @@ namespace cantinaPadel.UI
             public ProductoItem(Producto producto) => Producto = producto;
 
             public override string ToString()
-                => string.IsNullOrWhiteSpace(Producto.CodigoBarras) ? Producto.Nombre : $"{Producto.Nombre}  [{Producto.CodigoBarras}]";
+            {
+                string codigo = string.IsNullOrWhiteSpace(Producto.CodigoBarras) ? string.Empty : $"  [{Producto.CodigoBarras}]";
+                return $"{Producto.Nombre}{codigo}   ·   Stock: {Producto.StockActual.ToString("N0", Es)}";
+            }
         }
     }
 }

@@ -34,6 +34,11 @@ namespace cantinaPadel.UI
         // Evita consultar la base mientras se arman o se reinician los filtros por código (cada asignación dispara eventos)
         private bool _armandoFiltros;
 
+        private TabControl? _tabsCompras;
+        private TabPage? _tabNuevaCompra;
+        private TabPage? _tabHistorial;
+        private FrmAltaCompra? _frmAltaCompra;
+
         public FrmListadoCompras()
         {
             InitializeComponent();
@@ -55,7 +60,8 @@ namespace cantinaPadel.UI
                 return;
             }
 
-            Text = "Listado de Compras";
+            Text = "Compras";
+            ConfigurarPestanas();
 
             ConfigurarGrilla();
             ConfigurarFiltros();
@@ -189,13 +195,12 @@ namespace cantinaPadel.UI
 
             btnLimpiar.Click += btnLimpiar_Click;
             btnNueva.Click += btnNueva_Click;
-            btnDetalle.Click += btnDetalle_Click;
             btnAnular.Click += btnAnular_Click;
             dgvCompras.DataBindingComplete += dgvCompras_DataBindingComplete;
             dgvCompras.SelectionChanged += (_, _) => ActualizarEstadoAcciones();
             dgvCompras.CellDoubleClick += (_, e) =>
             {
-                if (e.RowIndex >= 0) btnDetalle.PerformClick();
+                if (e.RowIndex >= 0) AbrirDetalleCompra();
             };
 
             _debounce.Tick += (_, _) =>
@@ -204,6 +209,140 @@ namespace cantinaPadel.UI
                 BuscarCompras();
             };
             Disposed += (_, _) => _debounce.Dispose();
+        }
+
+        private void ConfigurarPestanas()
+        {
+            Controls.Remove(panelAcciones);
+            Controls.Remove(panelFiltros);
+            Controls.Remove(dgvCompras);
+
+            BackColor = Color.FromArgb(250, 248, 240);
+            _tabsCompras = new TabControl
+            {
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9F),
+                Name = "tabsCompras"
+            };
+            _tabNuevaCompra = new TabPage("Nueva compra") { BackColor = BackColor, Padding = Padding.Empty };
+            _tabHistorial = new TabPage("Historial") { BackColor = BackColor, Padding = Padding.Empty };
+
+            var encabezado = new Panel { Dock = DockStyle.Fill, BackColor = BackColor };
+            encabezado.Controls.Add(new Label
+            {
+                AutoSize = true,
+                Font = new Font("Segoe UI", 12.5F, FontStyle.Bold),
+                Location = new Point(28, 4),
+                Text = "Historial de compras"
+            });
+
+            var etiquetaProducto = new Label
+            {
+                AutoSize = true,
+                Location = new Point(28, 81),
+                Text = "Producto:"
+            };
+            panelFiltros.Controls.Add(etiquetaProducto);
+            lblProveedor.Location = new Point(28, 30);
+            cmbProveedor.Location = new Point(124, 27);
+            txtProducto.Location = new Point(124, 76);
+            txtProducto.Size = new Size(320, 27);
+            chkIncluirAnuladas.Location = new Point(480, 79);
+            lblDesde.Location = new Point(28, 137);
+            dtpDesde.Location = new Point(124, 131);
+            lblHasta.Location = new Point(321, 137);
+            dtpHasta.Location = new Point(386, 131);
+            btnLimpiar.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnLimpiar.Location = new Point(Math.Max(583, ClientSize.Width - 192), 69);
+            btnLimpiar.Size = new Size(164, 42);
+
+            panelFiltros.Dock = DockStyle.Fill;
+            panelFiltros.BackColor = Color.White;
+            panelFiltros.BorderStyle = BorderStyle.FixedSingle;
+            panelAcciones.Dock = DockStyle.Fill;
+            panelAcciones.BackColor = Color.White;
+            panelAcciones.BorderStyle = BorderStyle.FixedSingle;
+            panelAcciones.Resize += (_, _) => CentrarBotonesHistorial();
+            dgvCompras.Dock = DockStyle.Fill;
+            dgvCompras.Margin = new Padding(0, 0, 0, 8);
+
+            lblResumen.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblResumen.AutoEllipsis = true;
+            lblResumen.Location = new Point(28, 8);
+            lblResumen.Size = new Size(Math.Max(300, panelAcciones.ClientSize.Width - 56), 30);
+            lblResumen.ForeColor = Color.FromArgb(71, 85, 105);
+
+            btnAnular.Anchor = AnchorStyles.Top;
+            btnAnular.Size = new Size(164, 42);
+            btnAnular.FlatStyle = FlatStyle.Flat;
+            btnAnular.BackColor = Color.FromArgb(185, 63, 63);
+            btnAnular.FlatAppearance.BorderSize = 0;
+
+            btnNueva.Anchor = AnchorStyles.Top;
+            btnNueva.Size = new Size(180, 42);
+            btnNueva.FlatStyle = FlatStyle.Flat;
+            btnNueva.BackColor = Color.FromArgb(35, 112, 73);
+            btnNueva.FlatAppearance.BorderSize = 0;
+
+            var contenidoHistorial = new TableLayoutPanel
+            {
+                ColumnCount = 1,
+                Dock = DockStyle.Fill,
+                Margin = Padding.Empty,
+                Padding = new Padding(12),
+                RowCount = 4
+            };
+            contenidoHistorial.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            contenidoHistorial.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+            contenidoHistorial.RowStyles.Add(new RowStyle(SizeType.Absolute, 190));
+            contenidoHistorial.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            contenidoHistorial.RowStyles.Add(new RowStyle(SizeType.Absolute, 114));
+            encabezado.Margin = new Padding(0, 0, 0, 8);
+            panelFiltros.Margin = new Padding(0, 0, 0, 8);
+            panelAcciones.Margin = Padding.Empty;
+            contenidoHistorial.Controls.Add(encabezado, 0, 0);
+            contenidoHistorial.Controls.Add(panelFiltros, 0, 1);
+            contenidoHistorial.Controls.Add(dgvCompras, 0, 2);
+            contenidoHistorial.Controls.Add(panelAcciones, 0, 3);
+            _tabHistorial.Controls.Add(contenidoHistorial);
+
+            _frmAltaCompra = new FrmAltaCompra(embebida: true)
+            {
+                Dock = DockStyle.Fill,
+                FormBorderStyle = FormBorderStyle.None,
+                Margin = Padding.Empty
+            };
+            _frmAltaCompra.CompraConfirmada += FrmAltaCompra_CompraConfirmada;
+            _tabNuevaCompra.Controls.Add(_frmAltaCompra);
+
+            _tabsCompras.TabPages.Add(_tabNuevaCompra);
+            _tabsCompras.TabPages.Add(_tabHistorial);
+            _tabsCompras.SelectedTab = _tabNuevaCompra;
+            Controls.Add(_tabsCompras);
+            CentrarBotonesHistorial();
+            _frmAltaCompra.Show();
+        }
+
+        private void CentrarBotonesHistorial()
+        {
+            int espacio = 16;
+            int anchoGrupo = btnNueva.Width + espacio + btnAnular.Width;
+            int izquierda = Math.Max(12, (panelAcciones.ClientSize.Width - anchoGrupo) / 2);
+            const int arriba = 54;
+            btnNueva.Location = new Point(izquierda, arriba);
+            btnAnular.Location = new Point(izquierda + btnNueva.Width + espacio, arriba);
+        }
+
+        private void FrmAltaCompra_CompraConfirmada(object? sender, EventArgs e)
+        {
+            _armandoFiltros = true;
+            try { RestablecerFiltros(); }
+            finally { _armandoFiltros = false; }
+
+            _debounce.Stop();
+            BuscarCompras();
+            if (_tabsCompras != null && _tabHistorial != null)
+                _tabsCompras.SelectedTab = _tabHistorial;
         }
 
         // Búsqueda
@@ -332,7 +471,6 @@ namespace cantinaPadel.UI
         private void ActualizarEstadoAcciones()
         {
             bool haySeleccion = dgvCompras.SelectedRows.Count > 0;
-            btnDetalle.Enabled = haySeleccion;
             btnAnular.Enabled = haySeleccion && EsAdministrador() &&
                 (dgvCompras.SelectedRows[0].Cells["Estado"].Value as string) != "Anulada";
         }
@@ -377,25 +515,15 @@ namespace cantinaPadel.UI
             BuscarCompras();
         }
 
-        // El alta es una ventana modal; si se registró una compra, se recarga el listado para que aparezca
+        // Acceso rápido desde el historial al punto de carga de compras.
         private void btnNueva_Click(object? sender, EventArgs e)
         {
-            using var frm = new FrmAltaCompra();
-            frm.ShowDialog(this);
-
-            if (frm.CompraRegistrada)
-            {
-                // La compra nueva tiene fecha de hoy: si los filtros la dejaban afuera, se vuelve a la vista por defecto para que se vea
-                _armandoFiltros = true;
-                try { RestablecerFiltros(); }
-                finally { _armandoFiltros = false; }
-
-                _debounce.Stop();
-                BuscarCompras();
-            }
+            if (_tabsCompras != null && _tabNuevaCompra != null)
+                _tabsCompras.SelectedTab = _tabNuevaCompra;
+            _frmAltaCompra?.EnfocarProveedor();
         }
 
-        private void btnDetalle_Click(object? sender, EventArgs e)
+        private void AbrirDetalleCompra()
         {
             if (!TryObtenerCompraSeleccionada(out int idCompra))
                 return;
